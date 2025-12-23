@@ -5,6 +5,7 @@ import type { DropdownOption } from "./DropDown";
 import DropDown from "./DropDown";
 import Input from "./Input";
 import { Text } from "./Text";
+import Button from "./Button";
 
 const statusOptions: DropdownOption[] = [
     { label: 'Active', value: 'active' },
@@ -24,8 +25,8 @@ const Components = () => {
 
     return (
         <SecondaryContainer>
-            {/* <SectionContainer >
-                <Text variant="main" textAlign={'left'} fontWeight={500} mb={1}>
+            <SectionContainer >
+                <Text size="subHeader" textAlign={'left'} fontWeight={500} mb={1}>
                     Button Components
                 </Text>
                 <Grid container size={{ xs: 12, md: 12 }} spacing={2}>
@@ -34,9 +35,9 @@ const Components = () => {
                     <Button type="danger" size="md" onClick={() => setCount((count) => count + 1)} text={`Count ${count}`} />
                     <Button type="success" size="md" onClick={() => setCount((count) => count + 1)} text={`Count ${count}`} />
                 </Grid>
-            </SectionContainer> */}
+            </SectionContainer>
             <SectionContainer>
-                <Text variant="main" textAlign={'left'} fontWeight={500} mb={1}>
+                <Text size="subHeader" textAlign={'left'} fontWeight={500} mb={1}>
                     DropDown Components
                 </Text>
                 <Grid container size={{ xs: 12, md: 12 }} spacing={2}>

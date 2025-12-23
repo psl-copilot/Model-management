@@ -4,7 +4,7 @@ import { SessionStorage } from "./enums";
 
 const insertData = (data: unknown, key: string, type = SessionStorage, encrypted = true) => {
 
-    let storage = type === SessionStorage ? sessionStorage : localStorage
+    const storage = type === SessionStorage ? sessionStorage : localStorage
 
     let value: string;
 
@@ -19,7 +19,7 @@ const insertData = (data: unknown, key: string, type = SessionStorage, encrypted
 
 const extractData = (key: string, type = SessionStorage, encrypted = true) => {
 
-    let storage = type === SessionStorage ? sessionStorage : localStorage
+    const storage = type === SessionStorage ? sessionStorage : localStorage
 
     let data = storage.getItem(key);
 

@@ -1,7 +1,6 @@
-import { useForm } from "react-hook-form";
-import { useLoginMutation } from "../../../redux/Api/Auth";
-import { loginValidation } from "../../../utils/Common/validators";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm } from "react-hook-form";
+import { loginValidation } from "../../../utils/Common/validators";
 
 const initial = {
     email: '',
@@ -11,7 +10,6 @@ const initial = {
 const useLoginController = () => {
 
 
-    const [submit, { isLoading }] = useLoginMutation()
 
     const {
         control,
@@ -19,7 +17,7 @@ const useLoginController = () => {
         formState: { errors },
     } = useForm({ defaultValues: initial, resolver: yupResolver(loginValidation) });
 
-    const onSubmit = (data: unknown) => {
+    const onSubmit = () => {
 
     };
 
@@ -27,7 +25,7 @@ const useLoginController = () => {
         values: {
             control,
             errors,
-            isLoading
+            isLoading: false
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

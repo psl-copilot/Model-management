@@ -1,17 +1,17 @@
-import { Typography, styled, type Theme, type TypographyProps } from '@mui/material';
-import { baseFontSizes } from '../../utils/Constants';
+import { Typography, styled, type TypographyProps } from '@mui/material'
+import { baseFontSizes } from '../../utils/Constants'
 
-type VariantKey = keyof typeof baseFontSizes;
+type SizeKey = keyof typeof baseFontSizes
 
-interface TextProps extends Omit<TypographyProps, 'variant'> {
-    variant: VariantKey;
+interface TextProps extends TypographyProps {
+    size: SizeKey
 }
 
-export const Text = styled(({ variant, ...props }: TextProps) => (
-    <Typography {...props} />
-))<TextProps>(({ theme, variant }: { theme: Theme; variant: VariantKey }) => ({
-    fontSize: baseFontSizes[variant].default,
+export const Text = styled(Typography, {
+    shouldForwardProp: (prop) => prop !== 'size',
+})<TextProps>(({ theme, size }) => ({
+    fontSize: baseFontSizes[size].default,
     [theme.breakpoints.down('sm')]: {
-        fontSize: baseFontSizes[variant].small,
+        fontSize: baseFontSizes[size].small,
     },
-}));
+}))
