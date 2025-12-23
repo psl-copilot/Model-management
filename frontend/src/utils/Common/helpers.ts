@@ -1,0 +1,1 @@
+export const hideValue = (value: string, sign = "*") => sign?.repeat(value?.length)
