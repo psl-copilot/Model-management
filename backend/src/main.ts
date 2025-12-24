@@ -6,7 +6,7 @@ import { LoggerService } from '@tazama-lf/frms-coe-lib';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3005);
+  
   const logger = app.get(LoggerService);
   app.useLogger(logger);
   logger.log(
@@ -25,5 +25,6 @@ async function bootstrap(): Promise<void> {
     origin: true,
     credentials: true,
   });
+  await app.listen(process.env.PORT ?? 3005);
 }
 bootstrap();
