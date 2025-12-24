@@ -16,9 +16,9 @@ export class AdminServiceClient {
   async forwardRequest(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
     path: string,
-    body?: any,
+    body?: unknown,
     headers?: Record<string, string>,
-  ): Promise<any> {
+  ): Promise<unknown> {
     const url = `${this.adminServiceUrl}${path}`;
     if (body) {
       this.logger.debug(
