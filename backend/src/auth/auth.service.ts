@@ -52,8 +52,7 @@ export class AuthService {
       return {
         message: 'Login successful',
         token,
-        expiresIn:
-          response.data?.expires_in ?? response.data?.expiresIn ,
+        expiresIn: response.data?.expires_in ?? response.data?.expiresIn,
       };
     } catch (error) {
       if (error.response?.status === 401) {

@@ -7,7 +7,7 @@ import { TazamaAuthGuard } from './tazama-auth.guard';
 
 @Global()
 @Module({
-  imports: [ LoggerModule, HttpModule],
+  imports: [LoggerModule, HttpModule],
   providers: [AuthService, TazamaAuthGuard],
   exports: [AuthService, TazamaAuthGuard],
   controllers: [AuthController],

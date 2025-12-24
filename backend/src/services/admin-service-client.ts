@@ -8,14 +8,10 @@ export class AdminServiceClient {
   private readonly logger = new Logger(AdminServiceClient.name);
   private readonly adminServiceUrl: string;
 
-  constructor(
-    private readonly httpService: HttpService,
-  ) {
+  constructor(private readonly httpService: HttpService) {
     this.adminServiceUrl =
-      process.env.ADMIN_SERVICE_URL ??
-      'http://localhost:3100';
+      process.env.ADMIN_SERVICE_URL ?? 'http://localhost:3100';
   }
-
 
   async forwardRequest(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
