@@ -29,7 +29,7 @@ export const RequireClaim = (claim: string): MethodDecorator =>
 export const TazamaClaims = {
   EDITOR: 'editor',
   APPROVER: 'approver',
-  DEPLOYER: 'deployer',
+  PUBLISHER: 'publisher',
   MANAGE_ACCOUNT: 'manage-account',
   MANAGE_ACCOUNT_LINKS: 'manage-account-links',
   VIEW_PROFILE: 'view-profile',
@@ -41,7 +41,7 @@ export const TazamaClaims = {
 export const RequireEditorRole = (): MethodDecorator => RequireClaim(TazamaClaims.EDITOR);
 export const RequireApproverRole = (): MethodDecorator =>
   RequireClaim(TazamaClaims.APPROVER);
-export const RequireDeployerRole = (): MethodDecorator =>
-  RequireClaim(TazamaClaims.DEPLOYER);
+export const RequirePublisherRole = (): MethodDecorator =>
+  RequireClaim(TazamaClaims.PUBLISHER);
 export const RequireAccountManagement = (): MethodDecorator =>
   RequireClaims(TazamaClaims.MANAGE_ACCOUNT, TazamaClaims.MANAGE_ACCOUNT_LINKS);

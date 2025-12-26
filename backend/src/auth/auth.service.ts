@@ -55,9 +55,15 @@ export class AuthService {
         expiresIn: response.data?.expires_in ?? response.data?.expiresIn,
       };
     } catch (error) {
+      if (error.response?.status === 429) {
+        const errorMessage = 'Account temporarily locked due to too many failed login attempts.';
+        this.loggerService.warn(`Account locked (${error.response?.status}): ${errorMessage}`);
+        throw new UnauthorizedException(errorMessage);
+      }
       if (error.response?.status === 401) {
-        this.loggerService.warn(`Invalid credentials for user ${username}`);
-        throw new UnauthorizedException('Invalid credentials');
+        const errorMessage = 'Invalid credentials';
+        this.loggerService.warn(`Authentication failed: ${errorMessage}`);
+        throw new UnauthorizedException(errorMessage);
       }
       this.loggerService.error(
         `Auth service error during login: ${error.message}`,
