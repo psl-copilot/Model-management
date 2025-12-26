@@ -1,22 +1,13 @@
-import {
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AdminServiceClient } from '../services/admin-service-client';
 import { Rules } from './dto/rules.dto';
 
-
 @Injectable()
 export class RulesService {
-    private readonly logger = new Logger(RulesService.name);
+  private readonly logger = new Logger(RulesService.name);
 
-    constructor(private readonly adminServiceClient: AdminServiceClient,
-
-    ) {}
-    private async getRuleOrThrow(
-    id: number,
-    token: string,
-  ): Promise<Rules> {
+  constructor(private readonly adminServiceClient: AdminServiceClient) {}
+  private async getRuleOrThrow(id: number, token: string): Promise<Rules> {
     try {
       return await this.adminServiceClient.getRulesById(id, token);
     } catch (error) {
@@ -25,8 +16,7 @@ export class RulesService {
       throw error;
     }
   }
-  
-  
+
   async getAllRules(
     offset: number,
     limit: number,
@@ -48,5 +38,4 @@ export class RulesService {
     const rules = await this.getRuleOrThrow(id, token);
     return rules;
   }
-
-  }
+}

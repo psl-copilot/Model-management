@@ -11,10 +11,7 @@ import {
 import { TazamaAuthGuard } from '../auth/tazama-auth.guard';
 import { User } from '../auth/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
-import {
-  TazamaClaims,
-  RequireAnyClaims,
-} from '../auth/auth.decorator';
+import { TazamaClaims, RequireAnyClaims } from '../auth/auth.decorator';
 import { RulesService } from './rules.service';
 import { Rules } from './dto/rules.dto';
 @Controller('rules')
@@ -41,7 +38,7 @@ export class RulesController {
       user.token.tokenString,
     );
   }
-    @Get('/api/:id')
+  @Get('/api/:id')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
@@ -57,5 +54,4 @@ export class RulesController {
       user.token.tokenString,
     );
   }
-  
 }

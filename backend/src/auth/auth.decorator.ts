@@ -38,7 +38,8 @@ export const TazamaClaims = {
   UMA_AUTHORIZATION: 'uma_authorization',
 } as const;
 
-export const RequireEditorRole = (): MethodDecorator => RequireClaim(TazamaClaims.EDITOR);
+export const RequireEditorRole = (): MethodDecorator =>
+  RequireClaim(TazamaClaims.EDITOR);
 export const RequireApproverRole = (): MethodDecorator =>
   RequireClaim(TazamaClaims.APPROVER);
 export const RequirePublisherRole = (): MethodDecorator =>

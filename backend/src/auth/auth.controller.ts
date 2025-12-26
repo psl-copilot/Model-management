@@ -23,10 +23,10 @@ export class AuthController {
   async login(
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
     body: LoginDto,
-  ): Promise<{ message: string; token: string; expiresIn?: number  }> {
+  ): Promise<{ message: string; token: string; expiresIn?: number }> {
     try {
       const result = await this.authService.login(body.username, body.password);
-      const response: {token: string; message: string; expiresIn?: number} = {
+      const response: { token: string; message: string; expiresIn?: number } = {
         message: 'Login successful',
         token: result.token,
       };

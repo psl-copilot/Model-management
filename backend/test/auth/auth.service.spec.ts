@@ -265,7 +265,8 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException for 429 with custom message', async () => {
-      const customMessage = 'User account is temporarily locked. Try again in 5 minutes.';
+      const customMessage =
+        'User account is temporarily locked. Try again in 5 minutes.';
       const error = {
         response: { status: 429, data: { message: customMessage } },
         message: 'Too Many Requests',
