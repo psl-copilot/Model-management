@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-
+import { HttpException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Rules } from '../rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -11,6 +11,26 @@ export class AdminServiceClient {
   constructor(private readonly httpService: HttpService) {
     this.adminServiceUrl =
       process.env.ADMIN_SERVICE_URL ?? 'http://localhost:3100';
+  }
+
+  private async executeHttpRequest(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+    url: string,
+    body?: unknown,
+    headers?: Record<string, string>,
+  ): Promise<{ data: unknown; status: number }> {
+    switch (method) {
+      case 'GET':
+        return await firstValueFrom(this.httpService.get(url, { headers }));
+      case 'POST':
+        return await firstValueFrom(this.httpService.post(url, body, { headers }));
+      case 'PUT':
+        return await firstValueFrom(this.httpService.put(url, body, { headers }));
+      case 'DELETE':
+        return await firstValueFrom(this.httpService.delete(url, { headers, data: body }));
+      case 'PATCH':
+        return await firstValueFrom(this.httpService.patch(url, body, { headers }));
+    }
   }
 
   async forwardRequest(
@@ -30,39 +50,7 @@ export class AdminServiceClient {
     }
 
     try {
-      let response;
-
-      switch (method) {
-        case 'GET':
-          response = await firstValueFrom(
-            this.httpService.get(url, { headers }),
-          );
-          break;
-
-        case 'POST':
-          response = await firstValueFrom(
-            this.httpService.post(url, body, { headers }),
-          );
-          break;
-
-        case 'PUT':
-          response = await firstValueFrom(
-            this.httpService.put(url, body, { headers }),
-          );
-          break;
-
-        case 'DELETE':
-          response = await firstValueFrom(
-            this.httpService.delete(url, { headers, data: body }),
-          );
-          break;
-
-        case 'PATCH':
-          response = await firstValueFrom(
-            this.httpService.patch(url, body, { headers }),
-          );
-          break;
-      }
+      const response = await this.executeHttpRequest(method, url, body, headers);
 
       this.logger.log(`${method} ${path} - Success (${response.status})`);
       this.logger.debug(
@@ -71,10 +59,11 @@ export class AdminServiceClient {
 
       return response.data;
     } catch (error) {
-      this.logger.error(`${method} ${path} - Failed: ${error.message}`);
+      const err = error as { response?: { status: number; data: unknown }; request?: unknown; message: string };
+      this.logger.error(`${method} ${path} - Failed: ${err.message}`);
 
-      if (error.response) {
-        const { status, data } = error.response;
+      if (err.response) {
+        const { status, data } = err.response;
         this.logger.error(
           `Admin-service error (${status}): ${JSON.stringify(data)}`,
         );
@@ -90,19 +79,103 @@ export class AdminServiceClient {
               : 'Request failed';
 
         throw new HttpException(message, status);
-      } else if (error.request) {
-        this.logger.error(`No response from admin-service: ${error.message}`);
+      } else if (err.request) {
+        this.logger.error(`No response from admin-service: ${err.message}`);
         throw new HttpException(
           'Admin service is unavailable',
           HttpStatus.SERVICE_UNAVAILABLE,
         );
       } else {
-        this.logger.error(`Request setup error: ${error.message}`);
+        this.logger.error(`Request setup error: ${err.message}`);
         throw new HttpException(
           'Internal server error',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
     }
+  }
+
+  private handleError(error: unknown, operation: string): never {
+    const err = error as { response?: { status: number; data: unknown }; request?: unknown; message: string };
+    if (err.response) {
+      const { status, data } = err.response;
+      this.logger.error(
+        `${operation} failed with status ${status}: ${JSON.stringify(data)}`,
+      );
+
+      const message = 
+        data && 
+        typeof data === 'object' && 
+        'message' in data && 
+        typeof data.message === 'string' 
+          ? data.message 
+          : 'Admin service returned an error response';
+      
+      throw new HttpException(message, status);
+    } else if (err.request) {
+      this.logger.error(
+        `${operation} - No response from admin-service: ${err.message}`,
+      );
+      throw new HttpException(
+        'Admin service is unavailable',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    } else {
+      this.logger.error(`${operation} - Error: ${err.message}`);
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getAllRulesWithFilters(
+    offset: number,
+    limit: number,
+    filters: Record<string, unknown>,
+    token: string,
+  ): Promise<Rules[]> {
+    return await this.forwardRequest(
+      'POST',
+      `/v1/admin/trs/rules/${offset}/${limit}`,
+      filters,
+      {
+        Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+      },
+    ) as Rules[];
+  }
+    async getRulesById(id: number, token: string): Promise<Rules> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/trs/rules/${id}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.rules) {
+        this.logger.warn(`Rules ${id} not found in admin-service response`);
+        throw new NotFoundException(`Rules with id ${id} not found`);
+      }
+
+      return response.data.rules;
+    } catch (error) {
+      return this.handleError(error, 'getRulesById');
+    }
+  }
+
+  async countRulesByStatus( token: string): Promise<number> {
+      return await this.forwardRequest(
+      'GET',
+      '/v1/admin/trs/rules/count',
+      undefined,
+      {
+        Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+      },
+    ) as number;
   }
 }
