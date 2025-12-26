@@ -11,10 +11,13 @@ const theme = () => {
         main: '#4caf50',
     };
 
+
     const staticColorPalette = {
         primary: '#1f2937',
         secondary: '#4b7eee',
         ternary: '#616a76',
+        black: '#000',
+        white: '#fff'
     };
 
     return {
@@ -37,6 +40,8 @@ const theme = () => {
                 primary: staticColorPalette.primary,
                 secondary: staticColorPalette.secondary,
                 ternary: staticColorPalette.ternary,
+                black: staticColorPalette.black,
+                white: staticColorPalette.white
             },
             static: staticColorPalette,
             error: errorPalette,

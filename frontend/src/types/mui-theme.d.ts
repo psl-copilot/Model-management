@@ -3,8 +3,10 @@ import '@mui/material/styles';
 declare module '@mui/material/styles' {
     interface TypeText {
         ternary: string;
+        black: string,
+        white: string
     }
-    
+
     interface Palette {
         static: {
             primary: string;
@@ -15,7 +17,7 @@ declare module '@mui/material/styles' {
             main: string;
         };
     }
-    
+
     interface PaletteOptions {
         static?: {
             primary: string;
