@@ -49,9 +49,4 @@ export class RulesService {
     return rules;
   }
 
-  async countByStatus(
-    token: string,
-  ): Promise<number> {
-    return await this.adminServiceClient.countRulesByStatus(token);
-  }
   }

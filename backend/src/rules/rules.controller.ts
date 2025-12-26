@@ -58,19 +58,4 @@ export class RulesController {
     );
   }
   
-  @Get('/api/count')
-  @RequireAnyClaims(
-    TazamaClaims.EDITOR,
-    TazamaClaims.APPROVER,
-    TazamaClaims.PUBLISHER,
-  )
-  async countByStatus(
-    @User() user: AuthenticatedUser,
-  ): Promise<{ count: number }> {
-   
-    const count = await this.rulesService.countByStatus(
-      user.token.tokenString,
-    );
-    return { count };
-  }
 }

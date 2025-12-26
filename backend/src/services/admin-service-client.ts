@@ -168,14 +168,4 @@ export class AdminServiceClient {
     }
   }
 
-  async countRulesByStatus( token: string): Promise<number> {
-      return await this.forwardRequest(
-      'GET',
-      '/v1/admin/trs/rules/count',
-      undefined,
-      {
-        Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
-      },
-    ) as number;
-  }
 }
