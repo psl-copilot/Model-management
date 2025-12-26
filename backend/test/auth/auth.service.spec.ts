@@ -176,7 +176,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException for 401 status code', async () => {
       const error = {
-        response: { status: 401 },
+        response: { status: 401, data: {} },
         message: 'Unauthorized',
       };
       (httpService.post as jest.Mock).mockReturnValue(
@@ -192,7 +192,98 @@ describe('AuthService', () => {
       }
 
       expect(loggerService.warn).toHaveBeenCalledWith(
-        `Invalid credentials for user ${username}`,
+        'Authentication failed: Invalid credentials',
+      );
+    });
+
+    it('should throw UnauthorizedException for 401 with custom error message', async () => {
+      const customMessage = 'User not found';
+      const error = {
+        response: { status: 401, data: { message: customMessage } },
+        message: 'Unauthorized',
+      };
+      (httpService.post as jest.Mock).mockReturnValue(
+        throwError(() => error) as any,
+      );
+
+      try {
+        await service.login(username, password);
+        fail('Expected UnauthorizedException to be thrown');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(UnauthorizedException);
+        expect(err.message).toBe(customMessage);
+      }
+
+      expect(loggerService.warn).toHaveBeenCalledWith(
+        `Authentication failed: ${customMessage}`,
+      );
+    });
+
+    it('should throw UnauthorizedException for 401 with error field', async () => {
+      const customMessage = 'Invalid password';
+      const error = {
+        response: { status: 401, data: { error: customMessage } },
+        message: 'Unauthorized',
+      };
+      (httpService.post as jest.Mock).mockReturnValue(
+        throwError(() => error) as any,
+      );
+
+      try {
+        await service.login(username, password);
+        fail('Expected UnauthorizedException to be thrown');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(UnauthorizedException);
+        expect(err.message).toBe(customMessage);
+      }
+
+      expect(loggerService.warn).toHaveBeenCalledWith(
+        `Authentication failed: ${customMessage}`,
+      );
+    });
+
+    it('should throw UnauthorizedException for 429 (account locked)', async () => {
+      const error = {
+        response: { status: 429, data: {} },
+        message: 'Too Many Requests',
+      };
+      (httpService.post as jest.Mock).mockReturnValue(
+        throwError(() => error) as any,
+      );
+
+      try {
+        await service.login(username, password);
+        fail('Expected UnauthorizedException to be thrown');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(UnauthorizedException);
+        expect(err.message).toContain('Account temporarily locked');
+      }
+
+      expect(loggerService.warn).toHaveBeenCalledWith(
+        'Account locked (429): Account temporarily locked due to too many failed login attempts.',
+      );
+    });
+
+    it('should throw UnauthorizedException for 429 with custom message', async () => {
+      const customMessage = 'User account is temporarily locked. Try again in 5 minutes.';
+      const error = {
+        response: { status: 429, data: { message: customMessage } },
+        message: 'Too Many Requests',
+      };
+      (httpService.post as jest.Mock).mockReturnValue(
+        throwError(() => error) as any,
+      );
+
+      try {
+        await service.login(username, password);
+        fail('Expected UnauthorizedException to be thrown');
+      } catch (err: any) {
+        expect(err).toBeInstanceOf(UnauthorizedException);
+        expect(err.message).toBe(customMessage);
+      }
+
+      expect(loggerService.warn).toHaveBeenCalledWith(
+        `Account locked (429): ${customMessage}`,
       );
     });
 

@@ -56,12 +56,16 @@ export class AuthService {
       };
     } catch (error) {
       if (error.response?.status === 429) {
-        const errorMessage = 'Account temporarily locked due to too many failed login attempts.';
-        this.loggerService.warn(`Account locked (${error.response?.status}): ${errorMessage}`);
+        const errorMessage = error.response?.data?.message ?? 
+                            error.response?.data?.error ?? 
+                            'Account temporarily locked due to too many failed login attempts.';
+        this.loggerService.warn(`Account locked (429): ${errorMessage}`);
         throw new UnauthorizedException(errorMessage);
       }
       if (error.response?.status === 401) {
-        const errorMessage = 'Invalid credentials';
+        const errorMessage = error.response?.data?.message ?? 
+                            error.response?.data?.error ?? 
+                            'Invalid credentials';
         this.loggerService.warn(`Authentication failed: ${errorMessage}`);
         throw new UnauthorizedException(errorMessage);
       }
