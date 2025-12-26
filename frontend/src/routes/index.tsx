@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 
 const Components = lazy(() => import("../components"));
 const Login = lazy(() => import("../pages/Auth/Login"));
+const Dashboard = lazy(() => import("../pages/Dashboard"));
 
 export const ROUTES = [
     {
@@ -22,5 +23,11 @@ export const ROUTES = [
         element: <Login />,
         private: false,
         layout: false
+    },
+    {
+        path: "/dashboard",
+        element: <Dashboard />,
+        private: true,
+        layout: true,
     },
 ];

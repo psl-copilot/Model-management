@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 export const loginValidation = yup
     .object({
-        email: yup
+        username: yup
             .string()
             .required('This Field is Required')
             .max(100, 'Email must not exceed 100 characters')

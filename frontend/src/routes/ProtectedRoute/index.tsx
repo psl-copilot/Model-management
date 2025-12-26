@@ -4,7 +4,7 @@ import { extractData } from "../../utils/Common/storage";
 const ProtectedRoute = () => {
 
     const isAuthenticated = () => {
-        return !!extractData("user")
+        return !!extractData("access_token")
     }
 
     return isAuthenticated() ? <Navigate to="/dashboard" /> : <Outlet />

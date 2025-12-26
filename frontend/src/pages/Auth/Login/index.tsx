@@ -43,7 +43,7 @@ const Login = () => {
 
                         <S.FormWrapper>
                             <Controller
-                                name="email"
+                                name="username"
                                 control={values.control}
                                 rules={{
                                     required: 'Email Address is required',
@@ -79,7 +79,7 @@ const Login = () => {
                             <Button text="LOGIN" loading={values?.isLoading} type='primary' size='lg' Icon={LoginIcon} onClick={functions.handleSubmit} />
                         </S.FormWrapper>
 
-                        <S.FooterText variant="body2" color="text.secondary">
+                        <S.FooterText variant="body2" color="text.black">
                             &copy; {new Date().getFullYear()} Tazama. Powered by Paysys Labs.
                         </S.FooterText>
                     </S.LoginCard>

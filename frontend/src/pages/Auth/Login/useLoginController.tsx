@@ -1,15 +1,21 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from "react-hook-form";
 import { loginValidation } from "../../../utils/Common/validators";
+import { useLoginMutation } from '../../../redux/Api/Auth';
+import { useEffect } from 'react';
+import { insertData } from '../../../utils/Common/storage';
+import { useNavigate } from 'react-router-dom';
 
 const initial = {
-    email: '',
+    username: '',
     password: ''
 }
 
 const useLoginController = () => {
 
+    const navigate = useNavigate()
 
+    const [submit, { data, isLoading, isSuccess }] = useLoginMutation()
 
     const {
         control,
@@ -17,15 +23,22 @@ const useLoginController = () => {
         formState: { errors },
     } = useForm({ defaultValues: initial, resolver: yupResolver(loginValidation) });
 
-    const onSubmit = () => {
+    useEffect(() => {
+        if (isSuccess) {
+            insertData(data?.token, "access_token")
+            navigate("/dashboard")
+        }
+    }, [isSuccess, data])
 
+    const onSubmit = (data: unknown) => {
+        submit(data)
     };
 
     return {
         values: {
             control,
             errors,
-            isLoading: false
+            isLoading
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
