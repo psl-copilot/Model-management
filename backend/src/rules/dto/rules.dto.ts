@@ -43,6 +43,10 @@ export class Rules {
   updated_by: string;
 
   @IsOptional()
+  @IsString()
+  rule_type?: string;
+
+  @IsOptional()
   @IsDateString()
   updated_at?: Date;
 
@@ -83,6 +87,10 @@ export class CreateRuleDto {
   @IsString()
   @IsNotEmpty()
   updated_by: string;
+
+  @IsString()
+  @IsNotEmpty()
+  rule_type: string;
 }
 
 export class UpdateRuleDto {

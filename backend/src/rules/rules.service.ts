@@ -30,6 +30,8 @@ export class RulesService {
       token,
     );
   }
+
+
   async getRulesById(
     id: number,
     tenantId: string,
@@ -37,5 +39,18 @@ export class RulesService {
   ): Promise<Rules> {
     const rules = await this.getRuleOrThrow(id, token);
     return rules;
+  }
+
+  async createRule(
+    ruleData: Partial<Rules>,
+    token: string,
+  ): Promise<Rules> {
+    try {
+      return await this.adminServiceClient.createRule(ruleData, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error creating rule: ${err.message}`);
+      throw error;
+    }
   }
 }

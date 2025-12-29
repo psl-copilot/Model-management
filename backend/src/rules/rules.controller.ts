@@ -14,10 +14,12 @@ import type { AuthenticatedUser } from '../auth/auth.types';
 import { TazamaClaims, RequireAnyClaims } from '../auth/auth.decorator';
 import { RulesService } from './rules.service';
 import { Rules } from './dto/rules.dto';
+
 @Controller('rules')
 @UseGuards(TazamaAuthGuard)
 export class RulesController {
   constructor(private readonly rulesService: RulesService) {}
+
 
   @Post('/api/all')
   @RequireAnyClaims(
@@ -38,6 +40,8 @@ export class RulesController {
       user.token.tokenString,
     );
   }
+
+
   @Get('/api/:id')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
@@ -51,6 +55,20 @@ export class RulesController {
     return await this.rulesService.getRulesById(
       id,
       user.tenantId,
+      user.token.tokenString,
+    );
+  }
+
+  @Post('/api')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async createRule(
+    @Body() ruleData: Partial<Rules>,
+    @User() user: AuthenticatedUser,
+  ): Promise<Rules> {
+    console.log('Creating rule with data:', ruleData);
+    console.log('User info:', user.validated);
+    return await this.rulesService.createRule(
+      ruleData,
       user.token.tokenString,
     );
   }

@@ -17,6 +17,7 @@ export class AdminServiceClient {
   constructor(private readonly httpService: HttpService) {
     this.adminServiceUrl =
       process.env.ADMIN_SERVICE_URL ?? 'http://localhost:3100';
+    this.logger.log(`Admin Service URL configured as: ${this.adminServiceUrl}`);
   }
 
   private async executeHttpRequest(
@@ -54,6 +55,7 @@ export class AdminServiceClient {
     headers?: Record<string, string>,
   ): Promise<unknown> {
     const url = `${this.adminServiceUrl}${path}`;
+    this.logger.log(`Making ${method} request to: ${url}`);
     if (body) {
       this.logger.debug(
         `Request body: ${JSON.stringify(body).substring(0, 200)}...`,
@@ -194,6 +196,33 @@ export class AdminServiceClient {
       return response.data.rules;
     } catch (error) {
       return this.handleError(error, 'getRulesById');
+    }
+  }
+
+  async createRule(ruleData: Partial<Rules>, token: string): Promise<Rules> {
+    try {
+      const response = await this.forwardRequest(
+        'POST',
+        '/v1/admin/trs/rule',
+        ruleData, 
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      );
+
+      console.log("the response from admin service client is", response);
+
+      if (!response || typeof response !== 'object' || !('rule' in response)) {
+        this.logger.error('Invalid response from admin-service createRule');
+        throw new HttpException(
+          'Invalid response from admin service',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return (response as { rule: Rules }).rule;
+    } catch (error) {
+      return this.handleError(error, 'createRule');
     }
   }
 }
