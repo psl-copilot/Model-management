@@ -5,7 +5,7 @@ import { NAV_HEIGHT } from "../../utils/Constants";
 import Sidebar from "../../layout/Sidebar";
 import Header from "../../layout/Header";
 
-const MainLayout = () => {
+const ComingSoon = () => {
     const [expanded, setExpanded] = useState(false);
     const SIDEBAR_WIDTH = expanded ? 260 : 60;
 
@@ -47,4 +47,4 @@ const MainLayout = () => {
     );
 };
 
-export default MainLayout;
+export default ComingSoon;

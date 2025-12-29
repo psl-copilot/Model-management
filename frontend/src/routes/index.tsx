@@ -5,6 +5,7 @@ const Components = lazy(() => import("../components"));
 const Login = lazy(() => import("../pages/Auth/Login"));
 const Home = lazy(() => import("../pages/Home"));
 const RuleEditor = lazy(() => import("../pages/RuleEditor"));
+const ComingSoon = lazy(() => import("../pages/ComingSoon"));
 
 export const ROUTES = [
     {
@@ -33,7 +34,7 @@ export const ROUTES = [
     },
     {
         path: "/editor",
-        element: <RuleEditor />,
+        element: <ComingSoon />,
         private: true,
         layout: true,
     },

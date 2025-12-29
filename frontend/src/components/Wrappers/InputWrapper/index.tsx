@@ -29,7 +29,7 @@ const InputWrapper = ({
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <Box width="100%" mb={3} maxWidth={maxWidth ?? 450}>
+        <Box width="100%" maxWidth={maxWidth ?? 450}>
 
             {view_only ? (
                 <Box display="flex" alignItems="center" mt={0.5} px={1}>

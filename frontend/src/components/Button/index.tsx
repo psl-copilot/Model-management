@@ -2,12 +2,13 @@ import React, { memo } from "react";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 
+
 type ButtonProps = {
   onClick: () => void;
   Icon?: React.ElementType;
   disabled?: boolean;
   text: string;
-  type?: "primary" | "secondary" | "muted" | "danger" | "success" | "default";
+  type?: "primary" | "secondary" | "muted" | "danger" | "success" | "default" | 'simple';
   outlined?: boolean;
   loading?: boolean;
   size?: "sm" | "md" | "lg" | "";
@@ -37,6 +38,10 @@ const MuiButton = ({
     muted: {
       main: "#e0e0e0",
       contrastText: "#555",
+    },
+    simple: {
+      main: "#d6dadf",
+      contrastText: "#000",
     },
     danger: {
       main: "#d32f2f",
@@ -82,7 +87,7 @@ const MuiButton = ({
         gap: 1,
         ...(outlined
           ? {
-            color: selected.main,
+            color: selected.contrastText,
             borderColor: selected.main,
           }
           : {

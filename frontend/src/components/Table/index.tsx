@@ -1,4 +1,3 @@
-import { memo } from "react";
 import {
     Box,
     Table as MuiTable,
@@ -9,9 +8,9 @@ import {
     TableHead,
     TableRow,
 } from "@mui/material";
+import { memo } from "react";
 
 import { dateFormatter, getNestedValue } from "../../utils/Common/helpers";
-import { serial_no_option } from "../../utils/Constants";
 import Loader from "../Loader";
 import CustomPagination from "../Pagination";
 
@@ -44,7 +43,6 @@ type TableProps = {
 };
 
 const Table = ({
-    serial_no = true,
     columns,
     data,
     pagination = null,

@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { DropdownOption } from "../../components/DropDown";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
+import { rule_types, Status } from "../../utils/Constants/data";
 
 const useHomeController = () => {
     const navigate = useNavigate();
+    const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
+    const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
 
     const {
         offset,
@@ -25,7 +29,9 @@ const useHomeController = () => {
                     offset,
                     limit
                 }
-                const body = { ruleName: searchTerm || undefined };
+                const statusValue = status && !Array.isArray(status) ? status.value : undefined;
+                const ruleValue = ruleType && !Array.isArray(ruleType) ? ruleType.value : undefined;
+                const body = { ruleName: searchTerm ?? undefined, status: statusValue, ruleType: ruleValue };
                 const response = await getRules({
                     params, body
                 }).unwrap();
@@ -38,7 +44,7 @@ const useHomeController = () => {
         };
 
         fetchRules();
-    }, [getRules, offset, limit, searchTerm]);
+    }, [getRules, offset, limit, searchTerm, status, ruleType]);
 
 
     const pagination = useMemo(() => {
@@ -58,8 +64,8 @@ const useHomeController = () => {
         { label: "Name", key: "rule_name" },
         { label: "Rule Id", key: "rule_id" },
         { label: "Status", key: "status" },
-        { label: "Owner", key: "owner" },
-        { label: "Updated", key: "updated_by" },
+        { label: "Owner", key: "updated_by" },
+        { label: "Updated", key: "updated_at", type: 'date' as const },
         { label: "Version", key: "version" },
     ];
 
@@ -69,11 +75,17 @@ const useHomeController = () => {
             data,
             isLoading,
             pagination,
-            searchTerm
+            searchTerm,
+            status,
+            ruleType,
+            status_options: [{ label: 'All', value: null }, ...Object.entries(Status).map(([_, value]) => { return { label: value, value } })],
+            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleCreateNew,
-            setSearchTerm
+            setSearchTerm,
+            setStatus,
+            setRuleType
         },
     };
 };

@@ -95,7 +95,10 @@ export const FormWrapper = styled(Box)({
   marginTop: 24,
   width: '100%',
   backgroundColor: 'transparent',
-  component : 'form'
+  component: 'form',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
 });
 
 export const FooterText = styled(Typography)({

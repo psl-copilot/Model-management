@@ -15,7 +15,7 @@ import useDebouncedSearch from '../../hooks/useDebouncedSearch';
 
 export interface DropdownOption {
     label: string;
-    value: string | number;
+    value: string | number | null;
 }
 
 interface DropdownProps {
@@ -31,6 +31,7 @@ interface DropdownProps {
     disabled?: boolean;
     searchable?: boolean;
     cancelable?: boolean;
+    maxWidth?: string | number
 }
 
 const Dropdown = ({
@@ -46,6 +47,7 @@ const Dropdown = ({
     disabled = false,
     searchable = false,
     cancelable = false,
+    maxWidth = 300
 }: DropdownProps) => {
     const [open, setOpen] = useState<boolean>(false);
     const [search, debouncedSearch, setSearch] =
@@ -105,7 +107,7 @@ const Dropdown = ({
 
 
     return (
-        <Box width="100%" ref={dropdownRef} position={'relative'}>
+        <Box width="100%" maxWidth={maxWidth} ref={dropdownRef} position={'relative'}>
             <Typography textAlign={'left'} variant="body2" mb={0.5} px={1}>
                 {label}
                 {required && !view_only && (
