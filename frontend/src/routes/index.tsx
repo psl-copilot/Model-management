@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import RuleBuilder from "../pages/rule-builder";
 
 const Components = lazy(() => import("../components"));
 const Login = lazy(() => import("../pages/Auth/Login"));
@@ -16,4 +17,10 @@ export const ROUTES = [
         private: false,
         layout: false
     },
+    {
+        path: '/rule-builder',
+        element: <RuleBuilder />,
+        private: false,
+        layout: false
+    }
 ];
