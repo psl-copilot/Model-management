@@ -13,6 +13,7 @@ import {
 import { dateFormatter, getNestedValue } from "../../utils/Common/helpers";
 import { serial_no_option } from "../../utils/Constants";
 import Loader from "../Loader";
+import CustomPagination from "../Pagination";
 
 export type TableColumn = {
     key: string;
@@ -25,8 +26,10 @@ export type TableColumn = {
 };
 
 export type Pagination = {
-    page: number;
-    per_page: number;
+    offset: number;
+    limit: number;
+    total: number,
+    onPageChange: (page: number) => void;
 };
 
 type TableProps = {
@@ -50,18 +53,10 @@ const Table = ({
     getRowClassName,
     getRowStyle,
 }: TableProps) => {
-    const headers = [...(serial_no ? [serial_no_option] : []), ...columns];
+    const headers = [...columns];
 
     const renderRow = (row: unknown, index: number) => (
         <>
-            {serial_no && (
-                <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
-                    {pagination
-                        ? (pagination.page - 1) * pagination.per_page + index + 1
-                        : index + 1}
-                </TableCell>
-            )}
-
             {columns.map((col) => (
                 <TableCell
                     key={`${(row as any)?.id ?? index}-${col.key}`}
@@ -114,7 +109,7 @@ const Table = ({
                         ) : data.length ? (
                             data.map((row, index) => (
                                 <TableRow
-                                    key={`${pagination?.page ?? 1}-${(row as any)?.id ?? index}`}
+                                    key={`${pagination?.offset ?? 1}-${(row as any)?.id ?? index}`}
                                     hover
                                     onClick={() => onRowClick?.(row)}
                                     sx={{
@@ -136,6 +131,16 @@ const Table = ({
                     </TableBody>
                 </MuiTable>
             </TableContainer>
+            {
+                pagination && !loading && data.length > 0 && (
+                    <CustomPagination
+                        current_page={pagination?.offset}
+                        limit={pagination?.limit}
+                        total={pagination?.total}
+                        onPageChange={pagination?.onPageChange}
+                    />
+                )
+            }
         </Box>
     );
 };

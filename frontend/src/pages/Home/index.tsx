@@ -33,6 +33,7 @@ const Home = () => {
                 columns={values.columns}
                 data={values.data}
                 loading={values.isLoading}
+                pagination={values.pagination}
             />
         </BoxWrapper>
     )

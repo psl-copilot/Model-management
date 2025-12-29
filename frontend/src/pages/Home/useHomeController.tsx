@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
@@ -40,12 +40,14 @@ const useHomeController = () => {
     }, [getRules, offset, limit]);
 
 
-    const pagination = {
-        offset: offset || 1,
-        limit: limit || 10,
-        total,
-        onPageChange: (page: number) => setOffset(page),
-    };
+    const pagination = useMemo(() => {
+        return {
+            offset,
+            limit,
+            total,
+            onPageChange: (page: number) => setOffset(page - 1),
+        };
+    }, [offset, limit, total])
 
     const handleCreateNew = () => {
         navigate("/editor");
