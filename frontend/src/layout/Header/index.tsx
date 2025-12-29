@@ -34,13 +34,7 @@ const Header = () => {
         >
             <Box display="flex" alignItems="center" width="calc(100vw - 65px)">
 
-                <Box flex={1} display="flex" justifyContent="start" pl={2}>
-                    <Text
-                        size='subHeader'
-                    >
-                        Home
-                    </Text>
-                </Box>
+                <Box flex={1} />
 
                 <Stack direction="row" spacing={1}>
                     <IconButton sx={iconButtonStyle}>

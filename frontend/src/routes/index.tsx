@@ -38,4 +38,22 @@ export const ROUTES = [
         private: true,
         layout: true,
     },
+    {
+        path: "/datasets",
+        element: <ComingSoon />,
+        private: true,
+        layout: true,
+    },
+    {
+        path: "/settings",
+        element: <ComingSoon />,
+        private: true,
+        layout: true,
+    },
+    {
+        path: "/help",
+        element: <ComingSoon />,
+        private: true,
+        layout: true,
+    },
 ];

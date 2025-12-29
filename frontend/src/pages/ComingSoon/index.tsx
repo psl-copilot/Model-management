@@ -1,47 +1,58 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
-import { Box } from "@mui/material";
-import { NAV_HEIGHT } from "../../utils/Constants";
-import Sidebar from "../../layout/Sidebar";
-import Header from "../../layout/Header";
+import { Box, Typography } from "@mui/material";
+import logo from "../../assets/logo.png"
 
 const ComingSoon = () => {
-    const [expanded, setExpanded] = useState(false);
-    const SIDEBAR_WIDTH = expanded ? 260 : 60;
-
     return (
-        <Box display="flex" height="100vh">
-            <Sidebar expanded={expanded} setExpanded={setExpanded} />
-
-            <Box flex={1} display="flex" flexDirection="column">
-
+        <Box
+            sx={{
+                minHeight: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "grey.100",
+                color: "primary.main",
+                px: 2,
+            }}
+        >
+            <Box textAlign="center">
                 <Box
-                    height={`${NAV_HEIGHT}px`}
+                    component="img"
+                    src={logo}
+                    alt="Logo"
                     sx={{
-                        backgroundColor: "#ffffff",
-                        boxShadow: 1,
-                        borderBottom: 1,
-                        borderColor: "#e2e4e8",
-                        marginLeft: `${SIDEBAR_WIDTH}px`,
-                        transition: "margin-left 0.2s ease",
-                        zIndex: 5,
+                        mx: "auto",
+                        mb: 6,
+                        width: 100,
+                        maxWidth: "100%",
+                    }}
+                />
+
+                <Typography
+                    variant="h3"
+                    sx={{
+                        fontWeight: 700,
+                        mb: 2,
+                        fontSize: {
+                            xs: "2.25rem",
+                            md: "3.75rem",
+                        },
                     }}
                 >
-                    <Header />
-                </Box>
+                    Coming Soon
+                </Typography>
 
-                <Box
-                    component="main"
-                    flex={1}
-                    p={2}
-                    bgcolor="#f9fafb"
+                <Typography
+                    variant="body1"
                     sx={{
-                        marginLeft: `${SIDEBAR_WIDTH}px`,
-                        transition: "margin-left 0.2s ease",
+                        color: "grey.900",
+                        fontSize: {
+                            xs: "1rem",
+                            md: "1.25rem",
+                        },
                     }}
                 >
-                    <Outlet />
-                </Box>
+                    We're working on something amazing. Stay tuned!
+                </Typography>
             </Box>
         </Box>
     );

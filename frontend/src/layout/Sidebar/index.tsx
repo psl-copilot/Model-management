@@ -14,9 +14,9 @@ import * as S from './Sidebar.styles';
 const menuItems: any[] = [
     { icon: <HomeOutlinedIcon />, label: "Rules Home", route: "home" },
     { icon: <CodeIcon />, label: "Rule Editor", route: "editor" },
-    { icon: <StorageRoundedIcon />, label: "Datasets", route: "home" },
-    { icon: <SettingsOutlinedIcon />, label: "Settings", route: "home" },
-    { icon: <HelpOutlineOutlinedIcon />, label: "Help", route: "home" },
+    { icon: <StorageRoundedIcon />, label: "Datasets", route: "datasets" },
+    { icon: <SettingsOutlinedIcon />, label: "Settings", route: "settings" },
+    { icon: <HelpOutlineOutlinedIcon />, label: "Help", route: "help" },
 ];
 
 const Sidebar = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v: boolean) => void }) => {
