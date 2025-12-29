@@ -33,6 +33,10 @@ const extractData = (key: string, type = SessionStorage, encrypted = true) => {
 
 };
 
+const getAuthToken = () => {
+    return extractData("access_token");
+};
+
 const resetData = () => {
     sessionStorage.clear()
     localStorage.clear()
@@ -41,5 +45,6 @@ const resetData = () => {
 export {
     extractData,
     insertData,
-    resetData
+    resetData,
+    getAuthToken
 };
