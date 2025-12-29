@@ -1,9 +1,9 @@
 import LogoutIcon from '@mui/icons-material/Logout';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import { Box, IconButton, Stack, Typography } from "@mui/material";
+import { Box, IconButton, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { resetData } from "../../utils/Common/storage";
 import { Text } from '../../components/Text';
+import { resetData } from "../../utils/Common/storage";
 
 const Header = () => {
     const navigate = useNavigate();

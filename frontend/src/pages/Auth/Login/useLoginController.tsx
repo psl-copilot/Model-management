@@ -26,7 +26,7 @@ const useLoginController = () => {
     useEffect(() => {
         if (isSuccess) {
             insertData(data?.token, "access_token")
-            navigate("/dashboard")
+            navigate("/home")
         }
     }, [isSuccess, data])
 

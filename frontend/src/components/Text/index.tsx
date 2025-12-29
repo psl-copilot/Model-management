@@ -1,4 +1,4 @@
-import { Typography, styled, type TypeText, type TypographyProps } from '@mui/material'
+import { Typography, styled, type TypographyProps } from '@mui/material'
 import { baseFontSizes } from '../../utils/Constants'
 
 type SizeKey = keyof typeof baseFontSizes

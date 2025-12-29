@@ -1,0 +1,143 @@
+import { memo } from "react";
+import {
+    Box,
+    Table as MuiTable,
+    Paper,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+} from "@mui/material";
+
+import { dateFormatter, getNestedValue } from "../../utils/Common/helpers";
+import { serial_no_option } from "../../utils/Constants";
+import Loader from "../Loader";
+
+export type TableColumn = {
+    key: string;
+    label: string;
+    type?: "date";
+    render?: (row: unknown) => React.ReactNode;
+    filter?: React.ReactNode;
+    capitalize?: boolean;
+    sx?: object;
+};
+
+export type Pagination = {
+    page: number;
+    per_page: number;
+};
+
+type TableProps = {
+    serial_no?: boolean;
+    columns: TableColumn[];
+    data: unknown[];
+    pagination?: Pagination | null;
+    loading?: boolean;
+    onRowClick?: (row: unknown) => void;
+    getRowClassName?: (row: unknown) => string;
+    getRowStyle?: (row: unknown) => React.CSSProperties;
+};
+
+const Table = ({
+    serial_no = true,
+    columns,
+    data,
+    pagination = null,
+    loading = false,
+    onRowClick,
+    getRowClassName,
+    getRowStyle,
+}: TableProps) => {
+    const headers = [...(serial_no ? [serial_no_option] : []), ...columns];
+
+    const renderRow = (row: unknown, index: number) => (
+        <>
+            {serial_no && (
+                <TableCell sx={{ borderBottom: "1px solid #e0e0e0" }}>
+                    {pagination
+                        ? (pagination.page - 1) * pagination.per_page + index + 1
+                        : index + 1}
+                </TableCell>
+            )}
+
+            {columns.map((col) => (
+                <TableCell
+                    key={`${(row as any)?.id ?? index}-${col.key}`}
+                    sx={{
+                        borderBottom: "1px solid #e0e0e0",
+                        whiteSpace: "pre-line",
+                        textTransform: col.capitalize ? "capitalize" : "none",
+                        ...(col.sx ?? {}),
+                    }}
+                >
+                    {col.render
+                        ? col.render(row)
+                        : col.type === "date"
+                            ? dateFormatter(getNestedValue(row, col.key))
+                            : getNestedValue(row, col.key)}
+                </TableCell>
+            ))}
+        </>
+    );
+
+    return (
+        <Box my={3}>
+            <TableContainer component={Paper} variant="outlined">
+                <MuiTable stickyHeader sx={{ minWidth: 600 }}>
+                    <TableHead>
+                        <TableRow sx={{ bgcolor: "primary.main" }}>
+                            {headers.map((h, idx) => (
+                                <TableCell
+                                    key={idx}
+                                    sx={{
+                                        color: "text.ternary",
+                                        fontWeight: 500,
+                                        textTransform: "uppercase",
+                                        fontSize: "12px",
+                                    }}
+                                >
+                                    {h.label}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={headers.length} align="center">
+                                    <Loader type="circular" center size={30} />
+                                </TableCell>
+                            </TableRow>
+                        ) : data.length ? (
+                            data.map((row, index) => (
+                                <TableRow
+                                    key={`${pagination?.page ?? 1}-${(row as any)?.id ?? index}`}
+                                    hover
+                                    onClick={() => onRowClick?.(row)}
+                                    sx={{
+                                        cursor: onRowClick ? "pointer" : "default",
+                                        ...(getRowStyle?.(row) ?? {}),
+                                    }}
+                                    className={getRowClassName?.(row)}
+                                >
+                                    {renderRow(row, index)}
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={headers.length} align="center">
+                                    No data available
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </MuiTable>
+            </TableContainer>
+        </Box>
+    );
+};
+
+export default memo(Table);

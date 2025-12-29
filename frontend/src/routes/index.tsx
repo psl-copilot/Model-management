@@ -3,7 +3,8 @@ import { Navigate } from "react-router-dom";
 
 const Components = lazy(() => import("../components"));
 const Login = lazy(() => import("../pages/Auth/Login"));
-const Dashboard = lazy(() => import("../pages/Dashboard"));
+const Home = lazy(() => import("../pages/Home"));
+const RuleEditor = lazy(() => import("../pages/RuleEditor"));
 
 export const ROUTES = [
     {
@@ -25,8 +26,14 @@ export const ROUTES = [
         layout: false
     },
     {
-        path: "/dashboard",
-        element: <Dashboard />,
+        path: "/home",
+        element: <Home />,
+        private: true,
+        layout: true,
+    },
+    {
+        path: "/editor",
+        element: <RuleEditor />,
         private: true,
         layout: true,
     },

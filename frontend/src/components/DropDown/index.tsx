@@ -11,7 +11,7 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CloseIcon from '@mui/icons-material/Close';
 import { memo, useEffect, useRef, useState } from 'react';
-import useDebouncedSearch from '../../hooks/useDebounceSearch';
+import useDebouncedSearch from '../../hooks/useDebouncedSearch';
 
 export interface DropdownOption {
     label: string;

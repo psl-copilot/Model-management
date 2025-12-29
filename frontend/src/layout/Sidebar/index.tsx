@@ -12,11 +12,11 @@ import { Text } from "../../components/Text";
 import * as S from './Sidebar.styles';
 
 const menuItems: any[] = [
-    { icon: <HomeOutlinedIcon />, label: "Rules Home", route: "dashboard" },
-    { icon: <CodeIcon />, label: "Rule Editor", route: "dashboard" },
-    { icon: <StorageRoundedIcon />, label: "Datasets", route: "dashboard" },
-    { icon: <SettingsOutlinedIcon />, label: "Settings", route: "dashboard" },
-    { icon: <HelpOutlineOutlinedIcon />, label: "Help", route: "dashboard" },
+    { icon: <HomeOutlinedIcon />, label: "Rules Home", route: "home" },
+    { icon: <CodeIcon />, label: "Rule Editor", route: "editor" },
+    { icon: <StorageRoundedIcon />, label: "Datasets", route: "home" },
+    { icon: <SettingsOutlinedIcon />, label: "Settings", route: "home" },
+    { icon: <HelpOutlineOutlinedIcon />, label: "Help", route: "home" },
 ];
 
 const Sidebar = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v: boolean) => void }) => {

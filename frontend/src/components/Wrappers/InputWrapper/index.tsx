@@ -14,6 +14,7 @@ interface InputWrapperProps {
     mode?: string;
     country?: string;
     children: ReactNode;
+    maxWidth?: number | string
 }
 
 const InputWrapper = ({
@@ -23,11 +24,12 @@ const InputWrapper = ({
     view_only = false,
     disabled = false,
     children,
+    maxWidth
 }: InputWrapperProps) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <Box width="100%" mb={3}>
+        <Box width="100%" mb={3} maxWidth={maxWidth ?? 450}>
 
             {view_only ? (
                 <Box display="flex" alignItems="center" mt={0.5} px={1}>

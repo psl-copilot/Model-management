@@ -3,14 +3,15 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 
 type ButtonProps = {
-  onClick?: () => void;
+  onClick: () => void;
   Icon?: React.ElementType;
   disabled?: boolean;
-  text?: string;
+  text: string;
   type?: "primary" | "secondary" | "muted" | "danger" | "success" | "default";
   outlined?: boolean;
   loading?: boolean;
   size?: "sm" | "md" | "lg" | "";
+  height?: string
 };
 
 const MuiButton = ({
@@ -22,6 +23,7 @@ const MuiButton = ({
   outlined = false,
   loading = false,
   size = "",
+  height = '50px'
 }: ButtonProps) => {
   const colors = {
     primary: {
@@ -29,8 +31,8 @@ const MuiButton = ({
       contrastText: "#fff",
     },
     secondary: {
-      main: "#f3f4f6",
-      contrastText: "#394353",
+      main: "#2563eb",
+      contrastText: "#fff",
     },
     muted: {
       main: "#e0e0e0",
@@ -71,8 +73,8 @@ const MuiButton = ({
       variant={outlined ? "outlined" : "contained"}
       startIcon={!loading && Icon ? <Icon /> : undefined}
       sx={{
-        height: '50px',
-        px: 3,
+        height,
+        // px: 3,
         borderRadius: "6px",
         width: widths[size] || "auto",
         textTransform: "none",

@@ -1,42 +1,44 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { Box, Paper } from "@mui/material";
+import { Box } from "@mui/material";
 import Header from "../Header";
 import Sidebar from "../Sidebar";
 import { NAV_HEIGHT } from "../../utils/Constants";
+
 const MainLayout = () => {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(true);
+
+    const SIDEBAR_WIDTH = expanded ? 260 : 60;
 
     return (
-        <Box height="100vh" display="flex" flexDirection="column">
+        <Box display="flex" height="100vh">
             <Sidebar expanded={expanded} setExpanded={setExpanded} />
-            <Box flex={1} overflow="hidden" >
-                <Paper
+
+            <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
+                <Box
+                    height={`${NAV_HEIGHT}px`}
                     sx={{
                         backgroundColor: "#ffffff",
-                        zIndex: 5,
-                        alignSelf: 'flex-end',
-                        alignItems: 'flex-end',
-                        height: NAV_HEIGHT,
                         boxShadow: 1,
-                        marginLeft: expanded ? "260px" : "60px",
                         borderBottom: 1,
-                        borderColor: '#e2e4e8'
+                        borderColor: "#e2e4e8",
+                        marginLeft: `${SIDEBAR_WIDTH}px`,
+                        transition: "margin-left 0.2s ease",
+                        zIndex: 5,
                     }}
                 >
                     <Header />
-                </Paper>
+                </Box>
 
                 <Box
                     component="main"
                     flex={1}
                     p={2}
                     bgcolor="#f9fafb"
-                    overflow="auto"
-                    height={'80vh'}
                     sx={{
+                        overflow: "auto",
+                        marginLeft: `${SIDEBAR_WIDTH}px`,
                         transition: "margin-left 0.2s ease",
-                        marginLeft: expanded ? "260px" : "60px",
                     }}
                 >
                     <Outlet />

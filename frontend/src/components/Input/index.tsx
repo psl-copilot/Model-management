@@ -25,12 +25,12 @@ export interface InputProps {
     disabled?: boolean;
     required?: boolean;
     leftIcon?: React.ElementType;
+    height?: 'md' | 'sm';
+    maxWidth?: string | number
 }
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
-
     '& .MuiInputBase-input': {
-        height: '100%',
         boxSizing: 'border-box',
     },
     '& .MuiInputBase-input.Mui-disabled': {
@@ -40,9 +40,14 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
         color: theme.palette.text.ternary,
     },
     '& .MuiInputLabel-root': {
-        color: theme.palette.text.disabled
+        color: theme.palette.text.disabled,
     },
 }));
+
+const heightMap = {
+    md: 50,
+    sm: 45,
+};
 
 const Input = forwardRef(function Input(
     {
@@ -57,7 +62,9 @@ const Input = forwardRef(function Input(
         maxLength,
         disabled = false,
         leftIcon: LeftIcon,
-        error
+        error,
+        height = 'md',
+        maxWidth
     }: InputProps,
     ref: ForwardedRef<HTMLInputElement | HTMLTextAreaElement>
 ) {
@@ -65,13 +72,10 @@ const Input = forwardRef(function Input(
 
     const isTextarea = type === 'textarea';
     const isPassword = type === 'password';
-
-    const inputType =
-        isPassword && showPassword ? 'text' : type;
-
+    const inputType = isPassword && showPassword ? 'text' : type;
 
     return (
-        <InputWrapper {...{ label, placeholder, value, onChange, type, disabled, error }}>
+        <InputWrapper {...{ label, placeholder, value, onChange, type, disabled, error, maxWidth }}>
             <StyledTextField
                 inputRef={ref}
                 multiline={isTextarea}
@@ -89,11 +93,11 @@ const Input = forwardRef(function Input(
                 name={name}
                 disabled={disabled}
                 type={inputType}
-                // variant="outlined"
                 inputProps={{ maxLength }}
                 sx={{
                     '& .MuiInputBase-root': {
-                        maxHeight: isTextarea ? 120 : 60,
+                        maxHeight: isTextarea ? 120 : heightMap[height],
+                        height: isTextarea ? 'auto' : heightMap[height],
                     },
                 }}
                 slotProps={{

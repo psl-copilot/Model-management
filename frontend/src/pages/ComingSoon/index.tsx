@@ -1,53 +1,50 @@
-import { Box, Typography } from "@mui/material";
-import Logo from '../../../assets/logo.png';
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+import { Box } from "@mui/material";
+import { NAV_HEIGHT } from "../../utils/Constants";
+import Sidebar from "../../layout/Sidebar";
+import Header from "../../layout/Header";
 
-const ComingSoon = () => {
+const MainLayout = () => {
+    const [expanded, setExpanded] = useState(false);
+    const SIDEBAR_WIDTH = expanded ? 260 : 60;
+
     return (
-        <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            height="100%"
-            bgcolor="#f5f5f5"
-            px={2}
-            color="primary.main"
-        >
-            <Box textAlign="center">
+        <Box display="flex" height="100vh">
+            <Sidebar expanded={expanded} setExpanded={setExpanded} />
+
+            <Box flex={1} display="flex" flexDirection="column">
+
                 <Box
-                    component="img"
-                    src={Logo}
-                    alt="Logo"
+                    height={`${NAV_HEIGHT}px`}
                     sx={{
-                        mx: "auto",
-                        mb: 6,
-                        width: 320,
-                        maxWidth: "100%",
-                    }}
-                />
-
-                <Typography
-                    variant="h3"
-                    fontWeight={700}
-                    mb={2}
-                    sx={{
-                        typography: { xs: "h4", md: "h2" },
+                        backgroundColor: "#ffffff",
+                        boxShadow: 1,
+                        borderBottom: 1,
+                        borderColor: "#e2e4e8",
+                        marginLeft: `${SIDEBAR_WIDTH}px`,
+                        transition: "margin-left 0.2s ease",
+                        zIndex: 5,
                     }}
                 >
-                    Coming Soon
-                </Typography>
+                    <Header />
+                </Box>
 
-                <Typography
-                    variant="body1"
+                <Box
+                    component="main"
+                    flex={1}
+                    p={2}
+                    bgcolor="#f9fafb"
                     sx={{
-                        color: "grey.900",
-                        typography: { xs: "body1", md: "h6" },
+                        marginLeft: `${SIDEBAR_WIDTH}px`,
+                        transition: "margin-left 0.2s ease",
                     }}
                 >
-                    We're working on something amazing. Stay tuned!
-                </Typography>
+                    <Outlet />
+                </Box>
             </Box>
         </Box>
     );
 };
 
-export default ComingSoon;
+export default MainLayout;
