@@ -1,0 +1,382 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Tazama - Rules API",
+		"description": "Complete API collection for managing TRS (Transaction Rule Service) rules in Tazama.\n\n## Authentication\nAll requests require a Bearer token obtained from your authentication provider (Keycloak).\n\n## Required Claims\n- **GET operations**: `view-profile`, `editor`, `approver`, or `publisher`\n- **POST/CREATE operations**: `editor`\n\n## Base URL\nUpdate the `{{baseUrl}}` variable with your Model-management backend URL (default: `http://localhost:3000`)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Rules (Paginated)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response is an array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token from Keycloak with required claims (view-profile, editor, approver, or publisher)"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"ACTIVE\",\n  \"txtp\": \"pain.001.001.11\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/rules/api/all?offset=0&limit=10",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"api",
+						"all"
+					],
+					"query": [
+						{
+							"key": "offset",
+							"value": "0",
+							"description": "Pagination offset (starting from 0)"
+						},
+						{
+							"key": "limit",
+							"value": "10",
+							"description": "Number of rules to return per page"
+						}
+					]
+				},
+				"description": "Retrieves a paginated list of rules with optional filters.\n\n### Query Parameters\n- **offset**: Starting position (0-based index)\n- **limit**: Number of records per page\n\n### Request Body (Optional Filters)\nYou can filter results by any rule field:\n- `status`: Filter by rule status (e.g., \"ACTIVE\", \"INACTIVE\", \"DRAFT\")\n- `txtp`: Filter by transaction type (e.g., \"pain.001.001.11\")\n- `publishing_status`: Filter by publishing status\n- `rule_id`: Search by rule ID\n- `rule_name`: Search by rule name\n\n### Response\nReturns an array of rule objects matching the filters.\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Rule by ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has rule object\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData).to.have.property('rule_id');",
+							"    pm.expect(jsonData).to.have.property('rule_name');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token from Keycloak"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/rules/api/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"api",
+						"1"
+					]
+				},
+				"description": "Retrieves a specific rule by its numeric ID.\n\n### Path Parameters\n- **id**: Numeric rule ID (integer)\n\n### Response\nReturns a single rule object with all fields:\n- `rule_id`: Unique rule identifier\n- `rule_name`: Human-readable rule name\n- `description`: Rule description\n- `tenant_id`: Tenant identifier\n- `txtp`: Transaction type\n- `version`: Rule version\n- `status`: Rule status\n- `publishing_status`: Publishing workflow status\n- `updated_by`: Last user who modified the rule\n- `updated_at`: Last update timestamp\n- `created_at`: Creation timestamp\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Error Responses\n- **400**: Invalid ID format (must be numeric)\n- **404**: Rule not found"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Rule - Payment Transfer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Rule created successfully\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('rule_id');",
+							"    pm.expect(jsonData).to.have.property('tenant_id');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token with 'editor' claim"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rule_id\": \"RULE-001-PAYMENT-FRAUD\",\n  \"rule_name\": \"High Value Payment Fraud Detection\",\n  \"description\": \"Detects suspicious high-value payment transactions exceeding threshold limits within short time windows\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\",\n  \"status\": \"ACTIVE\",\n  \"publishing_status\": \"DRAFT\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/rules/api",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"api"
+					]
+				},
+				"description": "Creates a new rule for detecting high-value payment fraud.\n\n### Request Body (Required Fields)\n- **rule_id**: Unique identifier for the rule (alphanumeric with hyphens)\n- **rule_name**: Human-readable name\n- **description**: Detailed description of what the rule does\n- **txtp**: Transaction type (e.g., \"pain.001.001.11\" for credit transfer)\n- **version**: Semantic version (e.g., \"1.0.0\")\n- **status**: Rule status - `ACTIVE`, `INACTIVE`, `TESTING`\n- **publishing_status**: Workflow status - `DRAFT`, `SUBMITTED`, `APPROVED`, `PUBLISHED`\n\n### Auto-populated Fields\nThe following fields are automatically set by the system:\n- **tenant_id**: Extracted from authentication token\n- **updated_by**: User ID from authentication token\n- **updated_at**: Current timestamp\n- **created_at**: Current timestamp\n\n### Required Claims\n`editor`\n\n### Response\nReturns the created rule object with all fields populated (201 Created).\n\n### Use Case\nThis rule monitors payment transfers (pain.001.001.11) for fraud patterns like:\n- Transaction amounts exceeding $10,000\n- Multiple high-value transactions within 5 minutes\n- Transactions to flagged accounts"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Rule - Account Takeover",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rule_id\": \"RULE-002-ACCOUNT-TAKEOVER\",\n  \"rule_name\": \"Account Takeover Detection\",\n  \"description\": \"Identifies potential account takeover by analyzing login patterns, device fingerprints, and geographic anomalies\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\",\n  \"status\": \"TESTING\",\n  \"publishing_status\": \"DRAFT\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/rules/api",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"api"
+					]
+				},
+				"description": "Creates a rule for detecting account takeover attempts.\n\n### Use Case\nThis rule identifies suspicious account access patterns:\n- Login from new device or location\n- Multiple failed login attempts followed by success\n- Rapid changes to account settings after login\n- Geographic impossibility (login from different countries within minutes)\n\n### Status: TESTING\nThis rule is in testing phase, not yet active in production.\n\n### Publishing Status: DRAFT\nNot yet submitted for approval."
+			},
+			"response": []
+		},
+		{
+			"name": "Create Rule - Money Laundering",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rule_id\": \"RULE-003-MONEY-LAUNDERING\",\n  \"rule_name\": \"Structured Transaction Money Laundering\",\n  \"description\": \"Detects potential money laundering through structured transactions designed to evade reporting thresholds\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"2.1.0\",\n  \"status\": \"ACTIVE\",\n  \"publishing_status\": \"PUBLISHED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/rules/api",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"api"
+					]
+				},
+				"description": "Creates a rule for detecting money laundering through structured transactions (smurfing).\n\n### Use Case\nThis rule identifies structuring patterns:\n- Multiple transactions just below reporting thresholds ($9,900 when threshold is $10,000)\n- Transactions split across multiple accounts or days\n- Round-number transactions that appear coordinated\n- Rapid movement of funds through intermediary accounts\n\n### Status: ACTIVE\nThis rule is actively running in production.\n\n### Publishing Status: PUBLISHED\nFully approved and deployed.\n\n### Version: 2.1.0\nThis is an updated version with improved detection algorithms."
+			},
+			"response": []
+		},
+		{
+			"name": "Create Rule - Sanctions Screening",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rule_id\": \"RULE-004-SANCTIONS-SCREENING\",\n  \"rule_name\": \"Real-time Sanctions List Screening\",\n  \"description\": \"Screens transaction parties against OFAC, UN, EU, and other sanctions lists in real-time\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\",\n  \"status\": \"ACTIVE\",\n  \"publishing_status\": \"APPROVED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/rules/api",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"api"
+					]
+				},
+				"description": "Creates a rule for real-time sanctions screening.\n\n### Use Case\nThis rule performs mandatory compliance checks:\n- Screens debtor and creditor names against sanctions lists\n- Checks beneficial owners and intermediary banks\n- Uses fuzzy matching to catch name variations\n- Validates against multiple jurisdictions (OFAC, UN, EU, UK)\n\n### Status: ACTIVE\nCritical compliance rule, must remain active.\n\n### Publishing Status: APPROVED\nApproved by compliance team, ready for deployment.\n\n### Regulatory Requirement\nRequired by AML/CFT regulations in most jurisdictions."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Pre-request script runs before each request",
+					"// You can add logic here to refresh tokens, set dynamic variables, etc.",
+					"",
+					"console.log('Request to: ' + pm.request.url.toString());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script runs after each request",
+					"",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "your-jwt-token-here",
+			"type": "string"
+		}
+	]
+}
