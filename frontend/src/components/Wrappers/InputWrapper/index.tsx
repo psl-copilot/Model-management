@@ -3,10 +3,11 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { Box, IconButton, Paper, Typography } from '@mui/material';
 import { memo, type ReactNode, useState } from 'react';
 import { hideValue } from '../../../utils/Common/helpers';
+import { Text } from '../../Text';
 
 interface InputWrapperProps {
     label?: string;
-    value?: string | number;
+    value?: string | null;
     type?: 'text' | 'password' | 'textarea' | 'time';
     error?: string;
     view_only?: boolean;
@@ -24,12 +25,19 @@ const InputWrapper = ({
     view_only = false,
     disabled = false,
     children,
-    maxWidth
+    maxWidth,
+    label
 }: InputWrapperProps) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
         <Box width="100%" maxWidth={maxWidth ?? 450}>
+
+            {label && view_only &&
+                <Text size='body' color="text.primary">
+                    {label} :
+                </Text>
+            }
 
             {view_only ? (
                 <Box display="flex" alignItems="center" mt={0.5} px={1}>
@@ -38,6 +46,7 @@ const InputWrapper = ({
                             ? hideValue(value.toString())
                             : value || '-'}
                     </Typography>
+
                     {type === 'password' && value && (
                         <IconButton
                             onClick={() => !disabled && setShowPassword((prev) => !prev)}

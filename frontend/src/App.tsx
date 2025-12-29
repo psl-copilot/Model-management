@@ -9,6 +9,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import MainLayout from './layout/MainLayout';
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from './routes/PrivateRoute';
+import { ModalProvider } from './contexts/ModalContext';
 
 function App() {
 
@@ -20,29 +21,31 @@ function App() {
 
   return (
     <ThemeProvider theme={themeMode}>
-      <BrowserRouter>
-        <Toaster position="top-right" reverseOrder={false} />
-        <Routes>
-          <Route element={<ProtectedRoute />}>
-            <Route >
-              {
-                publicNoLayoutRoutes.map((item, index) => (
-                  <Route key={index} path={item.path} element={item.element} />
-                ))
-              }
+      <ModalProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" reverseOrder={false} />
+          <Routes>
+            <Route element={<ProtectedRoute />}>
+              <Route >
+                {
+                  publicNoLayoutRoutes.map((item, index) => (
+                    <Route key={index} path={item.path} element={item.element} />
+                  ))
+                }
+              </Route>
             </Route>
-          </Route>
-          <Route element={<PrivateRoute />}>
-            <Route element={<MainLayout />}>
-              {
-                privateWithLayoutRoutes.map((item, index) => (
-                  <Route key={index} path={item.path} element={item.element} />
-                ))
-              }
+            <Route element={<PrivateRoute />}>
+              <Route element={<MainLayout />}>
+                {
+                  privateWithLayoutRoutes.map((item, index) => (
+                    <Route key={index} path={item.path} element={item.element} />
+                  ))
+                }
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </ModalProvider>
     </ThemeProvider>
   )
 }

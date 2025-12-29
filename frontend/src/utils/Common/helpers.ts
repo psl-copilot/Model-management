@@ -17,7 +17,6 @@ export const dateFormatter = (date: string, options = { time: true }) => {
     }
 
     return null
-
 }
 
 type Path = string | string[] | null | undefined

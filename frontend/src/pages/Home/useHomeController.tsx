@@ -4,11 +4,16 @@ import type { DropdownOption } from "../../components/DropDown";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
 import { rule_types, Status } from "../../utils/Constants/data";
+import { useModal } from "../../contexts/ModalContext";
+import TableActions from "../../components/TableActions";
+import ViewRule from "./ViewRule";
 
 const useHomeController = () => {
     const navigate = useNavigate();
     const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
     const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
+
+    const { open } = useModal()
 
     const {
         offset,
@@ -60,6 +65,10 @@ const useHomeController = () => {
         navigate("/editor");
     };
 
+    const onView = (data: Record<string, string>) => {
+        open('View Rule', <ViewRule data={data} />)
+    }
+
     const columns = [
         { label: "Name", key: "rule_name" },
         { label: "Rule Id", key: "rule_id" },
@@ -67,6 +76,15 @@ const useHomeController = () => {
         { label: "Owner", key: "updated_by" },
         { label: "Updated", key: "updated_at", type: 'date' as const },
         { label: "Version", key: "version" },
+        {
+            label: 'Actions',
+            key: 'actions',
+            render: (row: Record<string, string>) => (
+                <TableActions
+                    onView={() => onView(row)}
+                />
+            )
+        }
     ];
 
     return {

@@ -1,6 +1,6 @@
-import { AnimatePresence, motion } from "framer-motion";
-import { Box, IconButton, Typography, Paper } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import { Box, IconButton, Typography } from "@mui/material";
+import { AnimatePresence, motion } from "framer-motion";
 
 export type ModalProps = {
     open: boolean;
@@ -34,7 +34,7 @@ const slide_from_top = {
     },
 };
 
-const Modal = ({ open, title, children, footer, onClose, maxWidth = "md" }: ModalProps) => {
+const Modal = ({ open, title, children, footer, onClose, maxWidth = "lg" }: ModalProps) => {
     return (
         <AnimatePresence>
             {open && (
@@ -90,7 +90,7 @@ const Modal = ({ open, title, children, footer, onClose, maxWidth = "md" }: Moda
                                 backgroundColor: "#fff",
                             }}
                         >
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary" }}>
                                 {title}
                             </Typography>
                             <IconButton
