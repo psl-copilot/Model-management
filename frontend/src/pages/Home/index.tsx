@@ -20,9 +20,11 @@ const Home = () => {
             </Box>
 
 
-            <Box>
+            <Box mt={2}>
                 <Input
                     maxWidth={400}
+                    value={values?.searchTerm}
+                    onChange={(e) => functions.setSearchTerm(e.target.value)}
                     height="sm"
                     placeholder="Search rules..."
                     leftIcon={() => <SearchIcon />}

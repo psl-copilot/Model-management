@@ -16,6 +16,7 @@ const useHomeController = () => {
 
     const [data, setData] = useState<unknown[]>([]);
     const [total, setTotal] = useState(0);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const fetchRules = async () => {
@@ -24,7 +25,7 @@ const useHomeController = () => {
                     offset,
                     limit
                 }
-                const body = {}
+                const body = { ruleName: searchTerm || undefined };
                 const response = await getRules({
                     params, body
                 }).unwrap();
@@ -37,7 +38,7 @@ const useHomeController = () => {
         };
 
         fetchRules();
-    }, [getRules, offset, limit]);
+    }, [getRules, offset, limit, searchTerm]);
 
 
     const pagination = useMemo(() => {
@@ -68,9 +69,11 @@ const useHomeController = () => {
             data,
             isLoading,
             pagination,
+            searchTerm
         },
         functions: {
             handleCreateNew,
+            setSearchTerm
         },
     };
 };
