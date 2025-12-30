@@ -1,17 +1,25 @@
 import { isRejectedWithValue, type Middleware } from "@reduxjs/toolkit"
 import toast from "react-hot-toast"
 
+interface ApiErrorPayload {
+  data?: {
+    message?: string
+  }
+}
+
 const errorLogger: Middleware = () => next => action => {
-    if (isRejectedWithValue(action)) {
-        const errorMessage =
-            (action.payload as any)?.data?.message ||
-            action.error?.message ||
-            "Something went wrong"
+  if (isRejectedWithValue(action)) {
+    const payload = action.payload as ApiErrorPayload | undefined
 
-        toast.error(errorMessage)
-    }
+    const errorMessage =
+      payload?.data?.message ||
+      action.error?.message ||
+      "Something went wrong"
 
-    return next(action)
+    toast.error(errorMessage)
+  }
+
+  return next(action)
 }
 
 export default errorLogger
