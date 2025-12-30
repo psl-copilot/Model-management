@@ -24,12 +24,14 @@ export const MenuItemBox = styled(Box, {
     display: "flex",
     alignItems: "center",
     height: 48,
-    width: expanded ? "95%" : "80%",
+    width: '100%',
     cursor: "pointer",
-    padding: "0 8px",
     justifyContent: expanded ? undefined : 'center',
     backgroundColor: active ? '#e9edf9' : "transparent",
     transition: "all 0.2s",
+    "&:hover": {
+        backgroundColor: "#dfddde",
+    },
 }));
 
 export const IconWrapper = styled(Box, {
@@ -43,5 +45,5 @@ export const IconWrapper = styled(Box, {
     border: `1px solid ${color} `,
     borderRadius: '30px',
     color: color ?? "#fff",
-    margin: expanded ? '0 0 0 10px' : 0
+    margin: expanded ? '0 0 0 25px' : 0,
 }));

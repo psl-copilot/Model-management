@@ -1,18 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Box, IconButton } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { Text } from '../../components/Text';
-import { resetData } from "../../utils/Common/storage";
 
 const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v: boolean) => void }) => {
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        resetData();
-        navigate("/login");
-    };
 
     const iconButtonStyle = {
         width: '25px',
@@ -21,7 +13,6 @@ const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v:
             bgcolor: "#f3f4f6",
         },
     };
-
     return (
         <Box
             display="flex"

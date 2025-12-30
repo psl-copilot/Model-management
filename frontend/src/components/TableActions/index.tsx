@@ -34,7 +34,7 @@ const TableActions = ({
         >
             {onView && (
                 <Tooltip title="View">
-                    <IconButton size="small" color="inherit" onClick={onView}>
+                    <IconButton size="small" sx={{ color: 'text.secondary' }} onClick={onView}>
                         <VisibilityIcon fontSize="small" />
                     </IconButton>
                 </Tooltip>

@@ -36,8 +36,9 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     },
     '& .MuiInputBase-input.Mui-disabled': {
         color: theme.palette.text.black,
-        WebkitTextFillColor: theme.palette.text.primary, // ← REQUIRED
-        opacity: 1, // prevents faded look
+        WebkitTextFillColor: theme.palette.text.primary,
+        opacity: 1,
+        backgroundColor: 'white'
     },
     '& .MuiInputBase-input::placeholder': {
         color: theme.palette.text.ternary,

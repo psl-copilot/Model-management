@@ -66,7 +66,7 @@ const InputWrapper = ({
                             mt: 0.5,
                             display: 'flex',
                             alignItems: 'flex-start',
-                            backgroundColor: disabled ? 'grey.100' : 'background.paper',
+                            backgroundColor: disabled ? 'white' : 'background.paper',
                             borderColor: disabled ? 'grey.200' : 'grey.300',
                             borderRadius: 1,
                             cursor: disabled ? 'not-allowed' : 'text',
