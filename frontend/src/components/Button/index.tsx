@@ -32,7 +32,7 @@ const MuiButton = ({
       contrastText: "#fff",
     },
     secondary: {
-      main: "#2563eb",
+      main: "#2b7fff",
       contrastText: "#fff",
     },
     muted: {
@@ -79,12 +79,10 @@ const MuiButton = ({
       startIcon={!loading && Icon ? <Icon /> : undefined}
       sx={{
         height,
-        // px: 3,
         borderRadius: "6px",
         width: widths[size] || "auto",
         textTransform: "none",
         fontSize: "1rem",
-        gap: 1,
         ...(outlined
           ? {
             color: selected.contrastText,

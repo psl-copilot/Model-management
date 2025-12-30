@@ -53,7 +53,7 @@ const Table = ({
 }: TableProps) => {
     const headers = [...columns];
 
-    const renderRow = (row: unknown, index: number) => (
+    const renderRow = (row: Record<string, string> | unknown, index: number) => (
         <>
             {columns.map((col) => (
                 <TableCell
@@ -85,10 +85,11 @@ const Table = ({
                                 <TableCell
                                     key={idx}
                                     sx={{
-                                        color: "text.ternary",
-                                        fontWeight: 500,
-                                        textTransform: "uppercase",
-                                        fontSize: "12px",
+                                        color: "text.black",
+                                        bgcolor: '#fbf9fa',
+                                        fontWeight: 600,
+                                        fontSize: "14px",
+                                        textAlign: 'center'
                                     }}
                                 >
                                     {h.label}

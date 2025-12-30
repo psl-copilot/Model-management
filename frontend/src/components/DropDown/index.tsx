@@ -137,12 +137,12 @@ const Dropdown = ({
                             minHeight: 20,
                             px: 1.5,
                             py: 1,
+                            boxShadow: 1,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             cursor: disabled ? 'not-allowed' : 'pointer',
                             opacity: disabled ? 0.6 : 1,
-                            backgroundColor: '#e9e9ed'
                         }}
                     >
                         <Box display="flex" flexWrap="wrap" gap={0.5}>
@@ -152,7 +152,6 @@ const Dropdown = ({
                                         <Box
                                             key={v.value}
                                             px={1}
-                                            py={0.25}
                                             borderRadius={1}
                                             bgcolor="text.secondary"
                                             color="#e9e9ed"
@@ -199,7 +198,6 @@ const Dropdown = ({
                         <Paper
                             variant="outlined"
                             sx={{
-                                // mt: 1,
                                 maxHeight: 240,
                                 overflow: 'hidden',
                                 position: 'absolute',

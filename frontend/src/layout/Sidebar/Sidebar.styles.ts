@@ -1,59 +1,47 @@
 import { Box, styled } from "@mui/material";
+import { NAV_HEIGHT } from "../../utils/Constants";
 
 export const SidebarContainer = styled(Box, {
     shouldForwardProp: (prop) => prop !== "expanded"
 })<{ expanded: boolean }>(({ expanded }) => ({
     position: "fixed",
-    height: "100%",
+    height: `calc(100vh - ${NAV_HEIGHT}px)`,
+    alignSelf: 'flex-end',
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     zIndex: 1000,
     width: expanded ? "260px" : "65px",
-    backgroundColor: "#111827",
-    borderRight: "1px solid #f0f0f0",
-    transition: "all 0.2s",
+    backgroundColor: "#fbf9fa",
+    borderRight: "1px solid #dfddde",
+    borderTop: "1px solid #dfddde",
+    transition: "all 0.2s"
 }));
-
-export const LogoBox = styled(Box)({
-    paddingTop: "24px",
-    paddingBottom: "24px",
-    height: "25px",
-});
-
-export const ToggleButtonWrapper = styled(Box)({
-    position: "absolute",
-    right: "-10px",
-    top: "50px",
-    width: "25px",
-    height: "25px",
-    borderRadius: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#111827",
-    boxShadow: "1px 1px 3px rgba(0,0,0,0.2)",
-});
 
 export const MenuItemBox = styled(Box, {
     shouldForwardProp: (prop) => prop !== "active" && prop !== "expanded"
-})<{ active?: boolean; expanded?: boolean }>(({ theme, active, expanded }) => ({
+})<{ active?: boolean; expanded?: boolean }>(({ active, expanded }) => ({
     display: "flex",
     alignItems: "center",
     height: 48,
-    width: expanded ? "90%" : "60%",
+    width: expanded ? "95%" : "80%",
     cursor: "pointer",
     padding: "0 8px",
     justifyContent: expanded ? undefined : 'center',
-    backgroundColor: active ? theme.palette.text.primary : "transparent",
-    borderLeft: active ? "5px solid #3b82f6" : "0",
+    backgroundColor: active ? '#e9edf9' : "transparent",
     transition: "all 0.2s",
 }));
 
-export const IconWrapper = styled(Box)({
+export const IconWrapper = styled(Box, {
+    shouldForwardProp: (prop) => prop !== "color" && prop !== "expanded"
+})<{ color?: string; expanded?: boolean }>(({ color, expanded }) => ({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    minWidth: 56,
-    color: "#fff",
-});
+    width: '30px',
+    height: '30px',
+    border: `1px solid ${color} `,
+    borderRadius: '30px',
+    color: color ?? "#fff",
+    margin: expanded ? '0 0 0 10px' : 0
+}));

@@ -5,7 +5,7 @@ type SizeKey = keyof typeof baseFontSizes
 
 interface TextProps extends TypographyProps {
     size: SizeKey,
-    weight?: 'bold',
+    weight?: string | number,
     color?: string
 }
 

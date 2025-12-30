@@ -1,11 +1,12 @@
-import LogoutIcon from '@mui/icons-material/Logout';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import { Box, IconButton, Stack } from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Box, IconButton } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
 import { Text } from '../../components/Text';
 import { resetData } from "../../utils/Common/storage";
 
-const Header = () => {
+const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v: boolean) => void }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -14,36 +15,52 @@ const Header = () => {
     };
 
     const iconButtonStyle = {
-        width: 40,
-        height: 40,
+        width: '25px',
+        height: '25px',
         "&:hover": {
             bgcolor: "#f3f4f6",
         },
-    };
-
-    const iconStyle = {
-        color: "#1f2937",
-        width: 20,
-        height: 20,
     };
 
     return (
         <Box
             display="flex"
             height={'100%'}
+            px={3}
         >
-            <Box display="flex" alignItems="center" width="calc(100vw - 65px)">
+            <Box display="flex" alignItems="center" width="100vw">
+                <Box flex={1} display={'flex'}>
+                    <IconButton onClick={() => setExpanded(!expanded)}>
+                        {expanded ? (
+                            <CloseIcon fontSize="small" sx={iconButtonStyle} />
+                        ) : (
+                            <MenuIcon fontSize="small" sx={iconButtonStyle} />
+                        )}
+                    </IconButton>
+                    <Box
+                        component="img"
+                        src={logo}
+                        alt="Logo"
+                        sx={{
+                            width: '32px',
+                            height: '32px',
+                            mx: 2,
+                            maxWidth: "100%",
+                        }}
+                    />
+                    <Text color="text.black" weight="bold" size="subHeader">
+                        Tazama Rule Studio
+                    </Text>
+                </Box>
 
-                <Box flex={1} />
-
-                <Stack direction="row" spacing={1}>
+                {/* <Stack direction="row" spacing={1}>
                     <IconButton sx={iconButtonStyle}>
                         <NotificationsNoneIcon style={iconStyle} />
                     </IconButton>
                     <IconButton sx={iconButtonStyle} onClick={handleLogout}>
                         <LogoutIcon style={iconStyle} />
                     </IconButton>
-                </Stack>
+                </Stack> */}
             </Box>
         </Box>
     );

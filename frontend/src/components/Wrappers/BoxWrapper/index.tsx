@@ -7,7 +7,7 @@ interface BoxWrapperProps {
 
 const BoxWrapper = ({ children }: BoxWrapperProps) => {
     return (
-        <Box bgcolor={'white'} boxShadow={1} borderRadius={1} p={3}>
+        <Box bgcolor={'white'} p={3}>
             {children}
         </Box>
     )

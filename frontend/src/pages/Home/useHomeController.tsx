@@ -7,6 +7,7 @@ import { rule_types, Status } from "../../utils/Constants/data";
 import { useModal } from "../../contexts/ModalContext";
 import TableActions from "../../components/TableActions";
 import ViewRule from "./ViewRule";
+import type { TableColumn } from "../../components/Table";
 
 const useHomeController = () => {
     const navigate = useNavigate();
@@ -69,19 +70,19 @@ const useHomeController = () => {
         open('View Rule', <ViewRule data={data} />)
     }
 
-    const columns = [
+    const columns: TableColumn[] = [
         { label: "Name", key: "rule_name" },
         { label: "Rule Id", key: "rule_id" },
         { label: "Status", key: "status" },
         { label: "Owner", key: "updated_by" },
-        { label: "Updated", key: "updated_at", type: 'date' as const },
+        { label: "Updated At", key: "updated_at", type: 'date' as const },
         { label: "Version", key: "version" },
         {
             label: 'Actions',
             key: 'actions',
-            render: (row: Record<string, string>) => (
+            render: (row: unknown) => (
                 <TableActions
-                    onView={() => onView(row)}
+                    onView={() => onView(row as Record<string, string>)}
                 />
             )
         }

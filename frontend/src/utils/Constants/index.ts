@@ -7,7 +7,7 @@ export const serial_no_option = {
 
 export const baseFontSizes = {
   bigHeader: {
-    default: '2.4rem',
+    default: '2.2rem',
     small: '1.75rem',
   },
   header: {

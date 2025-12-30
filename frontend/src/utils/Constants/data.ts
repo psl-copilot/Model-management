@@ -39,5 +39,5 @@ export const Status = {
 export const rule_types = {
     Fraud: 'Fraud',
     AML: 'AML',
-    FRAUD_AML: "FRAUD & AML"
+    FRAUD_AML: "Fraud & AML"
 }
