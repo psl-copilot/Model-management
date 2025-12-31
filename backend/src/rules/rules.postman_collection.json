@@ -338,6 +338,202 @@
 				"description": "Creates a rule for real-time sanctions screening.\n\n### Use Case\nThis rule performs mandatory compliance checks:\n- Screens debtor and creditor names against sanctions lists\n- Checks beneficial owners and intermediary banks\n- Uses fuzzy matching to catch name variations\n- Validates against multiple jurisdictions (OFAC, UN, EU, UK)\n\n### Status: ACTIVE\nCritical compliance rule, must remain active.\n\n### Publishing Status: APPROVED\nApproved by compliance team, ready for deployment.\n\n### Regulatory Requirement\nRequired by AML/CFT regulations in most jurisdictions."
 			},
 			"response": []
+		},
+		{
+			"name": "Get All Rule IDs",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has success property\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"});",
+							"",
+							"pm.test(\"Response has ruleIds array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('ruleIds');",
+							"    pm.expect(jsonData.ruleIds).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Each rule has required properties\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.ruleIds.length > 0) {",
+							"        var firstRule = jsonData.ruleIds[0];",
+							"        pm.expect(firstRule).to.have.property('ruleId');",
+							"        pm.expect(firstRule).to.have.property('ruleCfg');",
+							"        pm.expect(firstRule).to.have.property('tenantId');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token from Keycloak with required claims"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/rules/ids",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"ids"
+					]
+				},
+				"description": "Retrieves all rule IDs with their configuration references and tenant information from the `rule` table.\n\n### Overview\nThis endpoint fetches a lightweight list of all rules configured in the system, showing their identifiers, configuration references, and tenant ownership. Use this to get an overview of all available rules before fetching detailed configurations.\n\n### Database Table: `rule`\nThis endpoint queries the `rule` table which stores rule configurations as JSONB with generated columns:\n- **configuration**: Full JSONB configuration object\n- **ruleId**: Generated column from `configuration->>'id'`\n- **ruleCfg**: Generated column from `configuration->>'cfg'`\n- **tenantId**: Generated column from `configuration->>'tenantId'`\n\n### Response Structure\n```json\n{\n  \"success\": true,\n  \"ruleIds\": [\n    {\n      \"ruleId\": \"rule-001\",\n      \"ruleCfg\": \"config-v1\",\n      \"tenantId\": \"tenant-123\"\n    },\n    {\n      \"ruleId\": \"rule-002\",\n      \"ruleCfg\": \"config-v2\",\n      \"tenantId\": \"tenant-123\"\n    }\n  ]\n}\n```\n\n### Tenant Filtering\nResults are automatically filtered by the tenant ID extracted from your JWT token. You will only see rules belonging to your tenant.\n\n### Use Cases\n- **Dashboard Display**: Show all available rules in a dropdown or list\n- **Rule Discovery**: Find what rules exist before fetching their full configurations\n- **Audit & Inventory**: Get a complete inventory of configured rules\n- **Integration**: Retrieve rule IDs for downstream processing systems\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Response Fields\n- **success**: Boolean indicating operation success\n- **ruleIds**: Array of rule identifier objects\n  - **ruleId**: Unique rule identifier\n  - **ruleCfg**: Configuration version/reference\n  - **tenantId**: Tenant who owns this rule\n\n### Performance\nThis is a lightweight query returning only metadata, not full configurations. Ideal for frequent polling or dashboard refreshes.\n\n### Next Steps\nAfter retrieving rule IDs, use the \"Get Rule Configuration by ID\" endpoint to fetch the complete JSONB configuration for a specific rule."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Rule Configuration by ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has success property\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"});",
+							"",
+							"pm.test(\"Response has ruleId and configuration\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('ruleId');",
+							"    pm.expect(jsonData).to.have.property('configuration');",
+							"});",
+							"",
+							"pm.test(\"Configuration is a valid object\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.configuration).to.be.an('object');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token from Keycloak with required claims"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/rules/configuration/:ruleId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"configuration",
+						":ruleId"
+					],
+					"variable": [
+						{
+							"key": "ruleId",
+							"value": "rule-001",
+							"description": "The unique identifier of the rule whose configuration you want to retrieve"
+						}
+					]
+				},
+				"description": "Retrieves the complete JSONB configuration for a specific rule by its ID.\n\n### Overview\nThis endpoint fetches the full configuration object stored in the `rule` table for a given rule identifier. The configuration is stored as JSONB and can contain any structured data defining the rule's behavior, parameters, thresholds, and logic.\n\n### Path Parameters\n- **ruleId**: The unique identifier of the rule (e.g., \"rule-001\", \"FRAUD-DETECT-V2\")\n\n### Database Table: `rule`\nQueries the `configuration` column from the `rule` table where:\n- `ruleId` matches the provided parameter (generated from `configuration->>'id'`)\n- `tenantId` matches your JWT token's tenant (for security isolation)\n\n### Response Structure\n```json\n{\n  \"success\": true,\n  \"ruleId\": \"rule-001\",\n  \"configuration\": {\n    \"id\": \"rule-001\",\n    \"cfg\": \"config-v1\",\n    \"tenantId\": \"tenant-123\",\n    \"name\": \"High Value Transaction Detection\",\n    \"description\": \"Detects transactions exceeding threshold amounts\",\n    \"enabled\": true,\n    \"parameters\": {\n      \"threshold\": 10000,\n      \"currency\": \"USD\",\n      \"timeWindow\": \"5m\"\n    },\n    \"actions\": [\n      {\n        \"type\": \"alert\",\n        \"severity\": \"high\"\n      },\n      {\n        \"type\": \"block\",\n        \"requiresApproval\": true\n      }\n    ],\n    \"conditions\": {\n      \"amount\": { \"gt\": 10000 },\n      \"status\": { \"eq\": \"pending\" }\n    },\n    \"metadata\": {\n      \"version\": \"2.0\",\n      \"author\": \"security-team\",\n      \"lastModified\": \"2025-12-31T10:00:00Z\"\n    }\n  }\n}\n```\n\n### Tenant Isolation\nThe query automatically filters by your tenant ID from the JWT token. You can only retrieve configurations for rules belonging to your tenant, ensuring data isolation in multi-tenant environments.\n\n### Use Cases\n- **Rule Execution**: Load configuration before running fraud detection logic\n- **Configuration Management**: View and validate rule settings\n- **Rule Editor**: Load configuration into a UI for editing\n- **Audit & Compliance**: Review rule logic and parameters\n- **System Integration**: Export rule configuration to external systems\n- **Version Comparison**: Compare configurations across different rule versions\n\n### Configuration Structure\nThe JSONB configuration is flexible and can contain:\n- **Rule Metadata**: name, description, version, author\n- **Rule Parameters**: thresholds, time windows, scoring weights\n- **Rule Logic**: conditions, predicates, decision trees\n- **Actions**: what to do when rule triggers (alert, block, score)\n- **Integration Settings**: webhooks, notifications, logging preferences\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Response Fields\n- **success**: Boolean indicating operation success\n- **ruleId**: The requested rule identifier\n- **configuration**: Complete JSONB configuration object (structure varies by rule type)\n\n### Error Responses\n- **404 Not Found**: Rule ID doesn't exist or doesn't belong to your tenant\n- **401 Unauthorized**: Missing or invalid JWT token\n- **403 Forbidden**: Token doesn't have required claims\n\n### Performance Considerations\nConfigurations can be large (especially for complex rules with extensive logic). The JSONB storage allows efficient querying and indexing, but consider caching configurations on the client side to reduce repeated calls.\n\n### Next Steps\n- After retrieving the configuration, parse and validate it against your rule schema\n- Use the configuration to execute rule logic in your transaction processing pipeline\n- Modify the configuration and use an update endpoint (if available) to save changes"
+			},
+			"response": [
+				{
+					"name": "Get Rule Configuration - Success Example",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/configuration/rule-001",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"configuration",
+								"rule-001"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": true,\n  \"ruleId\": \"rule-001\",\n  \"configuration\": {\n    \"id\": \"rule-001\",\n    \"cfg\": \"config-v1\",\n    \"tenantId\": \"tenant-123\",\n    \"name\": \"High Value Transaction Detection\",\n    \"description\": \"Detects transactions exceeding threshold amounts\",\n    \"enabled\": true,\n    \"parameters\": {\n      \"threshold\": 10000,\n      \"currency\": \"USD\",\n      \"timeWindow\": \"5m\"\n    },\n    \"actions\": [\n      {\n        \"type\": \"alert\",\n        \"severity\": \"high\"\n      },\n      {\n        \"type\": \"block\",\n        \"requiresApproval\": true\n      }\n    ],\n    \"conditions\": {\n      \"amount\": { \"gt\": 10000 },\n      \"status\": { \"eq\": \"pending\" }\n    },\n    \"metadata\": {\n      \"version\": \"2.0\",\n      \"author\": \"security-team\",\n      \"lastModified\": \"2025-12-31T10:00:00Z\"\n    }\n  }\n}"
+				},
+				{
+					"name": "Get Rule Configuration - Not Found",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/configuration/non-existent-rule",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"configuration",
+								"non-existent-rule"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": false,\n  \"message\": \"Configuration not found for rule non-existent-rule\"\n}"
+				}
+			]
 		}
 	],
 	"event": [
