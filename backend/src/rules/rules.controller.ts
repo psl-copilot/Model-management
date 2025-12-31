@@ -72,4 +72,18 @@ export class RulesController {
       user.token.tokenString,
     );
   }
+
+  @Get('/ids')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getRuleIds(
+    @User() user: AuthenticatedUser,
+  ): Promise<any[]> {
+    return await this.rulesService.getRuleIds(
+      user.token.tokenString,
+    );
+  }
 }

@@ -225,4 +225,30 @@ export class AdminServiceClient {
       return this.handleError(error, 'createRule');
     }
   }
+
+  async getRuleIds(token: string): Promise<any[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-ids`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.ruleIds) {
+        this.logger.warn('No rule IDs found in admin-service response');
+        return [];
+      }
+
+      return response.data.ruleIds;
+    } catch (error) {
+      return this.handleError(error, 'getRuleIds');
+    }
+  }
 }

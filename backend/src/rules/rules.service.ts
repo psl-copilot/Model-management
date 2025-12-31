@@ -53,4 +53,14 @@ export class RulesService {
       throw error;
     }
   }
+
+  async getRuleIds(token: string): Promise<any[]> {
+    try {
+      return await this.adminServiceClient.getRuleIds(token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching rule IDs: ${err.message}`);
+      throw error;
+    }
+  }
 }

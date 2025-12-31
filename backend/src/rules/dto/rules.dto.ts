@@ -114,3 +114,17 @@ export class UpdateRuleDto {
   @IsString()
   updated_by?: string;
 }
+
+export class RuleIdDto {
+  @IsString()
+  @IsNotEmpty()
+  ruleId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ruleCfg: string;
+
+  @IsString()
+  @IsNotEmpty()
+  tenantId: string;
+}
