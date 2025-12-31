@@ -34,7 +34,7 @@ export const ROUTES = [
     },
     {
         path: "/editor",
-        element: <ComingSoon />,
+        element: <RuleEditor />,
         private: true,
         layout: true,
     },

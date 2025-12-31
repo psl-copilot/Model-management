@@ -17,7 +17,8 @@ const theme = () => {
         secondary: '#4b7eee',
         ternary: '#616a76',
         black: '#000',
-        white: '#fff'
+        white: '#fff',
+        lightBlue : '#eff6ff'
     };
 
     return {

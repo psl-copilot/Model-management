@@ -3,8 +3,6 @@ import Input from "../../../components/Input";
 import useViewRuleController, { type ViewRuleProps } from "./useViewRuleController";
 import { dateFormatter } from '../../../utils/Common/helpers';
 
-
-
 const ViewRule = (props: ViewRuleProps) => {
 
     const { values } = useViewRuleController(props)

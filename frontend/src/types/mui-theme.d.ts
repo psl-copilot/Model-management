@@ -12,6 +12,9 @@ declare module '@mui/material/styles' {
             primary: string;
             secondary: string;
             ternary: string;
+            black: string;
+            white: string;
+            lightBlue: string
         };
         progressbar: {
             main: string;
@@ -23,6 +26,9 @@ declare module '@mui/material/styles' {
             primary: string;
             secondary: string;
             ternary: string;
+            black: string;
+            white: string;
+            lightBlue: string
         };
         progressbar?: {
             main: string;

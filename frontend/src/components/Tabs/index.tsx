@@ -1,0 +1,43 @@
+import { memo } from "react";
+import * as S from './Tabs.styles';
+
+export type TabItem = {
+    label: string;
+    value: string;
+};
+
+export interface TabsProps {
+    tabs: TabItem[];
+    selected: string;
+    setSelected: (value: string) => void;
+}
+
+const Tabs = ({ tabs, selected, setSelected }: TabsProps) => {
+    return (
+        <S.Wrapper>
+            <S.TabsContainer>
+                {tabs.map((item) => {
+                    const active = selected === item.value;
+
+                    return (
+                        <S.TabItemWrapper
+                            active={active}
+                            key={item.value}
+                            onClick={() => setSelected(item.value)}
+                        >
+                            <S.TabLabel active={active}>
+                                {item.label}
+                            </S.TabLabel>
+
+                            {active && (
+                                <S.Underline layoutId="underline" />
+                            )}
+                        </S.TabItemWrapper>
+                    );
+                })}
+            </S.TabsContainer>
+        </S.Wrapper>
+    );
+};
+
+export default memo(Tabs);
