@@ -52,6 +52,10 @@ const useHomeController = () => {
         fetchRules();
     }, [getRules, offset, limit, searchTerm, status, ruleType]);
 
+    useEffect(() => {
+        setOffset(0);
+    }, [status, ruleType, setOffset]);
+
 
     const pagination = useMemo(() => {
         return {
