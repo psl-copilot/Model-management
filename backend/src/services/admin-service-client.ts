@@ -251,4 +251,33 @@ export class AdminServiceClient {
       return this.handleError(error, 'getRuleIds');
     }
   }
+
+  async getRuleConfiguration(ruleId: string, token: string): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-configuration/${ruleId}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.configuration) {
+        this.logger.error(`No configuration found for rule ${ruleId}`);
+        throw new HttpException(
+          `Configuration not found for rule ${ruleId}`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'getRuleConfiguration');
+    }
+  }
 }

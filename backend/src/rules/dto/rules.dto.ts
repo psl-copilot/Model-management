@@ -128,3 +128,12 @@ export class RuleIdDto {
   @IsNotEmpty()
   tenantId: string;
 }
+
+export class RuleConfigurationDto {
+  @IsString()
+  @IsNotEmpty()
+  ruleId: string;
+
+  @IsNotEmpty()
+  configuration: any;
+}

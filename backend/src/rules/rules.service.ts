@@ -63,4 +63,14 @@ export class RulesService {
       throw error;
     }
   }
+
+  async getRuleConfiguration(ruleId: string, token: string): Promise<any> {
+    try {
+      return await this.adminServiceClient.getRuleConfiguration(ruleId, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching configuration for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
 }
