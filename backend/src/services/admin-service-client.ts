@@ -336,4 +336,30 @@ export class AdminServiceClient {
       return this.handleError(error, 'updateRule');
     }
   }
+
+  async getActiveNetworkMap(token: string): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/network-map/active`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.networkMap) {
+        this.logger.warn('No active network map found in admin-service response');
+        return null;
+      }
+
+      return response.data.networkMap;
+    } catch (error) {
+      return this.handleError(error, 'getActiveNetworkMap');
+    }
+  }
 }

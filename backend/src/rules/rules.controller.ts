@@ -123,4 +123,20 @@ export class RulesController {
       user.token.tokenString,
     );
   }
+
+  @Get('/network-map/active')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getActiveNetworkMap(
+    @User() user: AuthenticatedUser,
+  ): Promise<any> {
+    return await this.rulesService.getActiveNetworkMap(
+      user.token.tokenString,
+    );
+  }
+
+  
 }

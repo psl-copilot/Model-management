@@ -87,4 +87,14 @@ export class RulesService {
       throw error;
     }
   }
+
+  async getActiveNetworkMap(token: string): Promise<any> {
+    try {
+      return await this.adminServiceClient.getActiveNetworkMap(token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching active network map: ${err.message}`);
+      throw error;
+    }
+  }
 }

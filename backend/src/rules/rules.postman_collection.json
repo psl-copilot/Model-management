@@ -933,6 +933,165 @@
 					"body": "{\n  \"success\": true,\n  \"transactionTypes\": []\n}"
 				}
 			]
+		},
+		{
+			"name": "Get Active Network Map",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response is a valid network map\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('object');",
+							"    pm.expect(jsonData).to.have.property('active');",
+							"    pm.expect(jsonData.active).to.be.true;",
+							"});",
+							"",
+							"pm.test(\"Network map has messages array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('messages');",
+							"    pm.expect(jsonData.messages).to.be.an('array');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token from Keycloak with required claims"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/rules/network-map/active",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"rules",
+						"network-map",
+						"active"
+					]
+				},
+				"description": "Retrieves the currently active network map for the authenticated tenant.\n\n### Overview\nThis endpoint fetches the network map configuration that defines how transactions are routed through typology processors and rules. Each tenant can have only **one** active network map at a time.\n\n### Database Table: `network_map`\nThis endpoint queries the `network_map` table:\n- **configuration**: Full JSONB network map configuration\n- **tenantId**: Generated column from `configuration->>'tenantId'` for efficient filtering\n\n### Business Rule: Single Active Network Map\nThe system enforces that each tenant must have **exactly one** active network map. If the database contains multiple active network maps, the API returns a **409 Conflict** error.\n\n### Response Structure\n```json\n{\n  \"active\": true,\n  \"cfg\": \"1.0.0\",\n  \"tenantId\": \"tenant-123\",\n  \"messages\": [\n    {\n      \"id\": \"004@1.0.0\",\n      \"cfg\": \"1.0.0\",\n      \"txTp\": \"pacs.002.001.12\",\n      \"typologies\": [\n        {\n          \"id\": \"typology-processor@1.0.0\",\n          \"cfg\": \"001@1.0.0\",\n          \"rules\": [\n            {\n              \"id\": \"006@1.0.0\",\n              \"cfg\": \"1.0.0\"\n            },\n            {\n              \"id\": \"078@1.0.0\",\n              \"cfg\": \"1.0.0\"\n            },\n            {\n              \"id\": \"EFRuP@1.0.0\",\n              \"cfg\": \"none\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}\n```\n\n### Network Map Structure\n- **active** (boolean): Must be `true` for the network map to be returned\n- **cfg** (string): Configuration version identifier\n- **tenantId** (string): Tenant identifier (automatically extracted to database column)\n- **messages** (array): Transaction message configurations\n  - **id**: Message identifier with version (e.g., \"004@1.0.0\")\n  - **cfg**: Message configuration version\n  - **txTp**: ISO 20022 transaction type (e.g., \"pacs.002.001.12\")\n  - **typologies**: Array of typology processors for this message\n    - **id**: Typology processor identifier\n    - **cfg**: Typology configuration reference\n    - **rules**: Array of rules executed by this typology\n      - **id**: Rule identifier with version\n      - **cfg**: Rule configuration version\n\n### Tenant Filtering\nResults are automatically filtered by the tenant ID extracted from your JWT token. You will only see the active network map belonging to your tenant.\n\n### Use Cases\n\n#### 1. Transaction Processing System Initialization\nWhen a transaction processing service starts up, it calls this endpoint to:\n- Load the active network map configuration\n- Determine which transaction types to process\n- Configure typology processors\n- Load rule evaluation order\n\n#### 2. Configuration Management\nAdmin interfaces use this API to:\n- Display the currently active network map\n- Preview active configuration\n- Verify network map structure before deployment\n\n#### 3. Monitoring & Debugging\nOperations teams use this to:\n- Confirm which network map is currently active\n- Troubleshoot transaction routing issues\n- Audit configuration state\n- Verify rule and typology associations\n\n#### 4. Rule and Typology Discovery\nDevelopment teams use this to:\n- Find which rules are active for a transaction type\n- Understand message flow through typologies\n- Map transaction types to rule sets\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Response Fields\nThe response is the complete JSONB network map configuration. Structure varies based on configuration but typically includes:\n- **active**: Boolean flag (always `true` for returned result)\n- **cfg**: Configuration version\n- **tenantId**: Tenant identifier\n- **messages**: Array of message routing configurations\n\n### Error Responses\n\n#### 404 Not Found\n```json\n{\n  \"success\": false,\n  \"message\": \"No active network map found for this tenant\"\n}\n```\n**Causes:**\n- No network map exists for your tenant\n- All network maps have `active: false`\n- Database is empty\n\n**Resolution:**\n- Insert a network map with `active: true`\n- Verify tenant ID in JWT matches database records\n- Check database connectivity\n\n#### 409 Conflict\n```json\n{\n  \"success\": false,\n  \"message\": \"Multiple active network maps found for tenant tenant-123. Expected only one active network map.\"\n}\n```\n**Cause:** Database contains more than one network map with `active: true` for your tenant.\n\n**Resolution:** Database administrator must:\n1. Query: `SELECT * FROM network_map WHERE configuration->>'active' = 'true' AND tenantId = 'your-tenant'`\n2. Identify the correct network map to keep active\n3. Deactivate others: `UPDATE network_map SET configuration = jsonb_set(configuration, '{active}', 'false') WHERE ...`\n4. Ensure only one network map has `active: true`\n\n#### 401 Unauthorized\nMissing or invalid JWT token\n\n#### 403 Forbidden\nToken doesn't have required claims (`editor`, `approver`, or `publisher`)\n\n#### 500 Internal Server Error\nDatabase connection error or unexpected system error\n\n### JSONB Querying\nThe database uses PostgreSQL JSONB operators:\n- `configuration->>'active'` extracts the `active` field as text\n- `configuration->>'tenantId'` is stored as a generated column for indexing\n- Efficient filtering on both tenant and active status\n\n### Performance Considerations\n- Network maps can be large (100KB+ for complex configurations)\n- Consider caching the result client-side\n- Network map changes are infrequent (typically during deployments)\n- Generated `tenantId` column enables indexed lookups\n\n### Network Map Activation Workflow\n1. New network map created with `active: false`\n2. Configuration validated and tested\n3. Current active map set to `active: false`\n4. New network map set to `active: true`\n5. Transaction systems fetch updated configuration\n\n### Integration Example\n```javascript\n// Fetch active network map on service startup\nconst response = await fetch('/rules/network-map/active', {\n  headers: {\n    'Authorization': `Bearer ${token}`\n  }\n});\n\nif (response.ok) {\n  const networkMap = await response.json();\n  \n  // Configure transaction routing\n  networkMap.messages.forEach(msg => {\n    console.log(`Transaction type: ${msg.txTp}`);\n    \n    msg.typologies.forEach(typo => {\n      console.log(`  Typology: ${typo.id}`);\n      \n      typo.rules.forEach(rule => {\n        console.log(`    Rule: ${rule.id}`);\n      });\n    });\n  });\n} else if (response.status === 404) {\n  console.error('No active network map - service cannot start');\n} else if (response.status === 409) {\n  console.error('Multiple active network maps - database inconsistency');\n}\n```\n\n### Next Steps\n- Use the network map to configure transaction processing pipelines\n- Load typology processors specified in the configuration\n- Initialize rule engines with the rule identifiers\n- Monitor for network map changes (if using real-time updates)\n\n### Related Endpoints\n- **GET /rules/ids** - Fetch all available rule IDs\n- **GET /rules/configuration/:ruleId** - Fetch specific rule configuration\n- **GET /config/transaction-types** - List all transaction types\n\n### Database Schema\n```sql\nCREATE TABLE network_map (\n    configuration JSONB NOT NULL,\n    tenantId TEXT GENERATED ALWAYS AS (configuration ->> 'tenantId') STORED\n);\n\nCREATE INDEX idx_network_map_tenant ON network_map(tenantId);\nCREATE INDEX idx_network_map_active ON network_map((configuration->>'active'));\n```"
+			},
+			"response": [
+				{
+					"name": "Get Active Network Map - Success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/network-map/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"network-map",
+								"active"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"active\": true,\n  \"cfg\": \"1.0.0\",\n  \"tenantId\": \"tenant-123\",\n  \"messages\": [\n    {\n      \"id\": \"004@1.0.0\",\n      \"cfg\": \"1.0.0\",\n      \"txTp\": \"pacs.002.001.12\",\n      \"typologies\": [\n        {\n          \"id\": \"typology-processor@1.0.0\",\n          \"cfg\": \"001@1.0.0\",\n          \"rules\": [\n            {\n              \"id\": \"006@1.0.0\",\n              \"cfg\": \"1.0.0\"\n            },\n            {\n              \"id\": \"078@1.0.0\",\n              \"cfg\": \"1.0.0\"\n            },\n            {\n              \"id\": \"EFRuP@1.0.0\",\n              \"cfg\": \"none\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+				},
+				{
+					"name": "Get Active Network Map - Not Found",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/network-map/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"network-map",
+								"active"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": false,\n  \"message\": \"No active network map found for this tenant\"\n}"
+				},
+				{
+					"name": "Get Active Network Map - Multiple Active (Conflict)",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/network-map/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"network-map",
+								"active"
+							]
+						}
+					},
+					"status": "Conflict",
+					"code": 409,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": false,\n  \"message\": \"Multiple active network maps found for tenant tenant-123. Expected only one active network map.\"\n}"
+				}
+			]
 		}
 	],
 	"event": [
