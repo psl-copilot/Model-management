@@ -104,6 +104,14 @@ export class UpdateRuleDto {
 
   @IsOptional()
   @IsString()
+  txtp?: string;
+
+  @IsOptional()
+  @IsString()
+  version?: string;
+
+  @IsOptional()
+  @IsString()
   status?: string;
 
   @IsOptional()
@@ -112,7 +120,7 @@ export class UpdateRuleDto {
 
   @IsOptional()
   @IsString()
-  updated_by?: string;
+  rule_type?: string;
 }
 
 export class RuleIdDto {

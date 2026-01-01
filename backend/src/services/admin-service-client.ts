@@ -306,4 +306,34 @@ export class AdminServiceClient {
       return this.handleError(error, 'getTransactionTypes');
     }
   }
+
+  async updateRule(ruleId: string, updateData: Partial<Rules>, token: string): Promise<Rules> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.put(
+          `${this.adminServiceUrl}/v1/admin/trs/rule/${ruleId}`,
+          updateData,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.rule) {
+        this.logger.error(`No rule returned after update for ${ruleId}`);
+        throw new HttpException(
+          `Failed to update rule ${ruleId}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return response.data.rule;
+    } catch (error) {
+      return this.handleError(error, 'updateRule');
+    }
+  }
 }

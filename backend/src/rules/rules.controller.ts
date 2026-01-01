@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Get,
   Query,
+  Put,
 } from '@nestjs/common';
 import { TazamaAuthGuard } from '../auth/tazama-auth.guard';
 import { User } from '../auth/user.decorator';
@@ -99,6 +100,20 @@ export class RulesController {
   ): Promise<any> {
     return await this.rulesService.getRuleConfiguration(
       ruleId,
+      user.token.tokenString,
+    );
+  }
+
+  @Put('/api/:ruleId')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async updateRule(
+    @Param('ruleId') ruleId: string,
+    @Body() updateData: Partial<Rules>,
+    @User() user: AuthenticatedUser,
+  ): Promise<Rules> {
+    return await this.rulesService.updateRule(
+      ruleId,
+      updateData,
       user.token.tokenString,
     );
   }

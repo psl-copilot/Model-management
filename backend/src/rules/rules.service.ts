@@ -73,4 +73,18 @@ export class RulesService {
       throw error;
     }
   }
+
+  async updateRule(
+    ruleId: string,
+    updateData: Partial<Rules>,
+    token: string,
+  ): Promise<Rules> {
+    try {
+      return await this.adminServiceClient.updateRule(ruleId, updateData, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error updating rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
 }
