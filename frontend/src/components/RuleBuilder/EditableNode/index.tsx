@@ -78,6 +78,17 @@ const EditableNode = ({ data, selected }: NodeProps) => {
                         nodeData.nodeType === 'End' || 
                         nodeData.nodeType === 'HandleTransaction';
 
+  // Get conditions for If nodes
+  const getIfConditions = () => {
+    if (nodeData.nodeType !== 'If') return [];
+    try {
+      const conditionsStr = localParams['conditions'];
+      return conditionsStr ? JSON.parse(conditionsStr) : [{ type: 'if', condition: 'x > 5' }];
+    } catch {
+      return [{ type: 'if', condition: 'x > 5' }];
+    }
+  };
+
   const toggleExpanded = () => setExpanded((prev) => !prev);
 
   return (
@@ -199,7 +210,49 @@ const EditableNode = ({ data, selected }: NodeProps) => {
         )}
       </Box>
 
-      {template?.handles.source && (
+      {template?.handles.source && nodeData.nodeType === 'If' ? (
+        <>
+          {/* Right-side handles for if/else if/else branches */}
+          {getIfConditions().map((cond: { type: string; condition?: string }, index: number) => {
+            const handleId = cond.type === 'else' ? 'else' : cond.type === 'if' ? 'if' : `elseif-${index}`;
+            const totalConditions = getIfConditions().length;
+            
+            // Distribute handles evenly on right side
+            const spacing = 80 / (totalConditions + 1);
+            const topPosition = 10 + spacing * (index + 1);
+            
+            return (
+              <Handle
+                key={handleId}
+                id={handleId}
+                type="source"
+                position={Position.Right}
+                style={{
+                  background: '#4caf50',
+                  width: '10px',
+                  height: '10px',
+                  border: '2px solid white',
+                  top: `${topPosition}%`,
+                }}
+              />
+            );
+          })}
+          
+          {/* Bottom handle for continuation after if block */}
+          <Handle
+            id="exit"
+            type="source"
+            position={Position.Bottom}
+            style={{
+              background: '#000000',
+              width: '10px',
+              height: '10px',
+              border: '2px solid white',
+            }}
+          />
+        </>
+      ) : template?.handles.source ? (
+        // Single output handle for other nodes
         <Handle
           type="source"
           position={Position.Bottom}
@@ -210,7 +263,7 @@ const EditableNode = ({ data, selected }: NodeProps) => {
             border: '2px solid white',
           }}
         />
-      )}
+      ) : null}
     </NodeContainer>
   );
 };

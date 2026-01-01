@@ -16,12 +16,20 @@ import '@xyflow/react/dist/style.css';
 import { Box, Paper, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditableNode, { type EditableNodeData } from '../EditableNode';
-import { getNodeTemplate, type BaseNodeTemplate, type NodeInput } from '../../../utils/Templates/customFuncTemplate';
+import { getNodeTemplate } from '../../../utils/Templates/customFuncTemplate';
 import DebuggerPanel, { type DebugLog } from '../DebuggerPanel';
+import { sortNodesInFlowOrder, getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
+import { generateTypeScriptCode } from '../../../utils/Flow/CodeGenerator';
+import { generateNodeId, getDefaultFlow } from '../../../utils/Flow/FlowDefaults';
 
 const nodeTypes = {
   editableNode: EditableNode,
 };
+
+interface NestedCanvasData {
+  nodes: Node[];
+  edges: Edge[];
+}
 
 interface CanvasProps {
   isPlaying?: boolean;
@@ -32,12 +40,14 @@ interface CanvasProps {
   debugVariables?: Record<string, unknown>;
   debugLogs?: DebugLog[];
   currentNodeId?: string;
+  nestedCanvasData?: Record<string, NestedCanvasData>;
   onFlowStateUpdate?: (
     nodes: Node[], 
     edges: Edge[], 
     setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void, 
     setEdges: (edges: Edge[] | ((prevEdges: Edge[]) => Edge[])) => void
   ) => void;
+  viewOnly?: boolean;
 }
 
 
@@ -48,84 +58,20 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   onCodeGenerate,
   onNodeSelect,
   onNodeUpdate,
+  nestedCanvasData = {},
   debugVariables = {},
   debugLogs = [],
   currentNodeId,
   onFlowStateUpdate,
+  viewOnly = false,
 }) => {
-  // Helper function to get default params from template
-  const getDefaultParams = (template: BaseNodeTemplate | null | undefined) => {
-    const params: Record<string, string> = {};
-    if (template?.inputs) {
-      template.inputs.forEach((input: NodeInput) => {
-        params[input.key] = input.defaultValue || '';
-      });
-    }
-    return params;
-  };
-
   // Generate initial nodes and edges once using lazy initialization
   const [initialNodesEdges] = useState(() => {
-    const timestamp = Date.now();
-    const startNodeId = `Start_${timestamp}`;
-    const handleTransactionNodeId = `HandleTransaction_${timestamp + 1}`;
-    const endNodeId = `End_${timestamp + 2}`;
-
-    const startTemplate = getNodeTemplate('Start');
-    const handleTransactionTemplate = getNodeTemplate('HandleTransaction');
-    const endTemplate = getNodeTemplate('End');
-
-    const nodes: Node[] = [
-      {
-        id: startNodeId,
-        type: 'editableNode',
-        position: { x: 100, y: 50 },
-        data: {
-          label: startTemplate?.displayName || 'Start',
-          nodeType: 'Start',
-          params: getDefaultParams(startTemplate),
-        } as EditableNodeData,
-      },
-      {
-        id: handleTransactionNodeId,
-        type: 'editableNode',
-        position: { x: 100, y: 200 },
-        data: {
-          label: handleTransactionTemplate?.displayName || 'Handle Transaction',
-          nodeType: 'HandleTransaction',
-          params: getDefaultParams(handleTransactionTemplate),
-        } as EditableNodeData,
-      },
-      {
-        id: endNodeId,
-        type: 'editableNode',
-        position: { x: 100, y: 350 },
-        data: {
-          label: endTemplate?.displayName || 'End',
-          nodeType: 'End',
-          params: getDefaultParams(endTemplate),
-        } as EditableNodeData,
-      },
-    ];
-
-    const edges: Edge[] = [
-      {
-        id: `edge-${startNodeId}-${handleTransactionNodeId}`,
-        source: startNodeId,
-        target: handleTransactionNodeId,
-        type: 'smoothstep',
-        animated: false,
-      },
-      {
-        id: `edge-${handleTransactionNodeId}-${endNodeId}`,
-        source: handleTransactionNodeId,
-        target: endNodeId,
-        type: 'smoothstep',
-        animated: false,
-      },
-    ];
-
-    return { nodes, edges };
+    const defaultFlow = getDefaultFlow();
+    return {
+      nodes: defaultFlow.mainCanvas.nodes as Node[],
+      edges: defaultFlow.mainCanvas.edges as Edge[],
+    };
   });
   
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodesEdges.nodes);
@@ -201,10 +147,44 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
 
   const onConnect = useCallback(
     (params: Connection) => {
+      // Find the source node to check if it's an If node
+      const sourceNode = nodes.find((n) => n.id === params.source);
+      const isIfNode = sourceNode?.data.nodeType === 'If';
+      
+      if (!isIfNode) {
+        // For non-If nodes, check if source already has an outgoing edge
+        const sourceHasEdge = edges.some((edge) => edge.source === params.source);
+        
+        if (sourceHasEdge) {
+          console.warn('Each node can only have one outgoing connection');
+          return;
+        }
+      } else {
+        // For If nodes, check if this specific handle already has an edge
+        const handleHasEdge = edges.some(
+          (edge) => edge.source === params.source && edge.sourceHandle === params.sourceHandle
+        );
+        
+        if (handleHasEdge) {
+          console.warn('This condition already has a connection');
+          return;
+        }
+      }
+      
+      // Add label and style for If node edges
+      const edgeWithLabel = {
+        ...params,
+        label: isIfNode && params.sourceHandle ? getLabelForHandle(params.sourceHandle) : undefined,
+        style: isIfNode && params.sourceHandle ? { 
+          stroke: getColorForHandle(params.sourceHandle),
+          strokeWidth: 2,
+        } : undefined,
+      };
+      
       saveHistory();
-      setEdges((eds) => addEdge(params, eds));
+      setEdges((eds) => addEdge(edgeWithLabel, eds));
     },
-    [setEdges, saveHistory]
+    [nodes, edges, setEdges, saveHistory]
   );
 
   const onDragOver = useCallback((event: DragEvent) => {
@@ -228,7 +208,7 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       });
 
       const template = getNodeTemplate(type);
-      const newNodeId = `${type}_${Date.now()}`;
+      const newNodeId = generateNodeId();
 
       // Initialize params with default values from template
       const defaultParams: Record<string, string> = {};
@@ -400,13 +380,41 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   // Generate JSON output
   const generateJson = useCallback(() => {
     const flowData = {
-      nodes: nodes.map((node) => ({
-        id: node.id,
-        type: node.data.nodeType,
-        label: node.data.label,
-        params: node.data.params,
-        position: node.position,
-      })),
+      nodes: nodes.map((node) => {
+        const baseNode = {
+          id: node.id,
+          type: node.data.nodeType,
+          label: node.data.label,
+          params: node.data.params,
+          position: node.position,
+        };
+        
+        // If HandleTransaction node, include nested canvas data
+        if (node.data.nodeType === 'HandleTransaction' && nestedCanvasData[node.id]) {
+          const nestedData = nestedCanvasData[node.id];
+          const sortedNestedNodes = sortNodesInFlowOrder(nestedData.nodes, nestedData.edges);
+          
+          return {
+            ...baseNode,
+            nestedFlow: {
+              nodes: sortedNestedNodes.map((nestedNode) => ({
+                id: nestedNode.id,
+                type: nestedNode.data.nodeType,
+                label: nestedNode.data.label,
+                params: nestedNode.data.params,
+                position: nestedNode.position,
+              })),
+              edges: nestedData.edges.map((nestedEdge) => ({
+                id: nestedEdge.id,
+                source: nestedEdge.source,
+                target: nestedEdge.target,
+              })),
+            },
+          };
+        }
+        
+        return baseNode;
+      }),
       edges: edges.map((edge) => ({
         id: edge.id,
         source: edge.source,
@@ -418,35 +426,22 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     if (onJsonGenerate) {
       onJsonGenerate(json);
     }
-  }, [nodes, edges, onJsonGenerate]);
+  }, [nodes, edges, nestedCanvasData, onJsonGenerate]);
 
   // Generate TypeScript code
   const generateCode = useCallback(() => {
-    const code = `// Generated TypeScript Code
-// Total Nodes: ${nodes.length}
-// Total Edges: ${edges.length}
-
-${nodes
-  .map((node) => {
-    const nodeData = node.data as EditableNodeData;
-    const template = getNodeTemplate(nodeData.nodeType);
-    return `// ${nodeData.label} (${template?.displayName})`;
-  })
-  .join('\n')}
-`;
+    const code = generateTypeScriptCode(nodes, edges, nestedCanvasData);
 
     if (onCodeGenerate) {
       onCodeGenerate(code);
     }
-  }, [nodes, edges, onCodeGenerate]);
+  }, [nodes, edges, nestedCanvasData, onCodeGenerate]);
 
   // Expose methods to parent via refs
   React.useEffect(() => {
     if (reactFlowInstance) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).generateFlowJson = generateJson;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).generateFlowCode = generateCode;
+      window.generateFlowJson = generateJson;
+      window.generateFlowCode = generateCode;
     }
   }, [reactFlowInstance, generateJson, generateCode]);
 
@@ -469,19 +464,19 @@ ${nodes
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
+          onNodesChange={viewOnly ? undefined : onNodesChange}
+          onEdgesChange={viewOnly ? undefined : onEdgesChange}
+          onConnect={viewOnly ? undefined : onConnect}
           onInit={setReactFlowInstance}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
+          onDrop={viewOnly ? undefined : onDrop}
+          onDragOver={viewOnly ? undefined : onDragOver}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
           defaultViewport={{ x: 150, y: 50, zoom: 1 }}
-          nodesDraggable={!isPlaying}
-          nodesConnectable={!isPlaying}
-          elementsSelectable={!isPlaying}
+          nodesDraggable={!isPlaying && !viewOnly}
+          nodesConnectable={!isPlaying && !viewOnly}
+          elementsSelectable={!isPlaying && !viewOnly}
           deleteKeyCode={null}
         >
           <Background />
@@ -549,6 +544,8 @@ ${nodes
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            position: 'relative',
+            zIndex: 1100,
           }}
         >
         {/* Debugger Panel Header */}

@@ -20,6 +20,7 @@ interface HeaderProps {
   onDisplayJson: () => void;
   onGenerateCode: () => void;
   disabled?: boolean;
+  viewOnly?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -29,6 +30,7 @@ const Header: React.FC<HeaderProps> = ({
   onDisplayJson,
   onGenerateCode,
   disabled = false,
+  viewOnly = false,
 }) => {
   return (
     <Paper elevation={0} square>
@@ -41,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({
             fontWeight={600}
             color="text.primary"
           >
-            Rule Builder
+            Rule Builder {viewOnly && '(View Only)'}
           </Typography>
         </Box>
 

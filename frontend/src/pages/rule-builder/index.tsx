@@ -9,22 +9,41 @@ import NestedCanvas from '../../components/RuleBuilder/NestedCanvas';
 import OutputModal from '../../components/RuleBuilder/OutputModal';
 import { simulateNodeExecution } from '../../utils/Flow/FlowExecutor';
 import type { DebugLog } from '../../components/RuleBuilder/DebuggerPanel';
+import { getDefaultFlow } from '../../utils/Flow/FlowDefaults';
+
+// Extend Window interface for flow generation methods
+declare global {
+  interface Window {
+    generateFlowJson?: () => void;
+    generateFlowCode?: () => void;
+    generateNestedFlowJson?: () => void;
+    generateNestedFlowCode?: () => void;
+  }
+}
 
 interface NestedCanvasData {
   nodes: Node[];
   edges: Edge[];
 }
 
-const RuleBuilder: React.FC = () => {
+interface RuleBuilderProps {
+  viewOnly?: boolean;
+}
+
+const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [allNodes, setAllNodes] = useState<Node[]>([]);
   
-  // Nested canvas state
+  // Nested canvas state - initialize with default flow
   const [activeNestedCanvas, setActiveNestedCanvas] = useState<string | null>(null);
   const [activeNestedCanvasLabel, setActiveNestedCanvasLabel] = useState<string>('Handle Transaction');
-  const [nestedCanvasData, setNestedCanvasData] = useState<Record<string, NestedCanvasData>>({});
+  const [nestedCanvasData, setNestedCanvasData] = useState<Record<string, NestedCanvasData>>(() => {
+    const defaultFlow = getDefaultFlow();
+    return defaultFlow.nestedCanvasData as Record<string, NestedCanvasData>;
+  });
   
   // Modal state
   const [jsonModalOpen, setJsonModalOpen] = useState<boolean>(false);
@@ -124,7 +143,7 @@ const RuleBuilder: React.FC = () => {
       }
 
       // --- SIMULATE NODE EXECUTION ---
-      const { newVariables, logMessage, error } = simulateNodeExecution(
+      const { newVariables, logMessage, error, branchHandle } = simulateNodeExecution(
         node,
         flowVarsRef.current
       );
@@ -146,19 +165,73 @@ const RuleBuilder: React.FC = () => {
         ]);
       }
 
-      // --- VISUAL HIGHLIGHTING ---
-      console.log(`Animating step for node: ${nodeId}`);
-      setCurrentAnimationNode(nodeId);
-      
-      if (setNodesRef.current) {
-        setNodesRef.current((nds: Node[]) => nds.map((n) => ({ ...n, selected: n.id === nodeId })));
-      }
-      if (setEdgesRef.current) {
-        setEdgesRef.current((eds: Edge[]) => eds.map((e) => ({ ...e, selected: false })));
-      }
-
-      // --- PROCEED TO NEXT NODE ---
+      // --- PROCEED TO NEXT NODE FUNCTION (Define before nested flow logic) ---
       const proceedToNext = () => {
+        // Check if current node is End node - if so, complete animation
+        if (node.data.nodeType === 'End') {
+          animationTimeoutRef.current = setTimeout(() => {
+            if (onDone) onDone();
+          }, 800);
+          return;
+        }
+        
+        // For If nodes, first execute the branch, then continue with exit handle
+        if (node.data.nodeType === 'If' && branchHandle) {
+          // Find the edge for the evaluated branch (right-side handle)
+          const branchEdge = currentEdges.find((e) => e.source === nodeId && e.sourceHandle === branchHandle);
+          
+          if (branchEdge) {
+            // Animate the branch edge
+            animationTimeoutRef.current = setTimeout(() => {
+              if (setEdgesRef.current) {
+                setEdgesRef.current((eds: Edge[]) =>
+                  eds.map((e) => ({ ...e, selected: e.id === branchEdge.id }))
+                );
+              }
+              if (setNodesRef.current) {
+                setNodesRef.current((nds: Node[]) => nds.map((n) => ({ ...n, selected: false })));
+              }
+
+              // Execute branch nodes
+              const branchTargetNode = currentNodes.find((n) => n.id === branchEdge.target);
+              if (branchTargetNode) {
+                animationTimeoutRef.current = setTimeout(() => {
+                  // Execute the branch, then come back to execute exit handle
+                  animateStep(branchTargetNode.id, () => {
+                    // After branch completes, follow exit handle
+                    const exitEdge = currentEdges.find((e) => e.source === nodeId && e.sourceHandle === 'exit');
+                    if (exitEdge) {
+                      animationTimeoutRef.current = setTimeout(() => {
+                        if (setEdgesRef.current) {
+                          setEdgesRef.current((eds: Edge[]) =>
+                            eds.map((e) => ({ ...e, selected: e.id === exitEdge.id }))
+                          );
+                        }
+                        
+                        const exitTargetNode = currentNodes.find((n) => n.id === exitEdge.target);
+                        if (exitTargetNode) {
+                          animationTimeoutRef.current = setTimeout(() => {
+                            animateStep(exitTargetNode.id, onDone);
+                          }, 800);
+                        } else {
+                          if (onDone) onDone();
+                        }
+                      }, 800);
+                    } else {
+                      // No exit path, complete
+                      if (onDone) onDone();
+                    }
+                  });
+                }, 800);
+              } else {
+                if (onDone) onDone();
+              }
+            }, 800);
+            return;
+          }
+        }
+        
+        // For regular nodes or If nodes without branches, follow normal flow
         const outgoingEdge = currentEdges.find((e) => e.source === nodeId);
         
         if (!outgoingEdge) {
@@ -190,13 +263,138 @@ const RuleBuilder: React.FC = () => {
         }, 800);
       };
 
-      // Execute next step after delay
-      proceedToNext();
+      // --- CHECK FOR NESTED FLOW (HandleTransaction) ---
+      const isHandleTransaction = node.data.nodeType === 'HandleTransaction';
+      const hasNestedFlow = isHandleTransaction && nestedCanvasData[nodeId];
+      
+      if (hasNestedFlow) {
+        const nestedData = nestedCanvasData[nodeId];
+        const nestedStartNode = nestedData.nodes.find((n) => n.data.nodeType === 'Start');
+        
+        if (nestedStartNode) {
+          // Execute nested flow recursively
+          const executeNestedFlow = (nestedNodeId: string, onNestedComplete: () => void) => {
+            const nestedNode = nestedData.nodes.find((n) => n.id === nestedNodeId);
+            if (!nestedNode) {
+              onNestedComplete();
+              return;
+            }
+
+            // Execute nested node
+            const nestedResult = simulateNodeExecution(nestedNode, flowVarsRef.current);
+            flowVarsRef.current = nestedResult.newVariables;
+            setDebugVariables({ ...nestedResult.newVariables });
+
+            if (nestedResult.logMessage) {
+              const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+              setDebugLogs((prevLogs) => [
+                ...prevLogs,
+                {
+                  time: timestamp,
+                  message: `  ↳ ${nestedResult.logMessage}`,
+                  type: nestedResult.error ? 'error' : 'info',
+                },
+              ]);
+            }
+
+            // Check if this is the End node - if so, complete nested flow
+            if (nestedNode.data.nodeType === 'End') {
+              animationTimeoutRef.current = setTimeout(() => {
+                onNestedComplete();
+              }, 800);
+              return;
+            }
+
+            // Handle If nodes in nested flow
+            if (nestedNode.data.nodeType === 'If' && nestedResult.branchHandle) {
+              const branchEdge = nestedData.edges.find(
+                (e) => e.source === nestedNodeId && e.sourceHandle === nestedResult.branchHandle
+              );
+              
+              if (branchEdge) {
+                const branchTargetNode = nestedData.nodes.find((n) => n.id === branchEdge.target);
+                if (branchTargetNode) {
+                  animationTimeoutRef.current = setTimeout(() => {
+                    executeNestedFlow(branchTargetNode.id, () => {
+                      // After branch, follow exit handle
+                      const exitEdge = nestedData.edges.find(
+                        (e) => e.source === nestedNodeId && e.sourceHandle === 'exit'
+                      );
+                      if (exitEdge) {
+                        const exitTargetNode = nestedData.nodes.find((n) => n.id === exitEdge.target);
+                        if (exitTargetNode) {
+                          animationTimeoutRef.current = setTimeout(() => {
+                            executeNestedFlow(exitTargetNode.id, onNestedComplete);
+                          }, 800);
+                        } else {
+                          onNestedComplete();
+                        }
+                      } else {
+                        onNestedComplete();
+                      }
+                    });
+                  }, 800);
+                  return;
+                }
+              }
+            }
+
+            // Find next nested node (regular flow)
+            const nestedOutgoingEdge = nestedData.edges.find((e) => e.source === nestedNodeId);
+            if (nestedOutgoingEdge) {
+              const nextNestedNode = nestedData.nodes.find((n) => n.id === nestedOutgoingEdge.target);
+              if (nextNestedNode) {
+                animationTimeoutRef.current = setTimeout(() => {
+                  executeNestedFlow(nextNestedNode.id, onNestedComplete);
+                }, 800);
+              } else {
+                onNestedComplete();
+              }
+            } else {
+              onNestedComplete();
+            }
+          };
+
+          // Execute nested flow and then continue main flow
+          executeNestedFlow(nestedStartNode.id, () => {
+            // Log nested flow completion
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+            setDebugLogs((prevLogs) => [
+              ...prevLogs,
+              {
+                time: timestamp,
+                message: '✅ Nested flow completed',
+                type: 'info',
+              },
+            ]);
+            
+            // Continue with main flow
+            proceedToNext();
+          });
+          
+          // Exit here - proceedToNext will be called after nested flow completes
+          return;
+        }
+      }
+
+      // --- VISUAL HIGHLIGHTING ---
+      setCurrentAnimationNode(nodeId);
+      
+      if (setNodesRef.current) {
+        setNodesRef.current((nds: Node[]) => nds.map((n) => ({ ...n, selected: n.id === nodeId })));
+      }
+      if (setEdgesRef.current) {
+        setEdgesRef.current((eds: Edge[]) => eds.map((e) => ({ ...e, selected: false })));
+      }
+
+      // Execute next step after delay (if not HandleTransaction with nested flow)
+      if (!hasNestedFlow) {
+        proceedToNext();
+      }
     };
 
     // 5. Start Animation
     animateStep(startNode.id, () => {
-      console.log('Animation Complete.');
       setIsPlaying(false);
       setCurrentAnimationNode(undefined);
       
@@ -207,10 +405,21 @@ const RuleBuilder: React.FC = () => {
         setEdgesRef.current((eds: Edge[]) => eds.map((e) => ({ ...e, selected: false })));
       }
     });
-  }, []);
+  }, [nestedCanvasData]);
 
   const handlePlayClick = () => {
-    playFlowAnimation();
+    // Always close nested canvas and start animation from main/parent canvas
+    if (activeNestedCanvas) {
+      // Close nested canvas (auto-save already handled by NestedCanvas component)
+      setActiveNestedCanvas(null);
+      setSelectedNode(null);
+      // Wait for nested canvas to close before starting animation
+      setTimeout(() => {
+        playFlowAnimation();
+      }, 100);
+    } else {
+      playFlowAnimation();
+    }
   };
 
   const handleStopClick = () => {
@@ -218,20 +427,16 @@ const RuleBuilder: React.FC = () => {
   };
 
   const handleDisplayJson = () => {
-    // Call the exposed method from Canvas component
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((window as any).generateFlowJson) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).generateFlowJson();
+    // Always use main canvas JSON, even when nested canvas is open
+    if (window.generateFlowJson) {
+      window.generateFlowJson();
     }
   };
 
   const handleGenerateCode = () => {
-    // Call the exposed method from Canvas component
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((window as any).generateFlowCode) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).generateFlowCode();
+    // Always use main canvas code generation, even when nested canvas is open
+    if (window.generateFlowCode) {
+      window.generateFlowCode();
     }
   };
 
@@ -250,7 +455,15 @@ const RuleBuilder: React.FC = () => {
   };
 
   const handleJsonGenerate = (json: string) => {
-    setJsonOutput(json);
+    try {
+      // Format JSON with 2-space indentation
+      const formatted = JSON.stringify(JSON.parse(json), null, 2);
+      setJsonOutput(formatted);
+    } catch (error) {
+      // If JSON parsing fails, display as-is
+      console.error('JSON formatting error:', error);
+      setJsonOutput(json);
+    }
     setJsonModalOpen(true);
   };
 
@@ -261,22 +474,18 @@ const RuleBuilder: React.FC = () => {
   };
 
   const handleNodeSelect = (node: Node | null) => {
-    // Don't open sidebar for Start and End nodes
-    if (node && (node.data.nodeType === 'Start' || node.data.nodeType === 'End')) {
-      setSelectedNode(null);
-      setActiveNestedCanvas(null);
-      return;
-    }
-    
-    // Check if the clicked node is HandleTransaction
-    if (node && node.data.nodeType === 'HandleTransaction') {
-      // Open nested canvas instead of right sidebar
-      setActiveNestedCanvas(node.id);
-      setActiveNestedCanvasLabel(String(node.data.label || 'Handle Transaction'));
-      setSelectedNode(null); // Don't show right sidebar
-    } else {
-      setSelectedNode(node);
-      setActiveNestedCanvas(null); // Close nested canvas if open
+    if (node) {
+      // Check if it's a HandleTransaction node
+      if (node.data.nodeType === 'HandleTransaction') {
+        // Open nested canvas instead of right sidebar
+        setActiveNestedCanvas(node.id);
+        setActiveNestedCanvasLabel(String(node.data.label || 'Handle Transaction'));
+        setSelectedNode(null); // Close right sidebar
+      } else {
+        // For other nodes, open right sidebar
+        setSelectedNode(node);
+        setActiveNestedCanvas(null); // Close nested canvas if open
+      }
     }
   };
 
@@ -318,6 +527,7 @@ const RuleBuilder: React.FC = () => {
     edgesRef.current = edges;
     setNodesRef.current = setNodes;
     setEdgesRef.current = setEdges;
+    setAllNodes(nodes);
   }, []);
 
   // Cleanup on unmount
@@ -337,14 +547,17 @@ const RuleBuilder: React.FC = () => {
         onStopClick={handleStopClick}
         onDisplayJson={handleDisplayJson}
         onGenerateCode={handleGenerateCode}
+        viewOnly={viewOnly}
       />
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        <LeftSidebar 
-          mode="main" 
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={handleToggleSidebar}
-          hideCustomFunctions={activeNestedCanvas !== null}
-        />
+        {!viewOnly && (
+          <LeftSidebar 
+            mode="main" 
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={handleToggleSidebar}
+            hideCustomFunctions={activeNestedCanvas !== null}
+          />
+        )}
         <RuleBuilderCanvas
           isPlaying={isPlaying}
           onJsonGenerate={handleJsonGenerate}
@@ -354,6 +567,8 @@ const RuleBuilder: React.FC = () => {
           debugVariables={debugVariables}
           debugLogs={debugLogs}
           currentNodeId={currentAnimationNode}
+          nestedCanvasData={nestedCanvasData}
+          viewOnly={viewOnly}
           onFlowStateUpdate={handleFlowStateUpdate}
         />
         <RightSidebar
@@ -361,6 +576,8 @@ const RuleBuilder: React.FC = () => {
           selectedNode={selectedNode}
           onClose={handleCloseRightSidebar}
           onUpdateNode={handleNodeUpdate}
+          allNodes={allNodes}
+          viewOnly={viewOnly}
         />
 
         {/* Nested Canvas Overlay */}
@@ -372,6 +589,7 @@ const RuleBuilder: React.FC = () => {
             initialEdges={nestedCanvasData[activeNestedCanvas]?.edges}
             onBack={handleNestedCanvasBack}
             onSave={(nodes, edges) => handleNestedCanvasSave(activeNestedCanvas, nodes, edges)}
+            viewOnly={viewOnly}
           />
         )}
       </Box>
@@ -383,6 +601,7 @@ const RuleBuilder: React.FC = () => {
         title="JSON Output"
         content={jsonOutput}
         emptyMessage="Click 'Display JSON' to see output"
+        language="json"
       />
 
       {/* TypeScript Code Modal */}
@@ -393,6 +612,7 @@ const RuleBuilder: React.FC = () => {
         content={codeOutput}
         emptyMessage="Click 'Generate Code' to see output"
         onDownload={handleDownload}
+        language="typescript"
       />
     </Box>
   );

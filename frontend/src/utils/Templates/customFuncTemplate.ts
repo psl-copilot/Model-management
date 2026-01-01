@@ -7,6 +7,7 @@ export interface NodeInput {
 export interface NodeHandles {
   source: boolean;
   target: boolean;
+  multipleOutputs?: boolean; // For nodes like If that can have multiple outputs
 }
 
 export interface BaseNodeTemplate {
@@ -92,8 +93,10 @@ export const nodeTemplates: Readonly<NodeTemplates> = {
   },
   If: {
     displayName: 'If Condition',
-    inputs: [{ key: 'condition', label: 'Condition', defaultValue: 'x > 5' }],
-    handles: { source: true, target: true },
+    inputs: [
+      { key: 'conditions', label: 'Conditions', defaultValue: JSON.stringify([{ type: 'if', condition: 'x > 5' }]) },
+    ],
+    handles: { source: true, target: true, multipleOutputs: true },
     bgColor: 'bg-pink-50 border-pink-400',
   },
   End: {

@@ -19,6 +19,8 @@ import EditableNode, { type EditableNodeData } from '../EditableNode';
 import LeftSidebar from '../LeftSidebar';
 import RightSidebar from '../RightSidebar';
 import { getNodeTemplate, type BaseNodeTemplate, type NodeInput } from '../../../utils/Templates/customFuncTemplate';
+import { getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
+import { generateNestedNodeId } from '../../../utils/Flow/FlowDefaults';
 
 const nodeTypes = {
   editableNode: EditableNode,
@@ -31,6 +33,7 @@ interface NestedCanvasProps {
   initialEdges?: Edge[];
   onBack: () => void;
   onSave: (nodes: Node[], edges: Edge[]) => void;
+  viewOnly?: boolean;
 }
 
 const NestedCanvas: React.FC<NestedCanvasProps> = ({
@@ -40,6 +43,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   initialEdges: providedInitialEdges,
   onBack,
   onSave,
+  viewOnly = false,
 }) => {
   // Helper function to get default params from template
   const getDefaultParams = (template: BaseNodeTemplate | null | undefined) => {
@@ -59,9 +63,8 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       return { nodes: providedInitialNodes, edges: providedInitialEdges };
     }
 
-    const timestamp = Date.now();
-    const startNodeId = `nested_Start_${timestamp}`;
-    const endNodeId = `nested_End_${timestamp + 1}`;
+    const startNodeId = generateNestedNodeId();
+    const endNodeId = generateNestedNodeId();
 
     const startTemplate = getNodeTemplate('Start');
     const endTemplate = getNodeTemplate('End');
@@ -101,12 +104,54 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
+  // Auto-save: whenever nodes or edges change, save to parent
+  useEffect(() => {
+    // Skip initial render to avoid overwriting with default values
+    if (nodes.length > 0) {
+      onSave(nodes, edges);
+    }
+  }, [nodes, edges, onSave]);
+
   // Connection handler
   const onConnect = useCallback(
     (connection: Connection) => {
-      setEdges((eds) => addEdge(connection, eds));
+      // Find the source node to check if it's an If node
+      const sourceNode = nodes.find((n) => n.id === connection.source);
+      const isIfNode = sourceNode?.data.nodeType === 'If';
+      
+      if (!isIfNode) {
+        // For non-If nodes, check if source already has an outgoing edge
+        const sourceHasEdge = edges.some((edge) => edge.source === connection.source);
+        
+        if (sourceHasEdge) {
+          console.warn('Each node can only have one outgoing connection');
+          return;
+        }
+      } else {
+        // For If nodes, check if this specific handle already has an edge
+        const handleHasEdge = edges.some(
+          (edge) => edge.source === connection.source && edge.sourceHandle === connection.sourceHandle
+        );
+        
+        if (handleHasEdge) {
+          console.warn('This condition already has a connection');
+          return;
+        }
+      }
+      
+      // Add label and style for If node edge
+      const edgeWithLabel = {
+        ...connection,
+        label: isIfNode && connection.sourceHandle ? getLabelForHandle(connection.sourceHandle) : undefined,
+        style: isIfNode && connection.sourceHandle ? { 
+          stroke: getColorForHandle(connection.sourceHandle),
+          strokeWidth: 2,
+        } : undefined,
+      };
+      
+      setEdges((eds) => addEdge(edgeWithLabel, eds));
     },
-    [setEdges]
+    [nodes, edges, setEdges]
   );
 
   // Drag and drop handlers
@@ -131,7 +176,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       });
 
       const template = getNodeTemplate(type);
-      const newNodeId = `nested_${type}_${Date.now()}`;
+      const newNodeId = generateNestedNodeId();
 
       // Initialize params with default values from template
       const defaultParams: Record<string, string> = {};
@@ -302,26 +347,26 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       {/* Main Content with Sidebar and Canvas */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar - Basic Nodes Only */}
-        <LeftSidebar mode="main" hideCustomFunctions={true} />
+        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={true} />}
 
         {/* Canvas */}
         <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
+            onNodesChange={viewOnly ? undefined : onNodesChange}
+            onEdgesChange={viewOnly ? undefined : onEdgesChange}
+            onConnect={viewOnly ? undefined : onConnect}
             onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
+            onDrop={viewOnly ? undefined : onDrop}
+            onDragOver={viewOnly ? undefined : onDragOver}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             defaultViewport={{ x: 150, y: 50, zoom: 1 }}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            elementsSelectable={true}
+            nodesDraggable={!viewOnly}
+            nodesConnectable={!viewOnly}
+            elementsSelectable={!viewOnly}
             deleteKeyCode={null}
           >
             <Background />
@@ -350,6 +395,8 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
           selectedNode={selectedNode}
           onClose={handleCloseRightSidebar}
           onUpdateNode={handleNodeUpdate}
+          allNodes={nodes}
+          viewOnly={viewOnly}
         />
       </Box>
     </Box>

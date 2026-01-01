@@ -4,6 +4,7 @@ export interface ExecutionResult {
   newVariables: Record<string, unknown>;
   logMessage: string | null;
   error: string | null;
+  branchHandle?: string | null; // For If nodes, which branch to take
 }
 
 /**
@@ -21,6 +22,7 @@ export const simulateNodeExecution = (
   const newVariables = { ...currentVariables };
   let logMessage: string | null = null;
   let error: string | null = null;
+  let branchHandle: string | null = null; // Track which branch to take for If nodes
 
   /**
    * Helper: Resolve a value (number or variable reference)
@@ -72,6 +74,13 @@ export const simulateNodeExecution = (
         const varValueRaw = getParam(['value', 'variableValue']);
 
         if (varName) {
+          // Check if variable already exists (duplicate variable warning)
+          if (currentVariables[varName] !== undefined) {
+            error = `Variable "${varName}" is already declared. Overwriting existing value.`;
+            logMessage = `⚠️ WARNING: ${error}`;
+            console.warn(logMessage);
+          }
+          
           let finalValue: unknown = varValueRaw;
 
           // If value is a variable reference, resolve it
@@ -84,7 +93,13 @@ export const simulateNodeExecution = (
           }
 
           newVariables[varName] = finalValue;
-          logMessage = `✅ Set ${varName} = ${finalValue}`;
+          
+          // Update log message if there was a warning
+          if (!error) {
+            logMessage = `✅ Set ${varName} = ${finalValue}`;
+          } else {
+            logMessage = `⚠️ Set ${varName} = ${finalValue} (duplicate variable)`;
+          }
         }
         break;
       }
@@ -108,9 +123,77 @@ export const simulateNodeExecution = (
       }
 
       case 'If': {
-        const condition = getParam(['condition']);
-        logMessage = `🔀 IF condition: ${condition}`;
-        // Note: Actual condition evaluation would happen in real execution
+        const conditionsStr = getParam(['conditions']);
+        let conditionText = 'unknown';
+        let evaluationResult = false;
+        let selectedHandle = 'else'; // Default to else
+        
+        try {
+          if (conditionsStr) {
+            const conditions = JSON.parse(conditionsStr);
+            
+            // Evaluate conditions in order: if, then else if, then else
+            for (let i = 0; i < conditions.length; i++) {
+              const cond = conditions[i];
+              
+              if (cond.type === 'if') {
+                conditionText = cond.condition || 'true';
+                
+                // Replace variable names with their values for evaluation
+                let evalExpression = conditionText;
+                Object.keys(currentVariables).forEach((key) => {
+                  const regex = new RegExp(`\\b${key}\\b`, 'g');
+                  const value = currentVariables[key];
+                  const valueStr = typeof value === 'string' ? `"${value}"` : String(value);
+                  evalExpression = evalExpression.replace(regex, valueStr);
+                });
+                
+                // Evaluate the condition
+                try {
+                  evaluationResult = eval(evalExpression);
+                  if (evaluationResult) {
+                    selectedHandle = 'if';
+                    break;
+                  }
+                } catch (evalError) {
+                  console.warn('Failed to evaluate condition:', evalExpression, evalError);
+                }
+              } else if (cond.type === 'elseif') {
+                const elseIfCondition = cond.condition || 'true';
+                
+                // Replace variable names with their values for evaluation
+                let evalExpression = elseIfCondition;
+                Object.keys(currentVariables).forEach((key) => {
+                  const regex = new RegExp(`\\b${key}\\b`, 'g');
+                  const value = currentVariables[key];
+                  const valueStr = typeof value === 'string' ? `"${value}"` : String(value);
+                  evalExpression = evalExpression.replace(regex, valueStr);
+                });
+                
+                // Evaluate the condition
+                try {
+                  const result = eval(evalExpression);
+                  if (result) {
+                    selectedHandle = `elseif-${i}`;
+                    evaluationResult = true;
+                    conditionText = elseIfCondition;
+                    break;
+                  }
+                } catch (evalError) {
+                  console.warn('Failed to evaluate else if condition:', evalExpression, evalError);
+                }
+              } else if (cond.type === 'else') {
+                selectedHandle = 'else';
+                // Else is the fallback, keep evaluationResult as false
+              }
+            }
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse conditions:', conditionsStr, parseError);
+        }
+        
+        branchHandle = selectedHandle;
+        logMessage = `🔀 IF condition: ${conditionText} → ${evaluationResult} (taking ${selectedHandle} branch)`;
         break;
       }
 
@@ -184,6 +267,10 @@ export const simulateNodeExecution = (
         logMessage = `❌ ERROR: ${error}`;
         break;
 
+      case 'HandleTransaction':
+        logMessage = '📦 Handle Transaction (entering nested flow...)';
+        break;
+
       case 'End':
         logMessage = '🏁 Process Ended';
         break;
@@ -198,5 +285,5 @@ export const simulateNodeExecution = (
     console.error('Simulator Error', e);
   }
 
-  return { newVariables, logMessage, error };
+  return { newVariables, logMessage, error, branchHandle };
 };

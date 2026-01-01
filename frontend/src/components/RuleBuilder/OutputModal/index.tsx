@@ -12,6 +12,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
+import Editor from '@monaco-editor/react';
 
 interface OutputModalProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface OutputModalProps {
   content: string;
   emptyMessage?: string;
   onDownload?: () => void;
+  language?: 'json' | 'typescript';
 }
 
 const OutputModal: React.FC<OutputModalProps> = ({
@@ -29,6 +31,7 @@ const OutputModal: React.FC<OutputModalProps> = ({
   content,
   emptyMessage = 'No content available',
   onDownload,
+  language = 'json',
 }) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -38,12 +41,12 @@ const OutputModal: React.FC<OutputModalProps> = ({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: {
-          minHeight: '60vh',
-          maxHeight: '80vh',
+          height: '85vh',
+          maxHeight: '85vh',
         },
       }}
     >
@@ -88,23 +91,41 @@ const OutputModal: React.FC<OutputModalProps> = ({
           </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent sx={{ p: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <DialogContent sx={{ p: 0, height: 'calc(85vh - 120px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {content ? (
           <Box
-            component="pre"
             sx={{
-              margin: 0,
-              padding: 2,
-              fontFamily: 'monospace',
-              fontSize: '0.875rem',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              overflow: 'auto',
               flex: 1,
-              backgroundColor: '#f5f5f5',
+              height: '100%',
+              '& .monaco-editor': {
+                paddingTop: '8px',
+              },
             }}
           >
-            {content}
+            <Editor
+              height="100%"
+              language={language}
+              value={content}
+              theme="vs-dark"
+              options={{
+                readOnly: true,
+                minimap: { enabled: true },
+                scrollBeyondLastLine: true,
+                fontSize: 14,
+                lineNumbers: 'on',
+                folding: true,
+                automaticLayout: true,
+                wordWrap: 'on',
+                wrappingStrategy: 'advanced',
+                padding: { top: 8, bottom: 16 },
+                scrollbar: {
+                  vertical: 'visible',
+                  horizontal: 'visible',
+                  verticalScrollbarSize: 10,
+                  horizontalScrollbarSize: 10,
+                },
+              }}
+            />
           </Box>
         ) : (
           <Box

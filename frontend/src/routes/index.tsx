@@ -22,5 +22,11 @@ export const ROUTES = [
         element: <RuleBuilder />,
         private: false,
         layout: false
+    },
+    {
+        path: '/rule-builder/view',
+        element: <RuleBuilder viewOnly />,
+        private: false,
+        layout: false
     }
 ];
