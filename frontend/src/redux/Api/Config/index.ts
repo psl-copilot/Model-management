@@ -3,10 +3,10 @@ import { getAuthToken } from "../../../utils/Common/storage";
 
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 
-export const rulesApi = createApi({
-    reducerPath: 'rulesApi',
+export const configApi = createApi({
+    reducerPath: 'configApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${BASE_URL}/rules/api/`,
+        baseUrl: `${BASE_URL}/config/api/`,
         prepareHeaders: (headers) => {
             const token = getAuthToken()
             if (token) headers.set("authorization", `Bearer ${token}`)
@@ -15,17 +15,9 @@ export const rulesApi = createApi({
     }),
 
     endpoints: (builder) => ({
-        getRules: builder.mutation({
-            query: ({ body, params }) => ({
-                url: `all`,
-                method: "POST",
-                body: { ...body },
-                params
-            }),
-        }),
-        getRuleById: builder.query({
-            query: ({ id }) => ({
-                url: `${id}`,
+        getTypes: builder.query({
+            query: () => ({
+                url: `transaction-types`,
                 method: "GET",
             }),
         }),
@@ -33,6 +25,5 @@ export const rulesApi = createApi({
 })
 
 export const {
-    useGetRulesMutation,
-    useGetRuleByIdQuery
-} = rulesApi
+    useGetTypesQuery
+} = configApi

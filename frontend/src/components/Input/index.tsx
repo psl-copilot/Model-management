@@ -32,7 +32,11 @@ export interface InputProps {
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
     '& .MuiInputBase-input': {
+        boxShadow: 'none',
         boxSizing: 'border-box',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+        boxShadow: 'none',
     },
     '& .MuiInputBase-input.Mui-disabled': {
         color: theme.palette.text.black,
@@ -45,6 +49,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     },
     '& .MuiInputLabel-root': {
         color: theme.palette.text.black,
+        boxShadow: 'none',
     },
 }));
 
@@ -101,8 +106,8 @@ const Input = forwardRef(function Input(
                 inputProps={{ maxLength }}
                 sx={{
                     '& .MuiInputBase-root': {
-                        maxHeight: isTextarea ? 120 : heightMap[height],
-                        height: isTextarea ? 'auto' : heightMap[height],
+                        maxHeight: isTextarea ? undefined : heightMap[height],
+                        height: isTextarea ? undefined : heightMap[height],
                     },
                 }}
                 slotProps={{
@@ -130,7 +135,7 @@ const Input = forwardRef(function Input(
                             <InputAdornment position="start">
                                 <LeftIcon fontSize="small" />
                             </InputAdornment>
-                        ) : undefined,
+                        ) : <div></div>,
                     },
                 }}
             />

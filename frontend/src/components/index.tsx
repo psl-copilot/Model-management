@@ -1,12 +1,11 @@
 import Grid from "@mui/material/Grid";
 import { useState } from "react";
+import Button from "./Button";
 import { SecondaryContainer, SectionContainer } from "./Containers";
 import type { DropdownOption } from "./DropDown";
 import DropDown from "./DropDown";
 import Input from "./Input";
 import { Text } from "./Text";
-import Button from "./Button";
-import Header from "../layout/Header";
 
 const statusOptions: DropdownOption[] = [
     { label: 'Active', value: 'active' },
@@ -26,7 +25,6 @@ const Components = () => {
 
     return (
         <SecondaryContainer>
-            <Header />
             <SectionContainer >
                 <Text size="subHeader" textAlign={'left'} fontWeight={500} mb={1}>
                     Button Components

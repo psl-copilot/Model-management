@@ -1,9 +1,15 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
+import Overview from "./Overview"
+import Parser from "./Parser"
 
 const Tabs = [
     {
         label: 'Overview',
         value: 'overview'
+    },
+    {
+        label: 'Parser',
+        value: 'parser'
     },
     {
         label: 'Rule Builder',
@@ -39,6 +45,17 @@ const useRuleEditorController = () => {
 
     }
 
+    const renderComponent = useCallback(() => {
+        switch (selected) {
+            case 'overview':
+                return <Overview />
+            case 'parser':
+                return <Parser />
+            default:
+                return null;
+        }
+    }, [selected])
+
     return {
         values: {
             tabs: Tabs,
@@ -46,7 +63,8 @@ const useRuleEditorController = () => {
         },
         functions: {
             setSelected,
-            handleSubmit
+            handleSubmit,
+            renderComponent
         }
     }
 }

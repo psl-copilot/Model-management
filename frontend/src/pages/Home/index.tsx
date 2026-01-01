@@ -1,6 +1,8 @@
-import AddIcon from '@mui/icons-material/Add';
-import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import { Box } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import Button from "../../components/Button";
 import DropDown from "../../components/DropDown";
 import Input from "../../components/Input";
@@ -8,41 +10,63 @@ import Table from "../../components/Table";
 import { Text } from "../../components/Text";
 import BoxWrapper from "../../components/Wrappers/BoxWrapper";
 import useHomeController from "./useHomeController";
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 
 const Home = () => {
-
-    const { values, functions } = useHomeController()
+    const { values, functions } = useHomeController();
 
     return (
         <BoxWrapper>
-            <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
-                <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'} gap={1}>
-                    <HomeOutlinedIcon sx={{ color: '#8f57ee', fontSize: '30px' }} />
-                    <Text weight={600} color="black" size={'header'}>Rules Home</Text>
+            <Grid
+                container
+                alignItems="center"
+                justifyContent="space-between"
+                spacing={2}
+            >
+                <Box display="flex" alignItems="center" gap={1}>
+                    <HomeOutlinedIcon sx={{ color: "#8f57ee", fontSize: 30 }} />
+                    <Text weight={'bold'} color="black" size="header">
+                        Rules Home
+                    </Text>
                 </Box>
-                <Button Icon={AddIcon} height="40px" type="secondary" size="md" text="Create New Rule" onClick={functions.handleCreateNew} />
-            </Box>
+                <Button
+                    Icon={AddIcon}
+                    height="40px"
+                    type="secondary"
+                    size="md"
+                    text="Create New Rule"
+                    onClick={functions.handleCreateNew}
+                />
+            </Grid>
 
-
-            <Box mt={2} display={'flex'} justifyContent={'space-between'} alignItems={'flex-end'}>
+            <Grid
+                container
+                spacing={2}
+                alignItems="flex-end"
+                mt={2}
+            >
                 <Input
-                    maxWidth={400}
-                    value={values?.searchTerm}
+                    maxWidth={300}
+                    value={values.searchTerm}
                     onChange={(e) => functions.setSearchTerm(e.target.value)}
                     height="sm"
                     placeholder="Search rules..."
                     leftIcon={() => <SearchIcon />}
                 />
+
                 <DropDown
+                    maxWidth={300}
                     label="Status"
+                    height="sm"
                     placeholder="Select status"
                     options={values.status_options}
                     value={values.status ?? null}
                     onChange={(val) => functions.setStatus(val)}
                     multiple={false}
                 />
+
                 <DropDown
+                    height="sm"
+                    maxWidth={300}
                     label="Rule Type"
                     placeholder="Select rule type"
                     options={values.rule_types}
@@ -50,16 +74,18 @@ const Home = () => {
                     onChange={(val) => functions.setRuleType(val)}
                     multiple={false}
                 />
+            </Grid>
+
+            <Box mt={3}>
+                <Table
+                    columns={values.columns}
+                    data={values.data}
+                    loading={values.isLoading}
+                    pagination={values.pagination}
+                />
             </Box>
-
-            <Table
-                columns={values.columns}
-                data={values.data}
-                loading={values.isLoading}
-                pagination={values.pagination}
-            />
         </BoxWrapper>
-    )
-}
+    );
+};
 
-export default Home
+export default Home;

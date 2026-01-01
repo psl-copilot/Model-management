@@ -89,7 +89,6 @@ const Table = ({
                                         bgcolor: '#fbf9fa',
                                         fontWeight: 600,
                                         fontSize: "14px",
-                                        textAlign: 'center'
                                     }}
                                 >
                                     {h.label}

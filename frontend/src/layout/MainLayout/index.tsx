@@ -6,13 +6,13 @@ import Sidebar from "../Sidebar";
 import { NAV_HEIGHT } from "../../utils/Constants";
 
 const MainLayout = () => {
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(false);
 
     const SIDEBAR_WIDTH = expanded ? 260 : 60;
 
     return (
         <Box display="flex" height="100vh" >
-            <Sidebar expanded={expanded} setExpanded={setExpanded} />
+            <Sidebar expanded={expanded} />
 
             <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
                 <Box
@@ -25,7 +25,7 @@ const MainLayout = () => {
                         zIndex: 5,
                     }}
                 >
-                    <Header expanded={expanded} setExpanded={setExpanded}/>
+                    <Header expanded={expanded} setExpanded={setExpanded} />
                 </Box>
 
                 <Box

@@ -10,7 +10,6 @@ export const TabsContainer = styled(Box)(({ theme }) => ({
     display: "inline-flex",
     gap: theme.spacing(2),
     minWidth: "max-content",
-    padding: theme.spacing(0.5, 1),
     marginTop: '20px'
 }));
 
