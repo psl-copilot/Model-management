@@ -60,7 +60,7 @@ export class RulesController {
     );
   }
 
-  @Post('/api')
+  @Post('/api/create')
   @RequireAnyClaims(TazamaClaims.EDITOR)
   async createRule(
     @Body() ruleData: Partial<Rules>,
