@@ -42,23 +42,23 @@ export class RulesController {
     );
   }
 
-
-  @Get('/api/:id')
+   @Get('/api/ids')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
     TazamaClaims.PUBLISHER,
   )
-  async getRulesById(
-    @Param('id', ParseIntPipe) id: number,
+  async getRuleIds(
     @User() user: AuthenticatedUser,
-  ): Promise<Rules> {
-    return await this.rulesService.getRulesById(
-      id,
-      user.tenantId,
+  ): Promise<any[]> {
+    console.log("Fetching rule IDs for user:", user.validated);
+    return await this.rulesService.getRuleIds(
       user.token.tokenString,
     );
   }
+
+
+ 
 
   @Post('/api/create')
   @RequireAnyClaims(TazamaClaims.EDITOR)
@@ -74,19 +74,7 @@ export class RulesController {
     );
   }
 
-  @Get('/api/ids')
-  @RequireAnyClaims(
-    TazamaClaims.EDITOR,
-    TazamaClaims.APPROVER,
-    TazamaClaims.PUBLISHER,
-  )
-  async getRuleIds(
-    @User() user: AuthenticatedUser,
-  ): Promise<any[]> {
-    return await this.rulesService.getRuleIds(
-      user.token.tokenString,
-    );
-  }
+ 
 
   @Get('/api/configuration/:ruleId')
   @RequireAnyClaims(
@@ -114,6 +102,24 @@ export class RulesController {
     return await this.rulesService.updateRule(
       ruleId,
       updateData,
+      user.token.tokenString,
+    );
+  }
+
+   @Get('/api/:id')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getRulesById(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: AuthenticatedUser,
+  ): Promise<Rules> {
+    console.log(`Fetching rule with ID: ${id} for user:`, user.validated);
+    return await this.rulesService.getRulesById(
+      id,
+      user.tenantId,
       user.token.tokenString,
     );
   }
