@@ -534,6 +534,135 @@
 					"body": "{\n  \"success\": false,\n  \"message\": \"Configuration not found for rule non-existent-rule\"\n}"
 				}
 			]
+		},
+		{
+			"name": "Get Transaction Types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has success property\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"});",
+							"",
+							"pm.test(\"Response has transactionTypes array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('transactionTypes');",
+							"    pm.expect(jsonData.transactionTypes).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Transaction types are unique strings\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.transactionTypes.length > 0) {",
+							"        jsonData.transactionTypes.forEach(function(type) {",
+							"            pm.expect(type).to.be.a('string');",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}",
+						"type": "text",
+						"description": "JWT token from Keycloak with required claims"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/config/transaction-types",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"config",
+						"transaction-types"
+					]
+				},
+				"description": "Retrieves all distinct transaction types from the `config` table.\n\n### Overview\nThis endpoint fetches a unique list of all transaction types (txtp) configured in the system. Transaction types define the ISO 20022 message format for financial transactions, such as `pain.001.001.11` for credit transfers or `pacs.008.001.10` for payment clearing.\n\n### Database Table: `config`\nThis endpoint queries the `config` table which stores configuration for different message families and transaction types:\n- **msg_fam**: Message family (e.g., \"pain\", \"pacs\", \"camt\")\n- **transaction_type**: ISO 20022 message type identifier\n- **endpoint_path**: API endpoint for this transaction type\n- **version**: Configuration version\n- **schema**: JSONB schema definition\n- **tenant_id**: Tenant identifier for multi-tenancy\n\n### Response Structure\n```json\n{\n  \"success\": true,\n  \"transactionTypes\": [\n    \"pain.001.001.11\",\n    \"pain.002.001.12\",\n    \"pacs.002.001.12\",\n    \"pacs.008.001.10\",\n    \"camt.054.001.09\"\n  ]\n}\n```\n\n### Tenant Filtering\nResults are automatically filtered by the tenant ID extracted from your JWT token. You will only see transaction types configured for your tenant.\n\n### Use Cases\n- **UI Dropdowns**: Populate transaction type selection dropdowns in configuration forms\n- **Rule Configuration**: Show available transaction types when creating or editing rules\n- **Validation**: Verify if a transaction type is supported before processing\n- **Integration Discovery**: Find what transaction types are supported by the system\n- **Reporting**: Generate reports grouped by transaction type\n- **Schema Management**: List transaction types before fetching their schemas\n\n### Transaction Type Format\nISO 20022 transaction types follow the format: `[message_family].[version].[variant].[release]`\n\nCommon examples:\n- **pain.001.001.11**: Customer Credit Transfer Initiation (Payment Initiation)\n- **pain.002.001.12**: Customer Payment Status Report\n- **pacs.002.001.12**: FI to FI Payment Status Report\n- **pacs.008.001.10**: FI to FI Customer Credit Transfer\n- **camt.054.001.09**: Bank to Customer Debit Credit Notification\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Response Fields\n- **success**: Boolean indicating operation success\n- **transactionTypes**: Array of unique transaction type strings, sorted alphabetically\n\n### Query Optimization\nThe query uses `DISTINCT` to ensure uniqueness and includes an `ORDER BY` clause for consistent alphabetical sorting. The `config` table has an index on `transaction_type` for efficient querying.\n\n### Error Responses\n- **401 Unauthorized**: Missing or invalid JWT token\n- **403 Forbidden**: Token doesn't have required claims\n- **500 Internal Server Error**: Database connection or query error\n\n### Empty Result\nIf no transaction types are configured for your tenant, the endpoint returns an empty array:\n```json\n{\n  \"success\": true,\n  \"transactionTypes\": []\n}\n```\n\n### Integration Example\nUse this endpoint to dynamically populate transaction type dropdowns:\n```javascript\n// Fetch transaction types\nconst response = await fetch('/config/transaction-types', {\n  headers: {\n    'Authorization': `Bearer ${token}`\n  }\n});\nconst data = await response.json();\n\n// Populate dropdown\nconst select = document.getElementById('txtp');\ndata.transactionTypes.forEach(type => {\n  const option = document.createElement('option');\n  option.value = type;\n  option.text = type;\n  select.appendChild(option);\n});\n```\n\n### Next Steps\n- Use transaction types when creating rules via \"Create Rule\" endpoint\n- Fetch full configuration details for a specific transaction type using config endpoints\n- Validate incoming transactions against supported transaction types"
+			},
+			"response": [
+				{
+					"name": "Get Transaction Types - Success Example",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/config/transaction-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"config",
+								"transaction-types"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": true,\n  \"transactionTypes\": [\n    \"camt.054.001.09\",\n    \"pacs.002.001.12\",\n    \"pacs.008.001.10\",\n    \"pain.001.001.11\",\n    \"pain.002.001.12\"\n  ]\n}"
+				},
+				{
+					"name": "Get Transaction Types - Empty Tenant",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/config/transaction-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"config",
+								"transaction-types"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"success\": true,\n  \"transactionTypes\": []\n}"
+				}
+			]
 		}
 	],
 	"event": [

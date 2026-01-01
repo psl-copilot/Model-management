@@ -280,4 +280,30 @@ export class AdminServiceClient {
       return this.handleError(error, 'getRuleConfiguration');
     }
   }
+
+  async getTransactionTypes(token: string): Promise<string[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/config/transaction-types`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.transactionTypes) {
+        this.logger.warn('No transaction types found in admin-service response');
+        return [];
+      }
+
+      return response.data.transactionTypes;
+    } catch (error) {
+      return this.handleError(error, 'getTransactionTypes');
+    }
+  }
 }

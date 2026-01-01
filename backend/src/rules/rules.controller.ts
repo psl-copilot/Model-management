@@ -73,7 +73,7 @@ export class RulesController {
     );
   }
 
-  @Get('/ids')
+  @Get('/api/ids')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
@@ -87,7 +87,7 @@ export class RulesController {
     );
   }
 
-  @Get('/configuration/:ruleId')
+  @Get('/api/configuration/:ruleId')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
