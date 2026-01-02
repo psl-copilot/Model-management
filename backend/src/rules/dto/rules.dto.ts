@@ -30,13 +30,13 @@ export class Rules {
   @IsNotEmpty()
   version: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  status: string;
+  status?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  publishing_status: string;
+  publishing_status?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -76,13 +76,13 @@ export class CreateRuleDto {
   @IsNotEmpty()
   version: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  status: string;
+  status?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  publishing_status: string;
+  publishing_status?: string;
 
   @IsString()
   @IsNotEmpty()

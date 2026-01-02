@@ -162,7 +162,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"rule_id\": \"RULE-001-PAYMENT-FRAUD\",\n  \"rule_name\": \"High Value Payment Fraud Detection\",\n  \"description\": \"Detects suspicious high-value payment transactions exceeding threshold limits within short time windows\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\",\n  \"status\": \"ACTIVE\",\n  \"publishing_status\": \"DRAFT\"\n}",
+					"raw": "{\n  \"rule_id\": \"RULE-001-PAYMENT-FRAUD\",\n  \"rule_name\": \"High Value Payment Fraud Detection\",\n  \"rule_type\": \"fraud_detection\",\n  \"description\": \"Detects suspicious high-value payment transactions exceeding threshold limits within short time windows\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -179,7 +179,7 @@
 						"api"
 					]
 				},
-				"description": "Creates a new rule for detecting high-value payment fraud.\n\n### Request Body (Required Fields)\n- **rule_id**: Unique identifier for the rule (alphanumeric with hyphens)\n- **rule_name**: Human-readable name\n- **description**: Detailed description of what the rule does\n- **txtp**: Transaction type (e.g., \"pain.001.001.11\" for credit transfer)\n- **version**: Semantic version (e.g., \"1.0.0\")\n- **status**: Rule status - `ACTIVE`, `INACTIVE`, `TESTING`\n- **publishing_status**: Workflow status - `DRAFT`, `SUBMITTED`, `APPROVED`, `PUBLISHED`\n\n### Auto-populated Fields\nThe following fields are automatically set by the system:\n- **tenant_id**: Extracted from authentication token\n- **updated_by**: User ID from authentication token\n- **updated_at**: Current timestamp\n- **created_at**: Current timestamp\n\n### Required Claims\n`editor`\n\n### Response\nReturns the created rule object with all fields populated (201 Created).\n\n### Use Case\nThis rule monitors payment transfers (pain.001.001.11) for fraud patterns like:\n- Transaction amounts exceeding $10,000\n- Multiple high-value transactions within 5 minutes\n- Transactions to flagged accounts"
+				"description": "Creates a new rule for detecting high-value payment fraud.\n\n### Request Body (Required Fields)\n- **rule_id**: Unique identifier for the rule (alphanumeric with hyphens)\n- **rule_name**: Human-readable name\n- **description**: Detailed description of what the rule does\n- **txtp**: Transaction type (e.g., \"pain.001.001.11\" for credit transfer)\n- **version**: Semantic version (e.g., \"1.0.0\")\n- **status**: Rule status - `ACTIVE`, `INACTIVE`, `TESTING`\n- **publishing_status**: Workflow status - `DRAFT`, `SUBMITTED`, `APPROVED`, `PUBLISHED`\n\n### Auto-populated Fields\nThe following fields are automatically set by the system with default values:\n- **status**: Defaults to `ACTIVE`\n- **publishing_status**: Defaults to `STATUS_01_IN_PROGRESS`\n- **tenant_id**: Extracted from authentication token\n- **updated_by**: User ID from authentication token\n- **updated_at**: Current timestamp\n- **created_at**: Current timestamp\n\n### Required Claims\n`editor`\n\n### Response\nReturns the created rule object with all fields populated (201 Created).\n\n### Use Case\nThis rule monitors payment transfers (pain.001.001.11) for fraud patterns like:\n- Transaction amounts exceeding $10,000\n- Multiple high-value transactions within 5 minutes\n- Transactions to flagged accounts"
 			},
 			"response": []
 		},
@@ -214,7 +214,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"rule_id\": \"RULE-002-ACCOUNT-TAKEOVER\",\n  \"rule_name\": \"Account Takeover Detection\",\n  \"description\": \"Identifies potential account takeover by analyzing login patterns, device fingerprints, and geographic anomalies\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\",\n  \"status\": \"TESTING\",\n  \"publishing_status\": \"DRAFT\"\n}",
+					"raw": "{\n  \"rule_id\": \"RULE-002-ACCOUNT-TAKEOVER\",\n  \"rule_name\": \"Account Takeover Detection\",\n  \"rule_type\": \"security\",\n  \"description\": \"Identifies potential account takeover by analyzing login patterns, device fingerprints, and geographic anomalies\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -266,7 +266,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"rule_id\": \"RULE-003-MONEY-LAUNDERING\",\n  \"rule_name\": \"Structured Transaction Money Laundering\",\n  \"description\": \"Detects potential money laundering through structured transactions designed to evade reporting thresholds\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"2.1.0\",\n  \"status\": \"ACTIVE\",\n  \"publishing_status\": \"PUBLISHED\"\n}",
+					"raw": "{\n  \"rule_id\": \"RULE-003-MONEY-LAUNDERING\",\n  \"rule_name\": \"Structured Transaction Money Laundering\",\n  \"rule_type\": \"aml\",\n  \"description\": \"Detects potential money laundering through structured transactions designed to evade reporting thresholds\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"2.1.0\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -318,7 +318,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"rule_id\": \"RULE-004-SANCTIONS-SCREENING\",\n  \"rule_name\": \"Real-time Sanctions List Screening\",\n  \"description\": \"Screens transaction parties against OFAC, UN, EU, and other sanctions lists in real-time\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\",\n  \"status\": \"ACTIVE\",\n  \"publishing_status\": \"APPROVED\"\n}",
+					"raw": "{\n  \"rule_id\": \"RULE-004-SANCTIONS-SCREENING\",\n  \"rule_name\": \"Real-time Sanctions List Screening\",\n  \"rule_type\": \"compliance\",\n  \"description\": \"Screens transaction parties against OFAC, UN, EU, and other sanctions lists in real-time\",\n  \"txtp\": \"pain.001.001.11\",\n  \"version\": \"1.0.0\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
