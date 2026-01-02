@@ -307,6 +307,33 @@ export class AdminServiceClient {
     }
   }
 
+  async getPayloadByTransactionType(transactionType: string, token: string): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/config/payload/${transactionType}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.payload) {
+        throw new NotFoundException(
+          `No payload found for transaction type: ${transactionType}`,
+        );
+      }
+
+      return response.data.payload;
+    } catch (error) {
+      return this.handleError(error, 'getPayloadByTransactionType');
+    }
+  }
+
   async updateRule(ruleId: string, updateData: Partial<Rules>, token: string): Promise<Rules> {
     try {
       const response = await firstValueFrom(
