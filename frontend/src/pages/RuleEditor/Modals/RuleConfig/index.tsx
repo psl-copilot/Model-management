@@ -19,7 +19,7 @@ const RuleConfig = (props: RuleConfigProps) => {
                 <DropDown
                     label="Rule Configurations"
                     value={values.ruleId}
-                    onChange={(val) => functions.setRuleId(val as DropdownOption)}
+                    onChange={(val) => functions.handleRuleId(val as DropdownOption)}
                     options={values.ruleConfigs}
                     placeholder="Select Transaction type"
                     searchable

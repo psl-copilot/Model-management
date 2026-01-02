@@ -3,6 +3,7 @@ import type { DropdownOption } from "../../../../components/DropDown";
 import { useGetRuleConfigsIdsQuery, useLazyGetRuleConfigQuery } from "../../../../redux/Api/Rules";
 
 export interface RuleConfigProps {
+  handleRuleValue: (val: DropdownOption) => void
 }
 
 interface IRuleId {
@@ -11,7 +12,7 @@ interface IRuleId {
   tenantid: string,
 }
 
-const useRuleConfigController = ({ }: RuleConfigProps) => {
+const useRuleConfigController = ({ handleRuleValue }: RuleConfigProps) => {
 
   const { data, isLoading } = useGetRuleConfigsIdsQuery({})
   const [submit, { isLoading: configLoader }] = useLazyGetRuleConfigQuery()
@@ -29,6 +30,11 @@ const useRuleConfigController = ({ }: RuleConfigProps) => {
     }
   }, [ruleId])
 
+  const handleRuleId = (value: DropdownOption) => {
+    setRuleId(value)
+    handleRuleValue(value)
+  }
+
   return {
     values: {
       ruleConfigs: data?.map((item: IRuleId) => ({ label: item.ruleid, value: item.ruleid })),
@@ -38,7 +44,7 @@ const useRuleConfigController = ({ }: RuleConfigProps) => {
       json
     },
     functions: {
-      setRuleId
+      handleRuleId
     }
   }
 }

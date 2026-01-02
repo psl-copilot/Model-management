@@ -5,3 +5,8 @@ export interface User {
     claims?: string[];
     tenantId?: string;
 }
+
+export interface Option {
+    label: string,
+    value: unknown
+}

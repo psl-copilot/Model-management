@@ -27,7 +27,7 @@ interface DropdownProps {
     placeholder?: string;
     options?: DropdownOption[];
     value: DropdownOption | DropdownOption[] | null;
-    onChange: (value: DropdownOption | DropdownOption[] | null) => void;
+    onChange?: (value: DropdownOption | DropdownOption[] | null) => void;
     onClick?: () => void;
     multiple?: boolean;
     required?: boolean;
@@ -78,13 +78,13 @@ const Dropdown = ({
         if (multiple) {
             const current = Array.isArray(value) ? value : [];
             const exists = current.some(v => v.value === opt.value);
-            onChange(
+            onChange && onChange(
                 exists
                     ? current.filter(v => v.value !== opt.value)
                     : [...current, opt]
             );
         } else {
-            onChange(opt);
+            onChange && onChange(opt);
             setOpen(false);
         }
     };
@@ -142,7 +142,7 @@ const Dropdown = ({
                                             size="small"
                                             onClick={e => {
                                                 e.stopPropagation();
-                                                onChange(multiple ? [] : null);
+                                                onChange && onChange(multiple ? [] : null);
                                             }}
                                         >
                                             <CloseIcon fontSize="small" />

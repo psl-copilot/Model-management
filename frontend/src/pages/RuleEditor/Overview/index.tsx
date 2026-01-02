@@ -3,7 +3,7 @@ import { Text } from "../../../components/Text";
 import { Controller } from "react-hook-form";
 import useOverviewController from "./useOverviewController";
 import Input from "../../../components/Input";
-import DropDown from "../../../components/DropDown";
+import DropDown, { type DropdownOption } from "../../../components/DropDown";
 import Section from "../../../components/Wrappers/Section";
 import Loader from "../../../components/Loader";
 
@@ -109,13 +109,14 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                             )}
                         />
                     </Grid>
-                    {/* <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                         <DropDown
+                            value={null}
                             label="Network Map"
-                            onClick={functions.handleRuleConfig}
+                            onClick={functions.handleNetworkMap}
                             placeholder="View Network Map"
                         />
-                    </Grid> */}
+                    </Grid>
                 </Grid>
                 <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
                     <Grid size={{ xs: 12, md: 6 }}>

@@ -41,6 +41,12 @@ export const rulesApi = createApi({
                 method: "GET",
             }),
         }),
+        getNetworkMap: builder.query({
+            query: () => ({
+                url: `network-map/active`,
+                method: "GET",
+            }),
+        }),
     }),
 })
 
@@ -48,5 +54,6 @@ export const {
     useGetRulesMutation,
     useGetRuleByIdQuery,
     useGetRuleConfigsIdsQuery,
-    useLazyGetRuleConfigQuery
+    useLazyGetRuleConfigQuery,
+    useGetNetworkMapQuery
 } = rulesApi

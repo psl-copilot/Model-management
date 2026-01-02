@@ -4,6 +4,7 @@ import { useGetTypesQuery } from "../../../redux/Api/Config";
 import { useModal } from "../../../contexts/ModalContext";
 import RuleConfig from "../Modals/RuleConfig";
 import { rule_types } from "../../../utils/Constants/data";
+import ViewNetworkMap from "../Modals/ViewNetworkMap";
 
 const useOverviewController = (props: Record<string, unknown> | undefined) => {
 
@@ -22,14 +23,21 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
         rule_type: (data?.rule_type as DropdownOption) || ""
     }
 
-    const { handleSubmit, formState: { errors }, control } = useForm({ defaultValues: initial })
+    const { handleSubmit, formState: { errors }, control, setValue } = useForm({ defaultValues: initial })
 
     const onSubmit = () => {
+    }
 
+    const handleRuleValue = (value: DropdownOption) => {
+        setValue('rule_config', value)
     }
 
     const handleRuleConfig = () => {
-        open('Select Rule Config', <RuleConfig />, null, { maxWidth: 'md' })
+        open('Select Rule Config', <RuleConfig handleRuleValue={handleRuleValue} />, null, { maxWidth: 'md' })
+    }
+
+    const handleNetworkMap = () => {
+        open('View Network Map', <ViewNetworkMap />, null, { maxWidth: 'md' })
     }
 
 
@@ -43,7 +51,8 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
-            handleRuleConfig
+            handleRuleConfig,
+            handleNetworkMap
         }
     }
 }

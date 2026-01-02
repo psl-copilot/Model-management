@@ -3,11 +3,16 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ReactJson from "react-json-view";
 import { useCallback } from "react";
 
-const FormattedJsonSection = ({ value, onChange }: any) => {
+interface IFormattedJsonSection {
+    value: string,
+    onChange?: (value: string) => void
+}
+
+const FormattedJsonSection = ({ value, onChange }: IFormattedJsonSection) => {
 
     const safeJsonParse = useCallback((
         jsonString: string,
-    ): { success: boolean; data?: any; error?: string } => {
+    ): { success: boolean; data?: unknown; error?: string } => {
         try {
             const parsed = JSON.parse(jsonString || '{}');
             return { success: true, data: parsed };
@@ -23,20 +28,20 @@ const FormattedJsonSection = ({ value, onChange }: any) => {
             <Box sx={{ fontSize: 13 }}>
                 <ReactJson
                     src={parseResult.data}
-                    onEdit={(e) =>
-                        onChange(JSON.stringify(e.updated_src, null, 2))
+                    onEdit={onChange ? (e) =>
+                        onChange(JSON.stringify(e.updated_src, null, 2)) : undefined
                     }
-                    onAdd={(e) =>
-                        onChange(JSON.stringify(e.updated_src, null, 2))
+                    onAdd={onChange ? (e) =>
+                        onChange(JSON.stringify(e.updated_src, null, 2)) : undefined
                     }
-                    onDelete={(e) =>
-                        onChange(JSON.stringify(e.updated_src, null, 2))
+                    onDelete={onChange ? (e) =>
+                        onChange(JSON.stringify(e.updated_src, null, 2)) : undefined
                     }
                     theme="rjv-default"
                     name={false}
                     displayDataTypes={false}
                     displayObjectSize
-                    // enableClipboard
+                    enableClipboard={false}
                     collapsed={false}
                 />
             </Box>
