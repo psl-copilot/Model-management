@@ -47,6 +47,10 @@ export class Rules {
   rule_type?: string;
 
   @IsOptional()
+  @IsString()
+  rule_config_id?: string;
+
+  @IsOptional()
   @IsDateString()
   updated_at?: Date;
 
@@ -91,6 +95,10 @@ export class CreateRuleDto {
   @IsString()
   @IsNotEmpty()
   rule_type: string;
+
+  @IsOptional()
+  @IsString()
+  rule_config_id?: string;
 }
 
 export class UpdateRuleDto {
@@ -121,6 +129,10 @@ export class UpdateRuleDto {
   @IsOptional()
   @IsString()
   rule_type?: string;
+
+  @IsOptional()
+  @IsString()
+  rule_config_id?: string;
 }
 
 export class RuleIdDto {
