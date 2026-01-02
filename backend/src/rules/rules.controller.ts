@@ -124,7 +124,7 @@ export class RulesController {
     );
   }
 
-  @Get('/network-map/active')
+  @Get('/api/network-map/active')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
