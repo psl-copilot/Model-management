@@ -42,7 +42,7 @@ const Modal = ({ open, title, children, footer, onClose, maxWidth = "lg" }: Moda
                         style={{
                             width: "100%",
                             maxWidth: maxWidth === "sm" ? 400 :
-                                maxWidth === "md" ? 600 :
+                                maxWidth === "md" ? 650 :
                                     maxWidth === "lg" ? 900 :
                                         maxWidth === "xl" ? 1200 : maxWidth,
                             backgroundColor: "#fff",

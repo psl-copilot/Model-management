@@ -37,7 +37,14 @@ interface DropdownProps {
     searchable?: boolean;
     cancelable?: boolean;
     maxWidth?: string | number;
+    height?: 'md' | 'sm';
 }
+
+
+const heightMap = {
+    md: 50,
+    sm: 45,
+};
 
 const Dropdown = ({
     label = "Select",
@@ -53,7 +60,8 @@ const Dropdown = ({
     searchable = false,
     cancelable = false,
     maxWidth,
-    onClick
+    onClick,
+    height = 'md'
 }: DropdownProps) => {
     const [open, setOpen] = useState(false);
     const [search, debouncedSearch, setSearch] = useDebouncedSearch();
@@ -123,7 +131,7 @@ const Dropdown = ({
                     <OutlinedInput
                         readOnly
                         value=""
-                        sx={{ height: 50, display: 'flex', justifyContent: 'space-between' }}
+                        sx={{ height: heightMap[height], display: 'flex', justifyContent: 'space-between' }}
                         onClick={() => onClick ? onClick() : !disabled && setOpen(p => !p)}
                         endAdornment={
                             <>

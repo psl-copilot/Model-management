@@ -29,10 +29,24 @@ export const rulesApi = createApi({
                 method: "GET",
             }),
         }),
+        getRuleConfigsIds: builder.query({
+            query: () => ({
+                url: `ids`,
+                method: "GET",
+            }),
+        }),
+        getRuleConfig: builder.query({
+            query: ({ id }) => ({
+                url: `configuration/${id}`,
+                method: "GET",
+            }),
+        }),
     }),
 })
 
 export const {
     useGetRulesMutation,
-    useGetRuleByIdQuery
+    useGetRuleByIdQuery,
+    useGetRuleConfigsIdsQuery,
+    useLazyGetRuleConfigQuery
 } = rulesApi

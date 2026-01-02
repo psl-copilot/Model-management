@@ -51,7 +51,7 @@ const ViewRule = (props: ViewRuleProps) => {
                         value={dateFormatter(values.data.created_at)}
                         view_only={false} />
                 </Grid>
-                <Grid container spacing={2} justifyContent={'space-between'}>
+                <Grid container size={12} spacing={2} justifyContent={'space-between'}>
                     <Input
                         maxWidth={'100%'}
                         type='textarea'

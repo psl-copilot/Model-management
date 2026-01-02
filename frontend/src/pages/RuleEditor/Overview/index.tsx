@@ -12,13 +12,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
     const { values, functions } = useOverviewController(props)
 
     if (values?.isLoading) {
-        return <Grid
-            container
-            py={3}
-            justifyContent={'center'}
-        >
-            <Loader />
-        </Grid>
+        return <Loader center />
     }
 
     return (
@@ -97,22 +91,50 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                 </Grid>
             </Section>
             <Section header={'Configuration Association'} subHeader={'Associate this rule with transaction flow, network context, and typology definitions'}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <Controller
-                        control={values.control}
-                        name="rule_config"
-                        rules={{ required: "Rule Config is required" }}
-                        render={({ field }) => (
-                            <DropDown
-                                required
-                                label="Rule Config"
-                                {...field}
-                                onClick={functions.handleRuleConfig}
-                                placeholder="Select Rule Config"
-                                error={values.errors.rule_config?.message}
-                            />
-                        )}
-                    />
+                <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            control={values.control}
+                            name="rule_config"
+                            rules={{ required: "Rule Config is required" }}
+                            render={({ field }) => (
+                                <DropDown
+                                    required
+                                    label="Rule Config"
+                                    {...field}
+                                    onClick={functions.handleRuleConfig}
+                                    placeholder="Select Rule Config"
+                                    error={values.errors.rule_config?.message}
+                                />
+                            )}
+                        />
+                    </Grid>
+                    {/* <Grid size={{ xs: 12, md: 6 }}>
+                        <DropDown
+                            label="Network Map"
+                            onClick={functions.handleRuleConfig}
+                            placeholder="View Network Map"
+                        />
+                    </Grid> */}
+                </Grid>
+                <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            control={values.control}
+                            name="rule_type"
+                            rules={{ required: "Rule  is required" }}
+                            render={({ field }) => (
+                                <DropDown
+                                    required
+                                    label="Rule Type"
+                                    options={values.rule_types}
+                                    {...field}
+                                    placeholder="Select Rule type"
+                                    error={values.errors.rule_type?.message}
+                                />
+                            )}
+                        />
+                    </Grid>
                 </Grid>
             </Section>
         </Grid>

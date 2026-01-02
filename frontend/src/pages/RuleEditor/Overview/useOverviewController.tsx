@@ -3,6 +3,7 @@ import type { DropdownOption } from "../../../components/DropDown";
 import { useGetTypesQuery } from "../../../redux/Api/Config";
 import { useModal } from "../../../contexts/ModalContext";
 import RuleConfig from "../Modals/RuleConfig";
+import { rule_types } from "../../../utils/Constants/data";
 
 const useOverviewController = (props: Record<string, unknown> | undefined) => {
 
@@ -17,7 +18,8 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
         description: (data?.description as string) || "",
         txtp: (data?.txtp as DropdownOption) || null,
         version: (data?.version as string) || "",
-        rule_config: (data?.rule_config as DropdownOption) || ""
+        rule_config: (data?.rule_config as DropdownOption) || "",
+        rule_type: (data?.rule_type as DropdownOption) || ""
     }
 
     const { handleSubmit, formState: { errors }, control } = useForm({ defaultValues: initial })
@@ -27,7 +29,7 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
     }
 
     const handleRuleConfig = () => {
-        open('Select Rule Config', <RuleConfig />)
+        open('Select Rule Config', <RuleConfig />, null, { maxWidth: 'md' })
     }
 
 
@@ -36,7 +38,8 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
             control,
             errors,
             isLoading,
-            transactions: types?.map((item: string) => ({ label: item, value: item })) || []
+            transactions: types?.map((item: string) => ({ label: item, value: item })) || [],
+            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
