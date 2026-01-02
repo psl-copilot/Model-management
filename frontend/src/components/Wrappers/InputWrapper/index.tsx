@@ -31,7 +31,7 @@ const InputWrapper = ({
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <Box width="100%" maxWidth={maxWidth ?? 450}>
+        <Box width="100%" maxWidth={maxWidth ?? 450} >
 
             {label && view_only &&
                 <Text size='body' color="text.primary">
@@ -70,7 +70,7 @@ const InputWrapper = ({
                             // borderColor: disabled ? 'grey.200' : 'red',
                             borderRadius: 1,
                             cursor: disabled ? 'not-allowed' : 'text',
-                            boxShadow : 0
+                            boxShadow: 0
                         }}
                     >
                         {children}

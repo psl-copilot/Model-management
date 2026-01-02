@@ -111,7 +111,7 @@ const Dropdown = ({
             error={!!error}
             disabled={disabled}
             required={required}
-            sx={{ maxWidth }}
+            sx={{ maxWidth, mt: 0.5 }}
             ref={ref}
         >
             <InputLabel shrink sx={{ bgcolor: 'white', color: 'text.black' }}>{label}</InputLabel>

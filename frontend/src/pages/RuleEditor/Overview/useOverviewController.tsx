@@ -19,13 +19,16 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
         description: (data?.description as string) || "",
         txtp: (data?.txtp as DropdownOption) || null,
         version: (data?.version as string) || "",
-        rule_config: (data?.rule_config as DropdownOption) || "",
-        rule_type: (data?.rule_type as DropdownOption) || ""
+        rule_config: (data?.rule_config as DropdownOption) || null,
+        rule_type: (data?.rule_type as DropdownOption) || null
     }
 
-    const { handleSubmit, formState: { errors }, control, setValue } = useForm({ defaultValues: initial })
+    const { handleSubmit, formState: { errors }, control, setValue, watch } = useForm({ defaultValues: initial })
 
-    const onSubmit = () => {
+    const rule_config_id = watch('rule_config')
+
+    const onSubmit = (data: unknown) => {
+        
     }
 
     const handleRuleValue = (value: DropdownOption) => {
@@ -41,13 +44,16 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
     }
 
 
+    console.log("rule_config_id", rule_config_id)
+
     return {
         values: {
             control,
             errors,
             isLoading,
+            rule_config_id,
             transactions: types?.map((item: string) => ({ label: item, value: item })) || [],
-            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
+            rule_types: [...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

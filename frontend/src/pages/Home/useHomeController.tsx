@@ -79,7 +79,6 @@ const useHomeController = () => {
         { label: "Rule Id", key: "id" },
         { label: "Rule Type", key: "rule_type" },
         { label: "Status", key: "status" },
-        { label: "Creator", key: "updated_by" },
         { label: "Created At", key: "created_at", type: 'date' as const },
         { label: "Version", key: "version" },
         {

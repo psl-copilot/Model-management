@@ -1,11 +1,13 @@
 import Grid from "@mui/material/Grid";
-import { Text } from "../../../components/Text";
 import { Controller } from "react-hook-form";
-import useOverviewController from "./useOverviewController";
+import DropDown from "../../../components/DropDown";
 import Input from "../../../components/Input";
-import DropDown, { type DropdownOption } from "../../../components/DropDown";
-import Section from "../../../components/Wrappers/Section";
 import Loader from "../../../components/Loader";
+import { Text } from "../../../components/Text";
+import Section from "../../../components/Wrappers/Section";
+import useOverviewController from "./useOverviewController";
+import Button from "../../../components/Button";
+import { Box } from "@mui/material";
 
 const Overview = (props: Record<string, unknown> | undefined) => {
 
@@ -44,6 +46,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                 <Controller
                     name="description"
                     control={values.control}
+                    rules={{ required: "Description is required" }}
                     render={({ field, fieldState: { error } }) => (
                         <Input
                             maxWidth={'100%'}
@@ -51,11 +54,11 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                             type='textarea'
                             label="Description"
                             {...field}
-                            error={error?.message}
+                            error={values.errors.description?.message}
                         />
                     )}
                 />
-                <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
+                <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller
                             control={values.control}
@@ -77,6 +80,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                         <Controller
                             name="version"
                             control={values.control}
+                            rules={{ required: "Version is required" }}
                             render={({ field, fieldState: { error } }) => (
                                 <Input
                                     maxWidth={'100%'}
@@ -91,7 +95,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                 </Grid>
             </Section>
             <Section header={'Configuration Association'} subHeader={'Associate this rule with transaction flow, network context, and typology definitions'}>
-                <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
+                <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller
                             control={values.control}
@@ -104,7 +108,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                                     {...field}
                                     onClick={functions.handleRuleConfig}
                                     placeholder="Select Rule Config"
-                                    error={values.errors.rule_config?.message}
+                                    error={!values?.rule_config_id ? values.errors.rule_config?.message : ''}
                                 />
                             )}
                         />
@@ -138,6 +142,10 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                     </Grid>
                 </Grid>
             </Section>
+            <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
+                <Button height="40px" type="secondary" size="md" text="Save" onClick={functions.handleSubmit} />
+            </Box>
+
         </Grid>
     )
 }

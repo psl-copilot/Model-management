@@ -19,7 +19,6 @@ const RuleEditor = () => {
                     <Text weight={'bold'} color="black" size={'header'}>Rule Editor</Text>
                 </Box>
                 <Button Icon={AccountTreeIcon} height="40px" type="secondary" size="md" text="Submit For Review" onClick={functions.handleSubmit} />
-                {/* <Button Icon={AccountTreeIcon} height="40px" outlined type="simple" size="md" text="Submit For Review" onClick={functions.handleSubmit} /> */}
             </Box>
 
             <Tabs tabs={values.tabs} selected={values.selected} setSelected={functions.setSelected} />
