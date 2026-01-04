@@ -12,7 +12,9 @@ const useParserController = (props: Record<string, unknown> | undefined) => {
         payload: (data?.payload as string) || "",
     }
 
-    const { handleSubmit, formState: { errors }, control } = useForm({ defaultValues: initial })
+    const { handleSubmit, formState: { errors }, control, watch } = useForm({ defaultValues: initial })
+
+    const json = watch('payload')
 
     const onSubmit = () => {
 
@@ -23,7 +25,8 @@ const useParserController = (props: Record<string, unknown> | undefined) => {
         values: {
             control,
             errors,
-            transactions
+            transactions,
+            json
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

@@ -16,6 +16,7 @@ declare module '@mui/material/styles' {
             white: string;
             lightBlue: string;
             border: string;
+            grey: string;
         };
         progressbar: {
             main: string;

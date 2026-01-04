@@ -5,6 +5,7 @@ import { useLoginMutation } from '../../../redux/Api/Auth';
 import { useEffect } from 'react';
 import { insertData } from '../../../utils/Common/storage';
 import { useNavigate } from 'react-router-dom';
+import { decodeToken } from '../../../utils/Common/helpers';
 
 const initial = {
     username: '',
@@ -26,6 +27,7 @@ const useLoginController = () => {
     useEffect(() => {
         if (isSuccess) {
             insertData(data?.token, "access_token")
+            console.log("asdasdasd",decodeToken(data?.token))
             navigate("/home")
         }
     }, [isSuccess, data])

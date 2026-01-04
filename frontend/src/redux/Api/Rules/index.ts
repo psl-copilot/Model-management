@@ -23,6 +23,13 @@ export const rulesApi = createApi({
                 params
             }),
         }),
+        createRule: builder.mutation({
+            query: ({ body }) => ({
+                url: `create`,
+                method: "POST",
+                body: { ...body },
+            }),
+        }),
         getRuleById: builder.query({
             query: ({ id }) => ({
                 url: `${id}`,
@@ -55,5 +62,6 @@ export const {
     useGetRuleByIdQuery,
     useGetRuleConfigsIdsQuery,
     useLazyGetRuleConfigQuery,
-    useGetNetworkMapQuery
+    useGetNetworkMapQuery,
+    useCreateRuleMutation
 } = rulesApi

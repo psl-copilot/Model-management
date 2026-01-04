@@ -31,15 +31,16 @@ const Overview = (props: Record<string, unknown> | undefined) => {
 
             <Section header={'General Information'}>
                 <Controller
-                    name="ruleName"
+                    name="rule_name"
                     control={values.control}
+                    rules={{ required: "Rule Name is required" }}
                     render={({ field, fieldState: { error } }) => (
                         <Input
                             required
-                            disabled
+                            // disabled
                             label="Rule Name"
                             {...field}
-                            error={error?.message}
+                            error={values.errors.rule_name?.message}
                         />
                     )}
                 />
@@ -143,7 +144,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                 </Grid>
             </Section>
             <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
-                <Button height="40px" type="secondary" size="md" text="Save" onClick={functions.handleSubmit} />
+                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save" onClick={functions.handleSubmit} />
             </Box>
 
         </Grid>

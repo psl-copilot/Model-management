@@ -15,7 +15,7 @@ const ViewNetworkMap = () => {
     return (
         <Grid container spacing={2}>
             <Grid size={{ xs: 12 }} display={'flex'} flexDirection={'column'} gap={3}>
-                <Box border={1} borderColor={'static.border'} p={2} borderRadius={2} minHeight={300}>
+                <Box border={1} borderColor={'static.border'} p={2} borderRadius={1} minHeight={300}>
                     <FormattedJsonSection value={JSON.stringify(values?.data ?? {})} />
                 </Box>
             </Grid>

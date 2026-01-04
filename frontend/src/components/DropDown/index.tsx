@@ -131,7 +131,7 @@ const Dropdown = ({
                     <OutlinedInput
                         readOnly
                         value=""
-                        sx={{ height: heightMap[height], display: 'flex', justifyContent: 'space-between' }}
+                        sx={(theme) => ({ height: heightMap[height], display: 'flex', justifyContent: 'space-between', border: 1, borderColor: theme.palette.static.grey })}
                         onClick={() => onClick ? onClick() : !disabled && setOpen(p => !p)}
                         endAdornment={
                             <>

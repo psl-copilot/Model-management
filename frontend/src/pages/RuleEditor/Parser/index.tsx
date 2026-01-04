@@ -4,6 +4,8 @@ import Input from "../../../components/Input";
 import { Text } from "../../../components/Text";
 import Section from "../../../components/Wrappers/Section";
 import useParserController from "./useParserController";
+import { Box } from "@mui/material";
+import FormattedJsonSection from "../../../components/JsonFormatter";
 
 const Parser = (props: Record<string, unknown> | undefined) => {
 
@@ -22,25 +24,30 @@ const Parser = (props: Record<string, unknown> | undefined) => {
             </Grid>
 
             <Section header={'Payload Schema Definition'} subHeader={'Define the transaction payload structure to extract variables for rule building   '}>
-                <Grid container size={12} alignItems={'flex-end'} justifyContent={'space-between'}>
-                    <Controller
-                        name="payload"
-                        control={values.control}
-                        render={({ field, fieldState: { error } }) => (
-                            <Input
-                                type="textarea"
-                                maxWidth={'45%'}
-                                required
-                                rows={12}
-                                label="JSON Payload"
-                                {...field}
-                                error={error?.message}
-                            />
-                        )}
-                    />
+                <Grid container size={12} spacing={2} alignItems={'flex-start'}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            name="payload"
+                            control={values.control}
+                            render={({ field, fieldState: { error } }) => (
+                                <Input
+                                    type="textarea"
+                                    maxWidth={'100%'}
+                                    required
+                                    rows={12}
+                                    label="JSON Payload"
+                                    {...field}
+                                    error={error?.message}
+                                />
+                            )}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }} border={1} borderColor={'static.border'} mt={0.4} p={2} borderRadius={1} minHeight={310}>
+                        <FormattedJsonSection value={values?.json ?? JSON.stringify({})} />
+                    </Grid>
                 </Grid>
-            </Section>
-        </Grid>
+            </Section >
+        </Grid >
     )
 }
 
