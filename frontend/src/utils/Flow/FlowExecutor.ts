@@ -1,4 +1,5 @@
 import type { Node } from '@xyflow/react';
+import { globalVariables } from './GlobalVariables';
 
 export interface ExecutionResult {
   newVariables: Record<string, unknown>;
@@ -23,6 +24,50 @@ export const simulateNodeExecution = (
   let logMessage: string | null = null;
   let error: string | null = null;
   let branchHandle: string | null = null; // Track which branch to take for If nodes
+
+  /**
+   * Helper: Resolve global variable paths to actual values
+   * Example: "RuleRequest.TenantId" -> "123"
+   */
+  const resolveGlobalVariable = (path: string): unknown => {
+    if (!path || typeof path !== 'string') return path;
+    if (!path.startsWith('RuleRequest.') && !path.startsWith('RuleConfig.')) {
+      return path;
+    }
+    
+    const parts = path.split('.');
+    let current: unknown = globalVariables;
+    
+    for (const part of parts) {
+      const arrayMatch = part.match(/(\w+)\[(\d+)\]/);
+      if (arrayMatch) {
+        const [, key, index] = arrayMatch;
+        current = (current as Record<string, unknown[]>)?.[key]?.[parseInt(index)];
+      } else {
+        current = (current as Record<string, unknown>)?.[part];
+      }
+      
+      if (current === undefined) return path;
+    }
+    
+    return current;
+  };
+
+  /**
+   * Helper: Replace global variable paths in text with their values
+   * Supports expressions like: "RuleRequest.amount > 100" -> "50 > 100"
+   */
+  const replaceGlobalVariables = (text: string): string => {
+    if (!text || typeof text !== 'string') return text;
+    
+    const variablePattern = /(RuleRequest|RuleConfig)\.[[\w.\]]+/g;
+    
+    return text.replace(variablePattern, (match) => {
+      const value = resolveGlobalVariable(match);
+      if (value === match) return match;
+      return String(value);
+    });
+  };
 
   /**
    * Helper: Resolve a value (number or variable reference)
@@ -83,8 +128,13 @@ export const simulateNodeExecution = (
           
           let finalValue: unknown = varValueRaw;
 
+          // First check if it's a global variable path
+          const globalVarValue = resolveGlobalVariable(varValueRaw || '');
+          if (globalVarValue !== varValueRaw) {
+            finalValue = globalVarValue;
+          }
           // If value is a variable reference, resolve it
-          if (varValueRaw && currentVariables[varValueRaw] !== undefined) {
+          else if (varValueRaw && currentVariables[varValueRaw] !== undefined) {
             finalValue = currentVariables[varValueRaw];
           }
           // If it's a number, parse it
@@ -107,13 +157,16 @@ export const simulateNodeExecution = (
       case 'Log': {
         let msg = getParam(['text', 'message']) || '';
 
-        // Replace {{variable}} placeholders
+        // First resolve any global variables in the message
+        msg = replaceGlobalVariables(msg);
+
+        // Replace {{ variable }} placeholders with local variables (with optional spaces)
         Object.keys(currentVariables).forEach((key) => {
-          const regex = new RegExp(`{{${key}}}`, 'g');
+          const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
           msg = msg.replace(regex, String(currentVariables[key]));
         });
 
-        // Check if message is just a variable name
+        // Check if message is just a local variable name
         if (msg && currentVariables[msg] !== undefined) {
           msg = `${msg}: ${currentVariables[msg]}`;
         }
@@ -139,8 +192,10 @@ export const simulateNodeExecution = (
               if (cond.type === 'if') {
                 conditionText = cond.condition || 'true';
                 
-                // Replace variable names with their values for evaluation
-                let evalExpression = conditionText;
+                // First resolve global variables
+                let evalExpression = replaceGlobalVariables(conditionText);
+                
+                // Then replace local variable names with their values for evaluation
                 Object.keys(currentVariables).forEach((key) => {
                   const regex = new RegExp(`\\b${key}\\b`, 'g');
                   const value = currentVariables[key];
@@ -161,8 +216,10 @@ export const simulateNodeExecution = (
               } else if (cond.type === 'elseif') {
                 const elseIfCondition = cond.condition || 'true';
                 
-                // Replace variable names with their values for evaluation
-                let evalExpression = elseIfCondition;
+                // First resolve global variables
+                let evalExpression = replaceGlobalVariables(elseIfCondition);
+                
+                // Then replace local variable names with their values for evaluation
                 Object.keys(currentVariables).forEach((key) => {
                   const regex = new RegExp(`\\b${key}\\b`, 'g');
                   const value = currentVariables[key];
@@ -252,9 +309,23 @@ export const simulateNodeExecution = (
       }
 
       case 'FetchDB': {
-        const dbVar = getParam(['variable', 'resultVar']) || 'dbResult';
-        newVariables[dbVar] = { membership_level: 'GOLD', id: 123 };
-        logMessage = `🗄️ Fetched DB → ${dbVar}`;
+        const query = replaceGlobalVariables(getParam(['query']) || 'SELECT * FROM table');
+        const dbVar = getParam(['resultVar', 'variable']) || 'dbResult';
+        const connection = getParam(['connection']) || 'default';
+        
+        // Simulate database fetch with mock data
+        const mockResult = {
+          success: true,
+          rowCount: 3,
+          data: [
+            { id: 1, name: 'John Doe', status: 'active' },
+            { id: 2, name: 'Jane Smith', status: 'active' },
+            { id: 3, name: 'Bob Johnson', status: 'inactive' },
+          ],
+        };
+        
+        newVariables[dbVar] = mockResult;
+        logMessage = `🗄️ DB Query [${connection}]: ${query.substring(0, 50)}${query.length > 50 ? '...' : ''} → ${dbVar} (${mockResult.rowCount} rows)`;
         break;
       }
 
@@ -262,10 +333,13 @@ export const simulateNodeExecution = (
         logMessage = '💻 Custom Code Executed';
         break;
 
-      case 'ThrowError':
-        error = getParam(['text', 'message']) || 'Error Occurred';
+      case 'ThrowError': {
+        const rawError = getParam(['text', 'message']) || 'Error Occurred';
+        // Resolve variables in error message
+        error = replaceGlobalVariables(rawError);
         logMessage = `❌ ERROR: ${error}`;
         break;
+      }
 
       case 'HandleTransaction':
         logMessage = '📦 Handle Transaction (entering nested flow...)';

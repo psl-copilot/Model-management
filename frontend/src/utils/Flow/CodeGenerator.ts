@@ -8,6 +8,31 @@ interface NestedCanvasData {
 }
 
 /**
+ * Converts text with variable references to template literal syntax
+ * Example: "User ID is {{ RuleRequest.userId }}" -> `User ID is ${RuleRequest.userId}`
+ * Example: "The value is {{ x }}" -> `The value is ${x}`
+ */
+const convertToTemplateLiteral = (text: string): string => {
+  // Pattern to match {{ variableName }} or {{ RuleRequest.property }}
+  const varPattern = /\{\{\s*(.+?)\s*\}\}/g;
+  
+  // Check if text contains any variables
+  if (!varPattern.test(text)) {
+    // No variables, return as string literal
+    return `'${text.replace(/'/g, "\\'")}'`;
+  }
+  
+  // Reset regex
+  varPattern.lastIndex = 0;
+  
+  // Replace {{ varName }} with ${varName}
+  const templateContent = text.replace(varPattern, '${$1}');
+  
+  // Return as template literal
+  return '`' + templateContent.replace(/`/g, '\\`') + '`';
+};
+
+/**
  * Generates TypeScript code for a single node
  */
 const generateNodeCode = (node: Node, indent: string = ''): string => {
@@ -26,15 +51,30 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
       const varValue = params.value || params.variableValue || '""';
       
       // Check if value is a number
-      const isNumber = !isNaN(Number(varValue));
-      const valueStr = isNumber ? varValue : `"${varValue}"`;
+      const isNumber = !isNaN(Number(varValue)) && varValue.trim() !== '';
+      
+      // Check if value contains variables in {{ }} syntax
+      const hasVariables = /\{\{\s*.+?\s*\}\}/.test(varValue);
+      
+      let valueStr: string;
+      if (isNumber) {
+        valueStr = varValue;
+      } else if (hasVariables) {
+        // Convert to template literal if it contains variables
+        valueStr = convertToTemplateLiteral(varValue);
+      } else {
+        // Regular string
+        valueStr = varValue.startsWith('"') ? varValue : `"${varValue}"`;
+      }
       
       return `${indent}const ${varName} = ${valueStr};`;
     }
     
     case 'Log': {
       const message = params.text || params.message || '';
-      return `${indent}loggerService.log('${message}', context, msgId);`;
+      // Convert to template literal if it contains variables
+      const messageStr = convertToTemplateLiteral(message);
+      return `${indent}loggerService.log(${messageStr}, context, msgId);`;
     }
     
     case 'Import': {
@@ -51,6 +91,7 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
         let code = '';
         conditions.forEach((cond: { type: string; condition?: string }) => {
           if (cond.type === 'if') {
+            // Keep variable paths as-is in generated code
             code += `${indent}if (${cond.condition || 'true'}) {\n${indent}  // Add logic here\n${indent}}`;
           } else if (cond.type === 'elseif') {
             code += ` else if (${cond.condition || 'true'}) {\n${indent}  // Add logic here\n${indent}}`;
@@ -66,19 +107,64 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
     }
     
     case 'FetchDB': {
-      const variable = params.variable || params.resultVar || 'dbResult';
+      const resultVar = params.resultVar || params.variable || 'dbResult';
       const query = params.query || 'SELECT * FROM table';
-      return `${indent}const ${variable} = await databaseManager.executeQuery('${query}');`;
+      
+      // Extract variables from {{ }} syntax and replace with parameterized placeholders
+      const varPattern = /\{\{\s*(.+?)\s*\}\}/g;
+      const globalVars: string[] = [];
+      let parameterizedQuery = query;
+      
+      // Find all variables in {{ }} format
+      const matches = [...query.matchAll(varPattern)];
+      if (matches.length > 0) {
+        const uniqueVars = Array.from(new Set(matches.map(m => m[1])));
+        uniqueVars.forEach((varPath, index) => {
+          globalVars.push(varPath);
+          // Replace {{ varPath }} with parameterized placeholder ($1, $2, etc.)
+          const placeholder = `$${index + 1}`;
+          const escapedVar = varPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          parameterizedQuery = parameterizedQuery.replace(new RegExp(`\\{\\{\\s*${escapedVar}\\s*\\}\\}`, 'g'), placeholder);
+        });
+      }
+      
+      // Generate the query constant name (e.g., getAmtNewestPacs008 -> queryName)
+      const queryConstName = `query${resultVar.charAt(0).toUpperCase()}${resultVar.slice(1)}`;
+      
+      const lines = [
+        `${indent}// Define parameterized query`,
+        `${indent}const ${queryConstName} = \`${parameterizedQuery.replace(/`/g, '\\`')}\`;`,
+        '',
+      ];
+      
+      // Generate the query execution with parameters
+      if (globalVars.length > 0) {
+        lines.push(`${indent}// Execute query with parameters`);
+        lines.push(`${indent}const ${resultVar} = await databaseManager._eventHistory.query<{ [key: string]: unknown }>(${queryConstName}, [`);
+        globalVars.forEach((varPath, index) => {
+          const comma = index < globalVars.length - 1 ? ',' : '';
+          lines.push(`${indent}  ${varPath}${comma}`);
+        });
+        lines.push(`${indent}]);`);
+      } else {
+        lines.push(`${indent}// Execute query without parameters`);
+        lines.push(`${indent}const ${resultVar} = await databaseManager._eventHistory.query<{ [key: string]: unknown }>(${queryConstName});`);
+      }
+      
+      return lines.join('\n');
     }
     
     case 'Code': {
       const code = params.code || '// Custom code';
+      // Keep variable paths as-is in generated code
       return `${indent}${code}`;
     }
     
     case 'ThrowError': {
       const message = params.text || params.message || 'Error occurred';
-      return `${indent}throw new Error('${message}');`;
+      // Convert to template literal if it contains variables
+      const messageStr = convertToTemplateLiteral(message);
+      return `${indent}throw new Error(${messageStr});`;
     }
     
     case 'CustomFunction': {

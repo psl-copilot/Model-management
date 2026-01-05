@@ -2,6 +2,7 @@ export interface NodeInput {
   key: string;
   label: string;
   defaultValue: string;
+  required?: boolean;
 }
 
 export interface NodeHandles {

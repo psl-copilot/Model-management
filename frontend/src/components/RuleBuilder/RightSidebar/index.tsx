@@ -54,6 +54,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
 }) => {
   const collapsed = !selectedNode;
   
+  // Track previous node ID to detect node changes
+  const prevNodeIdRef = React.useRef<string | undefined>(selectedNode?.id);
+  
   // Derive values directly from selectedNode
   const nodeData = selectedNode?.data as NodeData | undefined;
   const template = nodeData?.nodeType ? getNodeTemplate(nodeData.nodeType) || null : null;
@@ -62,6 +65,14 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
   const [editingParams, setEditingParams] = useState<Record<string, string> | null>(null);
   const [variableError, setVariableError] = useState<string | null>(null);
+  
+  // Reset editing state when node changes (without useEffect)
+  if (prevNodeIdRef.current !== selectedNode?.id) {
+    prevNodeIdRef.current = selectedNode?.id;
+    if (editingLabel !== null) setEditingLabel(null);
+    if (editingParams !== null) setEditingParams(null);
+    if (variableError !== null) setVariableError(null);
+  }
   
   // Get current values (use editing values if available, otherwise node data)
   const currentLabel = editingLabel !== null ? editingLabel : (nodeData?.label || '');
@@ -195,6 +206,53 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     setEditingLabel(null);
   };
 
+  // Store refs for input elements to track cursor position
+  const inputRefs = React.useRef<Record<string, HTMLInputElement | HTMLTextAreaElement>>({});
+
+  // Handle drag and drop for variables
+  const handleDrop = (paramKey: string) => (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const variablePath = event.dataTransfer.getData('variablePath');
+    
+    if (variablePath && selectedNode) {
+      const inputElement = inputRefs.current[paramKey];
+      const currentValue = currentParams[paramKey] ?? '';
+      
+      let newValue: string;
+      
+      if (inputElement) {
+        // Insert at cursor position
+        const start = inputElement.selectionStart || 0;
+        const end = inputElement.selectionEnd || 0;
+        const textBefore = currentValue.substring(0, start);
+        const textAfter = currentValue.substring(end);
+        newValue = textBefore + variablePath + textAfter;
+        
+        // Update cursor position after insert
+        setTimeout(() => {
+          const newCursorPos = start + variablePath.length;
+          inputElement.setSelectionRange(newCursorPos, newCursorPos);
+          inputElement.focus();
+        }, 0);
+      } else {
+        // Fallback: append to end if no input element ref
+        newValue = currentValue ? `${currentValue} ${variablePath}` : variablePath;
+      }
+      
+      const updatedParams = { 
+        ...currentParams, 
+        [paramKey]: newValue,
+      };
+      setEditingParams(updatedParams);
+      onUpdateNode(selectedNode.id, { params: updatedParams });
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  };
+
   if (collapsed) {
     return <SidebarContainer collapsed={true} />;
   }
@@ -285,8 +343,105 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         </PropertyRow>
       </SectionContainer>
 
+      {/* FetchDB Special Section */}
+      {nodeData?.nodeType === 'FetchDB' && (
+        <>
+          <Divider />
+          <SectionContainer>
+            <SectionTitle>Database Query</SectionTitle>
+            
+            {/* Query Input */}
+            <PropertyRow>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                SQL Query                <Typography component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                  *
+                </Typography>              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                rows={12}
+                value={currentParams.query ?? ''}
+                onChange={(e) => {
+                  const updatedParams = { ...currentParams, query: e.target.value };
+                  setEditingParams(updatedParams);
+                  if (selectedNode) {
+                    onUpdateNode(selectedNode.id, { params: updatedParams });
+                  }
+                }}
+                disabled={isReadOnly || viewOnly}
+                placeholder="Enter SQL query..."
+                onDrop={handleDrop('query')}
+                onDragOver={handleDragOver}
+                inputRef={(el: HTMLInputElement | null) => {
+                  if (el) inputRefs.current['query'] = el;
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontFamily: 'monospace',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'background.paper',
+                    transition: 'all 0.2s',
+                  },
+                  '& .MuiOutlinedInput-input': {
+                    ...((currentParams.query && currentParams.query.length > 0 && (currentParams.query.includes('RuleRequest.') || currentParams.query.includes('RuleConfig.'))) && {
+                      background: `linear-gradient(to bottom, 
+                        transparent 0%, 
+                        transparent calc(100% - 2px), 
+                        #4caf50 calc(100% - 2px), 
+                        #4caf50 100%
+                      )`,
+                      backgroundSize: '100% 100%',
+                      backgroundRepeat: 'no-repeat',
+                    }),
+                  },
+                }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                💡 Drag global variables into the query
+              </Typography>
+            </PropertyRow>
+
+            {/* Result Variable */}
+            <PropertyRow>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Store Result In
+                <Typography component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                  *
+                </Typography>
+              </Typography>
+              <TextField
+                fullWidth
+                value={currentParams.resultVar ?? currentParams.variable ?? ''}
+                onChange={(e) => {
+                  const updatedParams = { 
+                    ...currentParams, 
+                    resultVar: e.target.value,
+                    variable: e.target.value, // Keep both for backward compatibility
+                  };
+                  setEditingParams(updatedParams);
+                  if (selectedNode) {
+                    onUpdateNode(selectedNode.id, { params: updatedParams });
+                  }
+                }}
+                disabled={isReadOnly || viewOnly}
+                placeholder="Variable name (e.g., dbResult)"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontFamily: 'monospace',
+                    fontSize: '0.875rem',
+                  },
+                }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                💡 Variable name to store query results
+              </Typography>
+            </PropertyRow>
+          </SectionContainer>
+        </>
+      )}
+
       {/* Parameters Section */}
-      {template.inputs && template.inputs.length > 0 && (
+      {template.inputs && template.inputs.length > 0 && nodeData?.nodeType !== 'FetchDB' && (
         <>
           <Divider />
           <SectionContainer>
@@ -296,7 +451,43 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             {nodeData?.nodeType === 'If' ? (
               <Box>
                 {getConditions().map((cond, index) => (
-                  <PropertyRow key={index}>
+                  <PropertyRow 
+                    key={index}
+                    onDrop={(e) => {
+                      if (cond.type !== 'else' && !viewOnly) {
+                        e.preventDefault();
+                        const variablePath = e.dataTransfer.getData('variablePath');
+                        if (variablePath) {
+                          const inputElement = inputRefs.current[`condition_${index}`];
+                          const currentValue = cond.condition || '';
+                          
+                          let newValue: string;
+                          
+                          if (inputElement) {
+                            // Insert at cursor position
+                            const start = inputElement.selectionStart || 0;
+                            const end = inputElement.selectionEnd || 0;
+                            const textBefore = currentValue.substring(0, start);
+                            const textAfter = currentValue.substring(end);
+                            newValue = textBefore + variablePath + textAfter;
+                            
+                            // Update cursor position after insert
+                            setTimeout(() => {
+                              const newCursorPos = start + variablePath.length;
+                              inputElement.setSelectionRange(newCursorPos, newCursorPos);
+                              inputElement.focus();
+                            }, 0);
+                          } else {
+                            // Fallback: append to end
+                            newValue = currentValue ? `${currentValue} ${variablePath}` : variablePath;
+                          }
+                          
+                          handleConditionChange(index, newValue);
+                        }
+                      }
+                    }}
+                    onDragOver={handleDragOver}
+                  >
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
                       <TextField
                         fullWidth
@@ -306,7 +497,34 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
                         size="small"
                         variant="outlined"
                         disabled={cond.type === 'else' || viewOnly}
-                        helperText={cond.type === 'else' ? 'Default fallback path' : viewOnly ? 'View only mode' : `Enter boolean expression (e.g., x > 5)`}
+                        inputRef={(el) => {
+                          if (el && cond.type !== 'else') inputRefs.current[`condition_${index}`] = el;
+                        }}
+                        helperText={
+                          cond.type === 'else' 
+                            ? 'Default fallback path' 
+                            : viewOnly 
+                              ? 'View only mode' 
+                              : 'Enter boolean expression or drop variables'
+                        }
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'background.paper',
+                            transition: 'all 0.2s',
+                          },
+                          '& .MuiOutlinedInput-input': {
+                            ...((cond.condition && (cond.condition.includes('RuleRequest.') || cond.condition.includes('RuleConfig.'))) && {
+                              background: `linear-gradient(to bottom, 
+                                transparent 0%, 
+                                transparent calc(100% - 2px), 
+                                #4caf50 calc(100% - 2px), 
+                                #4caf50 100%
+                              )`,
+                              backgroundSize: '100% 100%',
+                              backgroundRepeat: 'no-repeat',
+                            }),
+                          },
+                        }}
                       />
                       {index > 0 && !viewOnly && (
                         <IconButton
@@ -351,6 +569,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
               /* Regular parameters for other nodes */
               template.inputs.map((input) => {
                 const currentValue = currentParams[input.key] ?? input.defaultValue;
+                const hasGlobalVariable = currentValue && typeof currentValue === 'string' && /\{\{\s*.+?\s*\}\}/.test(currentValue);
                 
                 // Determine if this should be a multiline input
                 const isMultiline = input.key === 'code' || 
@@ -364,10 +583,23 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
                 const hasError = isVariableNameField && !!displayError;
                 
                 return (
-                  <PropertyRow key={input.key}>
+                  <PropertyRow 
+                    key={input.key}
+                    onDrop={handleDrop(input.key)}
+                    onDragOver={handleDragOver}
+                  >
                     <TextField
                       fullWidth
-                      label={input.label}
+                      label={
+                        <>
+                          {input.label}
+                          {input.required && (
+                            <Typography component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                              *
+                            </Typography>
+                          )}
+                        </>
+                      }
                       value={currentValue}
                       onChange={handleParamChange(input.key)}
                       size="small"
@@ -382,13 +614,30 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
                             ? "Start/End nodes cannot be edited" 
                             : viewOnly
                               ? "View only mode"
-                              : `Default: ${input.defaultValue}`
+                              : `Default: ${input.defaultValue}. Drop variables here.`
                       }
                       disabled={isReadOnly || viewOnly}
+                      inputRef={(el) => {
+                        if (el) inputRefs.current[input.key] = el;
+                      }}
                       sx={{
-                        '& .MuiInputBase-root': {
+                        '& .MuiOutlinedInput-root': {
                           fontFamily: isMultiline ? 'monospace' : 'inherit',
                           fontSize: isMultiline ? '0.875rem' : 'inherit',
+                          backgroundColor: 'background.paper',
+                          transition: 'all 0.2s',
+                        },
+                        '& .MuiOutlinedInput-input': {
+                          ...(hasGlobalVariable && {
+                            background: `linear-gradient(to bottom, 
+                              transparent 0%, 
+                              transparent calc(100% - 2px), 
+                              #4caf50 calc(100% - 2px), 
+                              #4caf50 100%
+                            )`,
+                            backgroundSize: '100% 100%',
+                            backgroundRepeat: 'no-repeat',
+                          }),
                         },
                       }}
                     />

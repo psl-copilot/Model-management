@@ -45,6 +45,8 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   onSave,
   viewOnly = false,
 }) => {
+  // Remove tab state - no longer needed
+  
   // Helper function to get default params from template
   const getDefaultParams = (template: BaseNodeTemplate | null | undefined) => {
     const params: Record<string, string> = {};
@@ -346,48 +348,48 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
 
       {/* Main Content with Sidebar and Canvas */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left Sidebar - Basic Nodes Only */}
-        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={true} />}
+        {/* Left Sidebar with Global Variables */}
+        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} />}
 
-        {/* Canvas */}
-        <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={viewOnly ? undefined : onNodesChange}
-            onEdgesChange={viewOnly ? undefined : onEdgesChange}
-            onConnect={viewOnly ? undefined : onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={viewOnly ? undefined : onDrop}
-            onDragOver={viewOnly ? undefined : onDragOver}
-            onNodeClick={onNodeClick}
-            onPaneClick={onPaneClick}
-            nodeTypes={nodeTypes}
-            defaultViewport={{ x: 150, y: 50, zoom: 1 }}
-            nodesDraggable={!viewOnly}
-            nodesConnectable={!viewOnly}
-            elementsSelectable={!viewOnly}
-            deleteKeyCode={null}
-          >
-            <Background />
-            <Controls />
-            <MiniMap />
-            <Panel position="top-right">
-              <Paper
-                elevation={2}
-                sx={{
-                  p: 1.5,
-                  backgroundColor: 'background.paper',
-                  borderRadius: 1,
-                }}
+            {/* Canvas */}
+            <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={viewOnly ? undefined : onNodesChange}
+                onEdgesChange={viewOnly ? undefined : onEdgesChange}
+                onConnect={viewOnly ? undefined : onConnect}
+                onInit={setReactFlowInstance}
+                onDrop={viewOnly ? undefined : onDrop}
+                onDragOver={viewOnly ? undefined : onDragOver}
+                onNodeClick={onNodeClick}
+                onPaneClick={onPaneClick}
+                nodeTypes={nodeTypes}
+                defaultViewport={{ x: 150, y: 50, zoom: 1 }}
+                nodesDraggable={!viewOnly}
+                nodesConnectable={!viewOnly}
+                elementsSelectable={!viewOnly}
+                deleteKeyCode={null}
               >
-                <Typography variant="caption" color="text.secondary">
-                  Nested Canvas: {nodeId}
-                </Typography>
-              </Paper>
-            </Panel>
-          </ReactFlow>
-        </Box>
+                <Background />
+                <Controls />
+                <MiniMap />
+                <Panel position="top-right">
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      p: 1.5,
+                      backgroundColor: 'background.paper',
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      Nested Canvas: {nodeId}
+                    </Typography>
+                  </Paper>
+                </Panel>
+              </ReactFlow>
+            </Box>
 
         {/* Right Sidebar */}
         <RightSidebar

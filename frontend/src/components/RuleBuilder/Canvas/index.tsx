@@ -385,7 +385,7 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
           id: node.id,
           type: node.data.nodeType,
           label: node.data.label,
-          params: node.data.params,
+          params: node.data.params || {},
           position: node.position,
         };
         
@@ -401,7 +401,7 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
                 id: nestedNode.id,
                 type: nestedNode.data.nodeType,
                 label: nestedNode.data.label,
-                params: nestedNode.data.params,
+                params: nestedNode.data.params || {},
                 position: nestedNode.position,
               })),
               edges: nestedData.edges.map((nestedEdge) => ({
