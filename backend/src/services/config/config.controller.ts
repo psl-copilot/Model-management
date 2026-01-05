@@ -1,8 +1,8 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ConfigService } from './config.service';
-import { TazamaAuthGuard } from '../auth/tazama-auth.guard';
-import { RequireAnyClaims, TazamaClaims } from '../auth/auth.decorator';
-import { User } from '../auth/user.decorator';
+import { TazamaAuthGuard } from '../../guards/tazama-auth.guard';
+import { RequireAnyClaims, TazamaClaims } from '../../decorators/auth.decorator';
+import { User } from '../../decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 
 @Controller('config')

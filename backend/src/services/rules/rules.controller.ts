@@ -9,10 +9,10 @@ import {
   Query,
   Put,
 } from '@nestjs/common';
-import { TazamaAuthGuard } from '../auth/tazama-auth.guard';
-import { User } from '../auth/user.decorator';
+import { TazamaAuthGuard } from '../../guards/tazama-auth.guard';
+import { User } from '../../decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
-import { TazamaClaims, RequireAnyClaims } from '../auth/auth.decorator';
+import { TazamaClaims, RequireAnyClaims } from '../../decorators/auth.decorator';
 import { RulesService } from './rules.service';
 import { Rules } from './dto/rules.dto';
 

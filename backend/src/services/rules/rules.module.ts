@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { RulesController } from './rules.controller';
 import { RulesService } from './rules.service';
-import { AdminServiceClient } from '../services/admin-service-client';
+import { AdminServiceClient } from '../admin-service-client';
 
 @Module({
   imports: [HttpModule],

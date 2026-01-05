@@ -11,6 +11,7 @@ import {
 import { LoggerService } from '@tazama-lf/frms-coe-lib';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RequireAnyClaims, TazamaClaims } from '../../decorators/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -18,7 +19,10 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly logger: LoggerService,
   ) {}
+
+
   @Post('login')
+  @RequireAnyClaims(TazamaClaims.EDITOR, TazamaClaims.APPROVER, TazamaClaims.PUBLISHER)
   @HttpCode(200)
   async login(
     @Body(new ValidationPipe({ whitelist: true, transform: true }))

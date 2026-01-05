@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AdminServiceClient } from '../services/admin-service-client';
+import { AdminServiceClient } from '../admin-service-client';
 import { Rules } from './dto/rules.dto';
 
 @Injectable()
