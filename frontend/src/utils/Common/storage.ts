@@ -1,37 +1,72 @@
 
 import { decrypt, encrypt } from "./crypto";
-import { SessionStorage } from "./enums";
+import { CookieStorage, LocalStorage, SessionStorage, type StorageType } from "./enums";
+import Cookies from 'js-cookie';
 
-const insertData = (data: unknown, key: string, type = SessionStorage, encrypted = true) => {
-
-    const storage = type === SessionStorage ? sessionStorage : localStorage
-
+const insertData = (
+    data: unknown,
+    key: string,
+    type: StorageType = CookieStorage,
+    encrypted = false,
+    cookieOptions?: Cookies.CookieAttributes
+) => {
     let value: string;
 
-    if (encrypted) {
-        value = encrypt(data);
-    } else {
-        value = JSON.stringify(data);
-    }
-    storage.setItem(key, value)
+    value = encrypted ? encrypt(data) : JSON.stringify(data);
 
+    switch (type) {
+        case CookieStorage:
+            Cookies.set(key, value, {
+                sameSite: 'strict',
+                secure: true,
+                ...cookieOptions,
+            });
+            break;
+
+        case SessionStorage:
+            sessionStorage.setItem(key, value);
+            break;
+
+        case LocalStorage:
+            localStorage.setItem(key, value);
+            break;
+    }
 };
 
-const extractData = (key: string, type = SessionStorage, encrypted = true) => {
 
-    const storage = type === SessionStorage ? sessionStorage : localStorage
+const extractData = (
+    key: string,
+    type: StorageType = CookieStorage,
+    encrypted = false
+) => {
+    let data: string | null | undefined;
 
-    let data = storage.getItem(key);
+    switch (type) {
+        case CookieStorage:
+            data = Cookies.get(key);
+            break;
 
-    if (!data) return null
+        case SessionStorage:
+            data = sessionStorage.getItem(key);
+            break;
 
-    if (encrypted) {
-        data = decrypt(data)
+        case LocalStorage:
+            data = localStorage.getItem(key);
+            break;
+
+        default:
+            return null;
     }
 
-    return data;
+    if (!data) return null;
 
+    if (encrypted) {
+        return decrypt(data);
+    }
+
+    return JSON.parse(data);
 };
+
 
 const getAuthToken = () => {
     return extractData("access_token");
@@ -40,6 +75,9 @@ const getAuthToken = () => {
 const resetData = () => {
     sessionStorage.clear()
     localStorage.clear()
+    Object.keys(Cookies.get()).forEach((key) => {
+        Cookies.remove(key);
+    });
 };
 
 export {

@@ -60,9 +60,6 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
         open('View Network Map', <ViewNetworkMap />, null, { maxWidth: 'md' })
     }
 
-
-    console.log("rule_config_id", rule_config_id)
-
     return {
         values: {
             control,

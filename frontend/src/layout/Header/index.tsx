@@ -1,8 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Box, IconButton } from "@mui/material";
+import { Box, IconButton, Stack } from "@mui/material";
 import logo from "../../assets/logo.png";
 import { Text } from '../../components/Text';
+import { extractData } from '../../utils/Common/storage';
+import { capitalize } from '../../utils/Common/helpers';
 
 const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v: boolean) => void }) => {
 
@@ -13,6 +15,9 @@ const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v:
             bgcolor: "#f3f4f6",
         },
     };
+
+    const user = extractData('user')
+
     return (
         <Box
             display="flex"
@@ -44,14 +49,14 @@ const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v:
                     </Text>
                 </Box>
 
-                {/* <Stack direction="row" spacing={1}>
-                    <IconButton sx={iconButtonStyle}>
-                        <NotificationsNoneIcon style={iconStyle} />
-                    </IconButton>
-                    <IconButton sx={iconButtonStyle} onClick={handleLogout}>
-                        <LogoutIcon style={iconStyle} />
-                    </IconButton>
-                </Stack> */}
+                <Stack direction="row" spacing={1}>
+                    <Text color="text.black" weight={600} size="body">
+                        {user.username}
+                    </Text>
+                    <Text color="static.ternary" size="body">
+                        - {capitalize(user.claims)}
+                    </Text>
+                </Stack>
             </Box>
         </Box>
     );

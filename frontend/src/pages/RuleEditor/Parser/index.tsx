@@ -1,15 +1,15 @@
 import Grid from "@mui/material/Grid";
 import { Controller } from "react-hook-form";
+import Button from "../../../components/Button";
 import Input from "../../../components/Input";
+import FormattedJsonSection from "../../../components/JsonFormatter";
 import { Text } from "../../../components/Text";
 import Section from "../../../components/Wrappers/Section";
 import useParserController from "./useParserController";
-import { Box } from "@mui/material";
-import FormattedJsonSection from "../../../components/JsonFormatter";
 
 const Parser = (props: Record<string, unknown> | undefined) => {
 
-    const { values } = useParserController(props)
+    const { values, functions } = useParserController(props)
 
     return (
         <Grid
@@ -23,7 +23,7 @@ const Parser = (props: Record<string, unknown> | undefined) => {
                 <Text color="text.ternary" size={'body'}>Parse and Extract Variables from Sample Payload</Text>
             </Grid>
 
-            <Section header={'Payload Schema Definition'} subHeader={'Define the transaction payload structure to extract variables for rule building   '}>
+            <Section header={'Payload Schema Definition'} subHeader={'Define the transaction payload structure to extract variables for rule building'}>
                 <Grid container size={12} spacing={2} alignItems={'flex-start'}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller
@@ -42,10 +42,20 @@ const Parser = (props: Record<string, unknown> | undefined) => {
                             )}
                         />
                     </Grid>
-                    <Grid size={{ xs: 12, md: 6 }} border={1} borderColor={'static.border'} mt={0.4} p={2} borderRadius={1} minHeight={310}>
+                    <Grid size={{ xs: 12, md: 6 }} border={1} borderColor={'static.border'} mt={0.4} p={2} overflow={'auto'} borderRadius={1} height={310}>
                         <FormattedJsonSection value={values?.json ?? JSON.stringify({})} />
                     </Grid>
                 </Grid>
+
+                {values?.json ?
+                    <Button
+                        height="40px"
+                        type="secondary"
+                        size="md"
+                        text="Simulate"
+                        onClick={functions.handleSimulation}
+                    />
+                    : null}
             </Section >
         </Grid >
     )

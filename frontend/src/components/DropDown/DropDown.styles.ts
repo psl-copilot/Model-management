@@ -21,7 +21,7 @@ export const DropdownMenu = styled(Paper)(() => ({
     width: "100%",
     zIndex: 10,
     maxHeight: 240,
-    overflow: "hidden",
+    overflowY: "auto",
 }));
 
 export const SearchBox = styled(Box)(({ theme }) => ({

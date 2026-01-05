@@ -60,60 +60,64 @@ export const getNestedValue = (
     return "-"
 }
 
+export const capitalize = (value: string) =>
+    value.charAt(0).toUpperCase() + value.slice(1);
+
+
+const decodeJwtPayload = (token: string): any | null => {
+    try {
+        const base64 = token.split('.')[1];
+        if (!base64) return null;
+
+        const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+};
+
 export const decodeToken = (token: string): User | null => {
     try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(
-            atob(base64)
-                .split('')
-                .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                .join(''),
-        );
+        const outerPayload = decodeJwtPayload(token);
+        if (!outerPayload) return null;
 
-        const payload = JSON.parse(jsonPayload);
+        const innerPayload =
+            typeof outerPayload.tokenString === 'string'
+                ? decodeJwtPayload(outerPayload.tokenString) ?? outerPayload
+                : outerPayload;
 
-        let innerPayload = payload;
-        if (payload.tokenString) {
-            try {
-                const innerToken = payload.tokenString;
-                const innerBase64Url = innerToken.split('.')[1];
-                const innerBase64 = innerBase64Url
-                    .replace(/-/g, '+')
-                    .replace(/_/g, '/');
-                const innerJsonPayload = decodeURIComponent(
-                    atob(innerBase64)
-                        .split('')
-                        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                        .join(''),
-                );
-                innerPayload = JSON.parse(innerJsonPayload);
-            } catch (innerError) {
-                console.warn(
-                    'Failed to decode inner token, using outer payload:',
-                    innerError,
-                );
-            }
-        }
+        const claimsRaw = outerPayload.claims ?? innerPayload.realm_access?.roles ?? [];
+        const trsClaim = claimsRaw.find((c: string) => c.startsWith('trs_'))?.replace(/^trs_/, '') ?? null;
 
         return {
-            id: innerPayload.sub || payload.sub || payload.clientId || 'unknown',
+            id:
+                innerPayload.sub ??
+                outerPayload.sub ??
+                outerPayload.clientId ??
+                'unknown',
+
             username:
-                innerPayload.preferred_username ||
-                innerPayload.username ||
-                payload.preferred_username ||
-                payload.username ||
-                innerPayload.sub ||
-                payload.sub ||
+                innerPayload.preferred_username ??
+                innerPayload.username ??
+                outerPayload.preferred_username ??
+                outerPayload.username ??
+                innerPayload.sub ??
+                outerPayload.sub ??
                 'user',
-            email: innerPayload.email || payload.email,
-            claims: payload.claims || innerPayload.realm_access?.roles || [],
-            tenantId: payload.tenantId || innerPayload.tenantId,
+
+            email: innerPayload.email ?? outerPayload.email,
+
+            claims: trsClaim,
+
+            tenantId:
+                outerPayload.tenantId ??
+                innerPayload.tenantId,
         };
     } catch (error) {
         console.error('Failed to decode token:', error);
         return null;
     }
-}
+};
+
 
 
