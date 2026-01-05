@@ -389,4 +389,59 @@ export class AdminServiceClient {
       return this.handleError(error, 'getActiveNetworkMap');
     }
   }
+
+  async getConfigPayloadByTxTp(transactionType: string, token: string): Promise<any> {
+    try {
+      this.logger.log(`Fetching config payload for transaction type: ${transactionType}`);
+
+      const response = await this.forwardRequest(
+        'GET',
+        `/v1/admin/config/payload/${encodeURIComponent(transactionType)}`,
+        undefined,
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      );
+
+      if (!response) {
+        this.logger.warn(`No config payload found for transaction type: ${transactionType}`);
+        return null;
+      }
+
+      this.logger.log(`Successfully retrieved config payload for: ${transactionType}`);
+      return response;
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching config payload for ${transactionType}: ${err.message}`);
+      return this.handleError(error, 'getConfigPayloadByTxTp');
+    }
+  }
+
+  async getSchemaByTxTp(transactionType: string, token: string): Promise<any> {
+    try {
+      this.logger.log(`Fetching full config for transaction type: ${transactionType} in MMGMT`);
+
+        // go here and find out whats wrong
+      const response = await this.forwardRequest(
+        'GET',
+        `/v1/admin/config/${encodeURIComponent(transactionType)}`,
+        undefined,
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      );
+
+      if (!response) {
+        this.logger.warn(`No config found for transaction type: ${transactionType}`);
+        return null;
+      }
+
+      this.logger.log(`Successfully retrieved full config for: ${transactionType}`);
+      return response;
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching schema from DB for ${transactionType}: ${err.message}`);
+      return this.handleError(error, 'getSchemaByTxTp');
+    }
+  }
 }

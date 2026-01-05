@@ -5,6 +5,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { TazamaAuthGuard } from '../auth/tazama-auth.guard';
 import { User } from '../auth/user.decorator';
@@ -16,9 +17,11 @@ import type { TransactionalMessage, ParseExtractResponse } from './dto/message.d
 @Controller('parse')
 @UseGuards(TazamaAuthGuard)
 export class ParseExtractController {
+  private readonly logger = new Logger(ParseExtractController.name);
+  
   constructor(private readonly parseExtractService: ParseExtractService) {}
 
-  @Post('/api/process-message')
+  @Post('/api/validatePayload')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
@@ -29,6 +32,11 @@ export class ParseExtractController {
     @Body() request: TransactionalMessage,
     @User() user: AuthenticatedUser,
   ): Promise<ParseExtractResponse> {
-    return await this.parseExtractService.processTransactionalMessage(request);
+    this.logger.log(`Processing transaction type: ${request.TxTp} for user: ${user.validated}`);
+    
+    return await this.parseExtractService.processTransactionalMessage(
+      request,
+      user.token.tokenString,
+    );
   }
 }
