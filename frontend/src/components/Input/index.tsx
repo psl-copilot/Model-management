@@ -12,7 +12,7 @@ import InputWrapper from '../Wrappers/InputWrapper';
 export interface InputProps {
     label?: string;
     placeholder?: string;
-    value?: string;
+    value?: string | null;
     onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     type?: 'text' | 'password' | 'textarea';
     icon?: React.ElementType;
@@ -24,25 +24,40 @@ export interface InputProps {
     maxLength?: number;
     disabled?: boolean;
     required?: boolean;
+    view_only?: boolean;
     leftIcon?: React.ElementType;
+    height?: 'md' | 'sm';
+    maxWidth?: string | number
 }
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
-
     '& .MuiInputBase-input': {
-        height: '100%',
+        boxShadow: 'none',
         boxSizing: 'border-box',
     },
+    '& .MuiOutlinedInput-notchedOutline': {
+        boxShadow: 'none',
+        borderColor: theme.palette.static.border
+    },
     '& .MuiInputBase-input.Mui-disabled': {
-        color: theme.palette.text.disabled,
+        color: theme.palette.text.black,
+        WebkitTextFillColor: theme.palette.text.primary,
+        opacity: 1,
+        backgroundColor: 'white'
     },
     '& .MuiInputBase-input::placeholder': {
         color: theme.palette.text.ternary,
     },
     '& .MuiInputLabel-root': {
-        color: theme.palette.text.disabled
+        color: theme.palette.text.black,
+        boxShadow: 'none',
     },
 }));
+
+const heightMap = {
+    md: 50,
+    sm: 45,
+};
 
 const Input = forwardRef(function Input(
     {
@@ -57,7 +72,10 @@ const Input = forwardRef(function Input(
         maxLength,
         disabled = false,
         leftIcon: LeftIcon,
-        error
+        error,
+        height = 'md',
+        maxWidth,
+        view_only = false
     }: InputProps,
     ref: ForwardedRef<HTMLInputElement | HTMLTextAreaElement>
 ) {
@@ -65,13 +83,10 @@ const Input = forwardRef(function Input(
 
     const isTextarea = type === 'textarea';
     const isPassword = type === 'password';
-
-    const inputType =
-        isPassword && showPassword ? 'text' : type;
-
+    const inputType = isPassword && showPassword ? 'text' : type;
 
     return (
-        <InputWrapper {...{ label, placeholder, value, onChange, type, disabled, error }}>
+        <InputWrapper {...{ label, placeholder, value, onChange, type, disabled, error, maxWidth, view_only }}>
             <StyledTextField
                 inputRef={ref}
                 multiline={isTextarea}
@@ -89,11 +104,11 @@ const Input = forwardRef(function Input(
                 name={name}
                 disabled={disabled}
                 type={inputType}
-                // variant="outlined"
                 inputProps={{ maxLength }}
                 sx={{
                     '& .MuiInputBase-root': {
-                        maxHeight: isTextarea ? 120 : 60,
+                        maxHeight: isTextarea ? undefined : heightMap[height],
+                        height: isTextarea ? undefined : heightMap[height],
                     },
                 }}
                 slotProps={{
@@ -121,7 +136,7 @@ const Input = forwardRef(function Input(
                             <InputAdornment position="start">
                                 <LeftIcon fontSize="small" />
                             </InputAdornment>
-                        ) : undefined,
+                        ) : <div></div>,
                     },
                 }}
             />

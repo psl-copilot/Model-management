@@ -3,10 +3,11 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { Box, IconButton, Paper, Typography } from '@mui/material';
 import { memo, type ReactNode, useState } from 'react';
 import { hideValue } from '../../../utils/Common/helpers';
+import { Text } from '../../Text';
 
 interface InputWrapperProps {
     label?: string;
-    value?: string | number;
+    value?: string | null;
     type?: 'text' | 'password' | 'textarea' | 'time';
     error?: string;
     view_only?: boolean;
@@ -14,6 +15,7 @@ interface InputWrapperProps {
     mode?: string;
     country?: string;
     children: ReactNode;
+    maxWidth?: number | string
 }
 
 const InputWrapper = ({
@@ -23,11 +25,19 @@ const InputWrapper = ({
     view_only = false,
     disabled = false,
     children,
+    maxWidth,
+    label
 }: InputWrapperProps) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <Box width="100%" mb={3}>
+        <Box width="100%" maxWidth={maxWidth ?? 450} >
+
+            {label && view_only &&
+                <Text size='body' color="text.primary">
+                    {label} :
+                </Text>
+            }
 
             {view_only ? (
                 <Box display="flex" alignItems="center" mt={0.5} px={1}>
@@ -36,6 +46,7 @@ const InputWrapper = ({
                             ? hideValue(value.toString())
                             : value || '-'}
                     </Typography>
+
                     {type === 'password' && value && (
                         <IconButton
                             onClick={() => !disabled && setShowPassword((prev) => !prev)}
@@ -55,10 +66,10 @@ const InputWrapper = ({
                             mt: 0.5,
                             display: 'flex',
                             alignItems: 'flex-start',
-                            backgroundColor: disabled ? 'grey.100' : 'background.paper',
-                            borderColor: disabled ? 'grey.200' : 'grey.300',
+                            backgroundColor: disabled ? 'white' : 'background.paper',
                             borderRadius: 1,
                             cursor: disabled ? 'not-allowed' : 'text',
+                            boxShadow: 0
                         }}
                     >
                         {children}

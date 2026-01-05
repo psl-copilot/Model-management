@@ -4,8 +4,8 @@ import { Box, Typography, AppBar, Toolbar } from '@mui/material';
 export const themeColor = '#51BE99';
 
 export const Root = styled(Box)({
-  minHeight: '100vh',
-  width: '100vw',
+  // minHeight: '100vh',
+  // width: '100vw',
   position: 'relative',
   overflow: 'hidden',
 });
@@ -95,7 +95,10 @@ export const FormWrapper = styled(Box)({
   marginTop: 24,
   width: '100%',
   backgroundColor: 'transparent',
-  component : 'form'
+  component: 'form',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
 });
 
 export const FooterText = styled(Typography)({

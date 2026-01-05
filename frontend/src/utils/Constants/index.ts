@@ -1,17 +1,22 @@
-export const NAV_HEIGHT = 85;
+export const NAV_HEIGHT = 60;
+
+export const serial_no_option = {
+  label: "S. No",
+  key: "id",
+}
 
 export const baseFontSizes = {
   bigHeader: {
-    default: '2.4rem',
+    default: '2.2rem',
     small: '1.75rem',
   },
   header: {
-    default: '2rem',
+    default: '1.5rem',
     small: '1.75rem',
   },
   subHeader: {
-    default: '1.4rem',
-    small: '1.25rem',
+    default: '1.3rem',
+    small: '1.1rem',
   },
   main: {
     default: '1.15rem',
