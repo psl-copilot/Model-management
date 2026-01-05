@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Rules } from '../rules/dto/rules.dto';
+import { Rules } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
