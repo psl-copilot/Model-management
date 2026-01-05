@@ -1,0 +1,33 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { CreateNodeDto, ResponseNodeDto } from "./dto";
+import { AdminServiceClient } from "../admin-service-client";
+import { GetNodesQuery } from "./interfaces/node.interface";
+
+@Injectable()
+export class NodesService {
+    private readonly logger = new Logger(NodesService.name);
+    constructor(
+        private readonly adminServiceClient: AdminServiceClient,
+    ) { }
+
+    async createNode(token: string, createNodeDto: CreateNodeDto[]): Promise<ResponseNodeDto> {
+        try {
+            return await this.adminServiceClient.createNode(token, createNodeDto);
+        } catch (error) {
+            const err = error as Error;
+            console.log('Error creating node:', err);
+            this.logger.error(`Error creating node: ${err.message}`);
+            throw error;
+        }
+    }
+
+    async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodeDto[]> {
+        try {
+            return await this.adminServiceClient.getAllNodes(token, query);
+        } catch (error) {
+            const err = error as Error;
+            this.logger.error(`Error retrieving nodes: ${err.message}`);
+            throw error;
+        }
+    }
+}
