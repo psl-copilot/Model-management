@@ -16,4 +16,22 @@ export class ConfigService {
       throw error;
     }
   }
+
+  async getPayloadByTransactionType(
+    transactionType: string,
+    token: string,
+  ): Promise<any> {
+    try {
+      return await this.adminServiceClient.getPayloadByTransactionType(
+        transactionType,
+        token,
+      );
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(
+        `Error fetching payload for transaction type ${transactionType}: ${err.message}`,
+      );
+      throw error;
+    }
+  }
 }
