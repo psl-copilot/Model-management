@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { randomUUID } from 'node:crypto';
-import { TransactionalMessage, ParseExtractResponse } from './dto/message.dto';
+import { TransactionalMessage, ParseExtractResponse, RuleRequest, NetworkMap, DataCache, MetaData } from './dto/message.dto';
 import { AdminServiceClient } from '../services/admin-service-client';
 import { formatValidationErrors } from '../utils/validation.utils';
 
@@ -80,7 +80,14 @@ export class ParseExtractService {
         };
       }
 
-      // Return successful response with validated payload
+      // we create the RuleRequest object here
+      const ruleRequest: RuleRequest = this.createRuleRequest(
+        payloadToValidate,
+        request,
+        correlationId,
+      );
+
+      // we then finally make and return the response
       const response: ParseExtractResponse = {
         success: true,
         message: `Successfully validated and processed ${request.TxTp} message`,
@@ -89,9 +96,12 @@ export class ParseExtractService {
         transactionType: request.TxTp,
         correlationId,
         validatedPayload: payloadToValidate,
+        ruleRequest, 
       };
 
       this.logger.log(`Message processing completed successfully for type: ${request.TxTp} [${correlationId}]`);
+      this.logger.log(`RuleRequest created with transaction type: ${ruleRequest.metaData?.transactionType}`);
+      
       return response;
 
     } catch (error) {
@@ -164,5 +174,43 @@ export class ParseExtractService {
     }
     
     return null;
+  }
+
+  /**
+   * Creates a RuleRequest object for fraud detection rules
+   * @param transaction The validated payload to be analyzed
+   * @param originalRequest The original request for metadata
+   * @param correlationId Correlation ID for tracking
+   * @returns RuleRequest object ready for rule processing
+   */
+  private createRuleRequest(
+    transaction: any,
+    originalRequest: TransactionalMessage,
+    correlationId: string,
+  ): RuleRequest {
+    // Create empty NetworkMap (to be populated later)
+    const networkMap: NetworkMap = {};
+
+    // Create empty DataCache (to be populated later) 
+    const dataCache: DataCache = {};
+
+    // Create metadata with context information
+    const metaData: MetaData = {
+      correlationId,
+      timestamp: new Date().toISOString(),
+      tenantId: originalRequest.TenantId,
+      transactionType: originalRequest.TxTp,
+    };
+
+    const ruleRequest: RuleRequest = {
+      transaction,
+      networkMap,
+      DataCache: dataCache,
+      metaData,
+    };
+
+    this.logger.log(`Created RuleRequest for ${originalRequest.TxTp} with correlation ID: ${correlationId}`);
+
+    return ruleRequest;
   }
 }

@@ -24,6 +24,31 @@ export interface ConfigEntity {
   payload?: any; // JSONB - This is what we need
 }
 
+export interface NetworkMap {
+  // Empty for now, will be populated later
+  [key: string]: any;
+}
+
+export interface DataCache {
+  // Empty for now, will be populated later
+  [key: string]: any;
+}
+
+export interface MetaData {
+  correlationId?: string;
+  timestamp?: string;
+  tenantId?: string;
+  transactionType?: string;
+  [key: string]: any;
+}
+
+export interface RuleRequest {
+  transaction: any; // The validated payload (will be strongly typed later)
+  networkMap: NetworkMap;
+  DataCache: DataCache;
+  metaData?: MetaData;
+}
+
 export interface ParseExtractResponse {
   success: boolean;
   message: string;
@@ -33,4 +58,5 @@ export interface ParseExtractResponse {
   validationErrors?: string[]; // Array of validation error messages
   validatedPayload?: any; // The validated payload when successful
   correlationId?: string; // For tracking
+  ruleRequest?: RuleRequest; // Add RuleRequest to the response
 }

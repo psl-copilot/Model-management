@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ParseExtractService } from '../parse-extract.service';
 import { AdminServiceClient } from '../../services/admin-service-client';
+import { RuleRequest } from '../dto/message.dto';
 
 describe('ParseExtractService - AJV Validation', () => {
   let service: ParseExtractService;
@@ -163,6 +164,69 @@ describe('ParseExtractService - AJV Validation', () => {
           },
         },
       });
+    });
+  });
+
+  describe('RuleRequest Creation', () => {
+    it('should create RuleRequest object on successful validation', async () => {
+      const validPayload = {
+        FIToFICstmrCdtTrf: {
+          GrpHdr: {
+            MsgId: 'MSG123',
+            CreDtTm: '2024-01-01T00:00:00Z',
+            NbOfTxs: '1',
+          },
+        },
+      };
+
+      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+
+      const result = await service.processTransactionalMessage(
+        { 
+          TxTp: 'pacs.008.001.10', 
+          FIToFICstmrCdtTrf: validPayload.FIToFICstmrCdtTrf 
+        },
+        'Bearer token',
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.ruleRequest).toBeDefined();
+      
+      const ruleRequest: RuleRequest = result.ruleRequest!;
+      
+      // Verify RuleRequest structure
+      expect(ruleRequest.transaction).toBeDefined();
+      expect(ruleRequest.transaction).toEqual(validPayload.FIToFICstmrCdtTrf);
+      expect(ruleRequest.networkMap).toEqual({});
+      expect(ruleRequest.DataCache).toEqual({});
+      expect(ruleRequest.metaData).toBeDefined();
+      
+      // Verify metadata
+      expect(ruleRequest.metaData?.correlationId).toBeDefined();
+      expect(ruleRequest.metaData?.timestamp).toBeDefined();
+      expect(ruleRequest.metaData?.tenantId).toBe('tenant-123');
+      expect(ruleRequest.metaData?.transactionType).toBe('pacs.008.001.10');
+    });
+
+    it('should not include RuleRequest on validation failure', async () => {
+      const invalidPayload = {
+        FIToFICstmrCdtTrf: {
+          GrpHdr: {
+            MsgId: 'MSG123',
+            // Missing required CreDtTm field
+          },
+        },
+      };
+
+      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+
+      const result = await service.processTransactionalMessage(
+        { TxTp: 'pacs.008.001.10', Payload: invalidPayload },
+        'Bearer token',
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.ruleRequest).toBeUndefined();
     });
   });
 });
