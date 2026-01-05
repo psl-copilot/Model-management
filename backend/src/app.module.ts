@@ -5,9 +5,10 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger-service/logger-service.module';
 import { RulesModule } from './rules/rules.module';
 import { ConfigModule } from './config/config.module';
+import { ParseExtractModule } from './parse-extract/parse-extract.module';
 
 @Module({
-  imports: [AuthModule, LoggerModule, RulesModule, ConfigModule],
+  imports: [AuthModule, LoggerModule, RulesModule, ConfigModule, ParseExtractModule],
   controllers: [AppController],
   providers: [AppService],
 })
