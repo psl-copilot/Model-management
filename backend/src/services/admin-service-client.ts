@@ -417,7 +417,7 @@ export class AdminServiceClient {
     }
   }
 
-  async getSchemaByTxTp(transactionType: string, token: string): Promise<any> {
+  async getConfigRowByTxTp(transactionType: string, token: string): Promise<any> {
     try {
       this.logger.log(`Fetching full config for transaction type: ${transactionType} in MMGMT`);
 
@@ -430,6 +430,8 @@ export class AdminServiceClient {
           Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
         },
       );
+
+      console.log("the response from get config row by tx tp is", response);
 
       if (!response) {
         this.logger.warn(`No config found for transaction type: ${transactionType}`);
@@ -444,4 +446,6 @@ export class AdminServiceClient {
       return this.handleError(error, 'getSchemaByTxTp');
     }
   }
+
+  
 }

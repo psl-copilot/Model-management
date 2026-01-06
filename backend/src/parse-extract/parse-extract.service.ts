@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { randomUUID } from 'node:crypto';
+import { processMappings } from '@tazama-lf/tcs-lib';
 import { TransactionalMessage, ParseExtractResponse, RuleRequest, NetworkMap, DataCache, MetaData } from './dto/message.dto';
 import { AdminServiceClient } from '../services/admin-service-client';
 import { formatValidationErrors } from '../utils/validation.utils';
@@ -27,12 +28,12 @@ export class ParseExtractService {
       this.logger.log(`Processing transactional message for ${request.TxTp} [${correlationId}]`);
       
       // Fetch schema from database via Admin Service
-      const schema = await this.adminServiceClient.getSchemaByTxTp(
+      const adminServiceResponse = await this.adminServiceClient.getConfigRowByTxTp(
         request.TxTp,
         token,
       );
-      
-      if (!schema || !schema.config) {
+
+      if (!adminServiceResponse.config || !adminServiceResponse.config.schema) {
         const errorMsg = `No schema configuration found for transaction type: ${request.TxTp}`;
         this.logger.warn(errorMsg);
         
@@ -48,7 +49,7 @@ export class ParseExtractService {
       this.logger.log(`Found schema configuration for: ${request.TxTp}`);
 
       // Extract payload to validate - exclude TxTp and TenantId from request
-      const payloadToValidate = this.extractPayloadFromRequest(request);
+      const {TxTp, TenantId, payloadToValidate} = this.extractPayloadFromRequest(request);
       
       if (!payloadToValidate) {
         return {
@@ -60,10 +61,10 @@ export class ParseExtractService {
         };
       }
 
-      // Validate payload against schema
+      // Validate payload against schema thru AJV
       const validationResult = await this.validatePayload(
         payloadToValidate,
-        schema.config,
+        adminServiceResponse.config.schema,
         request.TxTp,
         correlationId,
       );
@@ -76,23 +77,44 @@ export class ParseExtractService {
           transactionType: request.TxTp,
           correlationId,
           validationErrors: validationResult.differences,
-          configPayload: schema,
+          configPayload: adminServiceResponse,
         };
       }
+
+      // after validation now, I will fetch mappings from config Table
+      // and create the DataCache object based on that
+      // we will utilize the TCS-LIB process mappings over here
+      
+      // Process mappings to extract dataCache and transaction relationship
+      payloadToValidate.TxTp = TxTp;
+      payloadToValidate.TenantId = TenantId;
+      const mappingResult = processMappings(
+        payloadToValidate,
+        adminServiceResponse.config.mapping || [],
+        request.TxTp,
+      );
+
+      // Fetch active network map for the tenant
+      const activeNetworkMap = await this.adminServiceClient.getActiveNetworkMap(token);
+      
+      const networkMap: NetworkMap = activeNetworkMap || {};
+
+      this.logger.log(`Processed mappings for ${request.TxTp}: extracted ${Object.keys(mappingResult.dataCache).length} data cache entries`);
 
       // we create the RuleRequest object here
       const ruleRequest: RuleRequest = this.createRuleRequest(
         payloadToValidate,
         request,
         correlationId,
-      );
+        mappingResult.dataCache,
+        networkMap,
+      );      
 
-      // we then finally make and return the response
       const response: ParseExtractResponse = {
         success: true,
         message: `Successfully validated and processed ${request.TxTp} message`,
         processedAt: new Date().toISOString(),
-        configPayload: schema,
+        configPayload: adminServiceResponse,
         transactionType: request.TxTp,
         correlationId,
         validatedPayload: payloadToValidate,
@@ -100,7 +122,7 @@ export class ParseExtractService {
       };
 
       this.logger.log(`Message processing completed successfully for type: ${request.TxTp} [${correlationId}]`);
-      this.logger.log(`RuleRequest created with transaction type: ${ruleRequest.metaData?.transactionType}`);
+   
       
       return response;
 
@@ -170,7 +192,7 @@ export class ParseExtractService {
     
     // If there's meaningful data after excluding metadata fields, return it
     if (Object.keys(payloadData).length > 0) {
-      return payloadData;
+      return {TxTp, TenantId, payloadToValidate: payloadData};
     }
     
     return null;
@@ -181,18 +203,22 @@ export class ParseExtractService {
    * @param transaction The validated payload to be analyzed
    * @param originalRequest The original request for metadata
    * @param correlationId Correlation ID for tracking
+   * @param extractedDataCache The data cache extracted from mapping processing
+   * @param extractedNetworkMap The network map fetched for the tenant
    * @returns RuleRequest object ready for rule processing
    */
   private createRuleRequest(
     transaction: any,
     originalRequest: TransactionalMessage,
     correlationId: string,
+    extractedDataCache?: DataCache,
+    extractedNetworkMap?: NetworkMap,
   ): RuleRequest {
-    // Create empty NetworkMap (to be populated later)
-    const networkMap: NetworkMap = {};
+    // Use extracted networkMap or create empty one
+    const networkMap: NetworkMap = extractedNetworkMap || {};
 
-    // Create empty DataCache (to be populated later) 
-    const dataCache: DataCache = {};
+    // Use extracted dataCache from mappings or create empty one
+    const dataCache: DataCache = extractedDataCache || {};
 
     // Create metadata with context information
     const metaData: MetaData = {
@@ -210,6 +236,8 @@ export class ParseExtractService {
     };
 
     this.logger.log(`Created RuleRequest for ${originalRequest.TxTp} with correlation ID: ${correlationId}`);
+    this.logger.log(`RuleRequest DataCache entries: ${Object.keys(dataCache).length}`);
+    this.logger.log(`RuleRequest NetworkMap populated: ${Object.keys(networkMap).length > 0}`);
 
     return ruleRequest;
   }
