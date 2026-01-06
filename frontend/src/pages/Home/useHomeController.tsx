@@ -7,7 +7,7 @@ import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
-import { claims, getStatusOptionsForRole, rule_types, rules } from "../../utils/Constants/data";
+import { claims, getStatusOptionsForRole, rule_types } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
 
 const useHomeController = () => {
@@ -106,7 +106,7 @@ const useHomeController = () => {
     return {
         values: {
             columns,
-            data: rules,
+            data,
             isLoading,
             pagination,
             searchTerm,
