@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DropdownOption } from "../../components/DropDown";
 import type { TableColumn } from "../../components/Table";
@@ -54,12 +54,6 @@ const useHomeController = () => {
         fetchRules();
     }, [getRules, offset, limit, searchTerm, status, ruleType]);
 
-    // useEffect(() => {
-    //     if (user.claims) {
-    //         setStatus(getStatusOptionsForRole(user.claims))
-    //     }
-    // }, [user])
-
     useEffect(() => {
         setOffset(0);
     }, [status, ruleType, setOffset]);
@@ -80,6 +74,10 @@ const useHomeController = () => {
     const onView = (data: Record<string, string>) => {
         open('View Rule', <ViewRule data={data} />)
     }
+
+    const getAll = useCallback(() => {
+        return getStatusOptionsForRole(user.claims).map((item) => item.value).join(',')
+    }, [user.claims])
 
     const columns: TableColumn[] = [
         { label: "Rule Name", key: "rule_name" },
@@ -109,7 +107,7 @@ const useHomeController = () => {
             status,
             ruleType,
             user,
-            status_options: [{ label: 'All', value: null }, ...getStatusOptionsForRole(user.claims)],
+            status_options: [{ label: 'All', value: getAll() }, ...getStatusOptionsForRole(user.claims)],
             rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
