@@ -8,8 +8,6 @@ import {
 } from '@nestjs/common';
 import { Rules } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
-import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
-import { GetNodesQuery } from './nodes/interfaces/node.interface';
 
 @Injectable()
 export class AdminServiceClient {
@@ -392,67 +390,62 @@ export class AdminServiceClient {
     }
   }
 
-  // Nodes API
-  /**
-   * 
-   * @param token
-   * @param createNodeDto list of nodes
-   * @returns return a list of created nodes
-   */
-  async createNode(token: string, createNodeDto: CreateNodeDto[]): Promise<ResponseNodeDto> {
+  async getConfigPayloadByTxTp(transactionType: string, token: string): Promise<any> {
     try {
-      return await this.forwardRequest(
-        'POST',
-        '/v1/admin/nodes/create',
-        createNodeDto,
+      this.logger.log(`Fetching config payload for transaction type: ${transactionType}`);
+
+      const response = await this.forwardRequest(
+        'GET',
+        `/v1/admin/config/payload/${encodeURIComponent(transactionType)}`,
+        undefined,
         {
           Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
         },
-      ) as ResponseNodeDto;
-    } catch (error) {
-      return this.handleError(error, 'createNode');
-    }
-  }
-
-  /**
-   * 
-   * @param token
-   * @param query query parameters for filtering nodes (tenantId, type, category)
-   * @returns return a list of nodes
-   */
-  async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodeDto[]> {
-    try {
-      const queryParams = new URLSearchParams();
-      if (query.tenantId) {
-        queryParams.append('tenantId', query.tenantId);
-      }
-      if (query.type) {
-        queryParams.append('type', query.type);
-      }
-      if (query.category) {
-        queryParams.append('category', query.category);
-      }
-      const path = `/v1/admin/nodes?${queryParams.toString()}`;
-      const response = await firstValueFrom(
-        this.httpService.get(
-          `${this.adminServiceUrl}${path}`,
-          {
-            headers: {
-              Authorization: token.startsWith('Bearer ')
-                ? token
-                : `Bearer ${token}`,
-            },
-          },
-        ),
       );
 
-      if (!response.data?.nodes) {
-        this.logger.warn('No nodes found in admin-service response');
-        return [];
+      if (!response) {
+        this.logger.warn(`No config payload found for transaction type: ${transactionType}`);
+        return null;
       }
-      return response.data.nodes;
+
+      this.logger.log(`Successfully retrieved config payload for: ${transactionType}`);
+      return response;
     } catch (error) {
-      return this.handleError(error, 'getAllNodes');
+      const err = error as Error;
+      this.logger.error(`Error fetching config payload for ${transactionType}: ${err.message}`);
+      return this.handleError(error, 'getConfigPayloadByTxTp');
     }
   }
+
+  async getConfigRowByTxTp(transactionType: string, token: string): Promise<any> {
+    try {
+      this.logger.log(`Fetching full config for transaction type: ${transactionType} in MMGMT`);
+
+        // go here and find out whats wrong
+      const response = await this.forwardRequest(
+        'GET',
+        `/v1/admin/config/${encodeURIComponent(transactionType)}`,
+        undefined,
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      );
+
+      console.log("the response from get config row by tx tp is", response);
+
+      if (!response) {
+        this.logger.warn(`No config found for transaction type: ${transactionType}`);
+        return null;
+      }
+
+      this.logger.log(`Successfully retrieved full config for: ${transactionType}`);
+      return response;
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching schema from DB for ${transactionType}: ${err.message}`);
+      return this.handleError(error, 'getSchemaByTxTp');
+    }
+  }
+
+  
 }
