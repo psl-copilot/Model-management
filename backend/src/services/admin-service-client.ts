@@ -8,6 +8,8 @@ import {
 } from '@nestjs/common';
 import { Rules } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
+import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
+import { GetNodesQuery } from './nodes/interfaces/node.interface';
 
 @Injectable()
 export class AdminServiceClient {
@@ -447,5 +449,68 @@ export class AdminServiceClient {
     }
   }
 
-  
+   // Nodes API
+  /**
+   * 
+   * @param token
+   * @param createNodeDto list of nodes
+   * @returns return a list of created nodes
+   */
+  async createNode(token: string, createNodeDto: CreateNodeDto[]): Promise<ResponseNodeDto> {
+    try {
+      return await this.forwardRequest(
+        'POST',
+        '/v1/admin/nodes/create',
+        createNodeDto,
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      ) as ResponseNodeDto;
+    } catch (error) {
+      return this.handleError(error, 'createNode');
+    }
+  }
+
+  /**
+   * 
+   * @param token
+   * @param query query parameters for filtering nodes (tenantId, type, category)
+   * @returns return a list of nodes
+   */
+  async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodeDto[]> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (query.tenantId) {
+        queryParams.append('tenantId', query.tenantId);
+      }
+      if (query.type) {
+        queryParams.append('type', query.type);
+      }
+      if (query.category) {
+        queryParams.append('category', query.category);
+      }
+      const path = `/v1/admin/nodes?${queryParams.toString()}`;
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}${path}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.nodes) {
+        this.logger.warn('No nodes found in admin-service response');
+        return [];
+      }
+      return response.data.nodes;
+    } catch (error) {
+      return this.handleError(error, 'getAllNodes');
+    }
+  }
 }
+  
