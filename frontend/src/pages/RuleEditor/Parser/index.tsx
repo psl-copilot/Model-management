@@ -6,6 +6,8 @@ import FormattedJsonSection from "../../../components/JsonFormatter";
 import { Text } from "../../../components/Text";
 import Section from "../../../components/Wrappers/Section";
 import useParserController from "./useParserController";
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import SimulationResultCard from "../../../components/Cards/SimulationResult";
 
 const Parser = (props: Record<string, unknown> | undefined) => {
 
@@ -24,6 +26,17 @@ const Parser = (props: Record<string, unknown> | undefined) => {
             </Grid>
 
             <Section header={'Payload Schema Definition'} subHeader={'Define the transaction payload structure to extract variables for rule building'}>
+                <Grid size={12} display={'flex'} justifyContent={'flex-end'} width={'100%'}>
+                    <Button
+                        height="30px"
+                        width="170px"
+                        type="secondary"
+                        size="md"
+                        text="Fetch Json"
+                        Icon={FileUploadIcon}
+                        onClick={functions.handleSimulation}
+                    />
+                </Grid>
                 <Grid container size={12} spacing={2} alignItems={'flex-start'}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller
@@ -56,6 +69,9 @@ const Parser = (props: Record<string, unknown> | undefined) => {
                         onClick={functions.handleSimulation}
                     />
                     : null}
+                {/* <Grid size={12} width={'100%'}>
+                    <SimulationResultCard simulationResult={values?.simulationResultPassed} />
+                </Grid> */}
             </Section >
         </Grid >
     )

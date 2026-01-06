@@ -13,6 +13,7 @@ type ButtonProps = {
   loading?: boolean;
   size?: "sm" | "md" | "lg" | "";
   height?: string
+  width?: string
 };
 
 const MuiButton = ({
@@ -23,8 +24,9 @@ const MuiButton = ({
   type = "primary",
   outlined = false,
   loading = false,
-  size = "",
-  height = '50px'
+  size = "md",
+  height = '50px',
+  width,
 }: ButtonProps) => {
   const colors = {
     primary: {
@@ -80,7 +82,7 @@ const MuiButton = ({
       sx={{
         height,
         borderRadius: "6px",
-        width: widths[size] || "auto",
+        width: width ?? widths[size],
         textTransform: "none",
         fontSize: "1rem",
         ...(outlined

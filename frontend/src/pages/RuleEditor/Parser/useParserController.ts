@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 const transactions = [
@@ -6,11 +5,29 @@ const transactions = [
 ]
 
 
+const simulationResultPassed = {
+    status: "PASSED",
+    summary: {
+        passedStages: 5,
+        totalStages: 5,
+        failedStages: 0,
+        mappingsApplied: 12,
+    },
+    stages: [
+        { name: "Schema Validation", status: "PASSED" },
+        { name: "Required Fields Check", status: "PASSED" },
+        { name: "Type Validation", status: "PASSED" },
+        { name: "Transformation Rules", status: "PASSED" },
+        { name: "Output Mapping", status: "PASSED" },
+    ],
+};
+
+
+
 const useParserController = (props: Record<string, unknown> | undefined) => {
 
     const data = props?.data as Record<string, unknown> | undefined
-
-
+    
     const initial = {
         payload: (data?.payload as string) || "",
     }
@@ -31,6 +48,7 @@ const useParserController = (props: Record<string, unknown> | undefined) => {
             errors,
             transactions,
             json,
+            simulationResultPassed
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

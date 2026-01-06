@@ -7,7 +7,7 @@ import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
-import { getStatusOptionsForRole, rule_types } from "../../utils/Constants/data";
+import { claims, getStatusOptionsForRole, rule_types, rules } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
 
 const useHomeController = () => {
@@ -17,6 +17,8 @@ const useHomeController = () => {
 
     const { open } = useModal()
     const user = extractData('user')
+
+    const isEditor = user.claims === claims.editor
 
     const {
         offset,
@@ -92,6 +94,10 @@ const useHomeController = () => {
             render: (row: unknown) => (
                 <TableActions
                     onView={() => onView(row as Record<string, string>)}
+                    {...(isEditor && {
+                        onEdit: () => onView(row as Record<string, string>),
+                        onClone: () => onView(row as Record<string, string>)
+                    })}
                 />
             )
         }
@@ -100,7 +106,7 @@ const useHomeController = () => {
     return {
         values: {
             columns,
-            data,
+            data: rules,
             isLoading,
             pagination,
             searchTerm,
