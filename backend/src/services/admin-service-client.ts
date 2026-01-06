@@ -403,7 +403,7 @@ export class AdminServiceClient {
     try {
       return await this.forwardRequest(
         'POST',
-        '/v1/admin/nodes',
+        '/v1/admin/nodes/create',
         createNodeDto,
         {
           Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
