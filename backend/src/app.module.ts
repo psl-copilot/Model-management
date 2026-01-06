@@ -5,9 +5,10 @@ import { AuthModule } from './services/auth/auth.module';
 import { LoggerModule } from './logger-service/logger-service.module';
 import { RulesModule } from './services/rules/rules.module';
 import { ConfigModule } from './services/config/config.module';
+import { NodesModule } from './services/nodes/nodes.module';
 
 @Module({
-  imports: [AuthModule, LoggerModule, RulesModule, ConfigModule],
+  imports: [AuthModule, LoggerModule, RulesModule, ConfigModule, NodesModule],
   controllers: [AppController],
   providers: [AppService],
 })
