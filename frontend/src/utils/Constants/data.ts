@@ -31,10 +31,37 @@ export const Status = {
     REVIEW: 'STATUS_03_UNDER_REVIEW',
     APPROVED: 'STATUS_04_APPROVED',
     REJECTED: 'STATUS_05_REJECTED',
-    EXPORTED: 'STATUS_06_EXPORTED',
     READY: 'STATUS_07_READY_FOR_DEPLOYMENT',
     DEPLOYED: 'STATUS_08_DEPLOYED',
 }
+
+
+export const claims = {
+    editor: 'editor',
+    approver: 'approver',
+    publisher: 'publisher'
+}
+
+export const RoleStatusMap: Record<string, string[]> = {
+    editor: Object.values(Status),
+    approver: [
+        Status.REVIEW,
+        Status.APPROVED,
+        Status.REJECTED,
+    ],
+    deployer: [
+        Status.READY,
+        Status.DEPLOYED,
+    ],
+};
+
+export const getStatusOptionsForRole = (role: string) => {
+    const allowedStatuses = RoleStatusMap[role] ?? [];
+    return [
+        ...allowedStatuses.map((value) => ({ label: value, value })),
+    ];
+};
+
 
 export const rule_types = {
     Fraud: 'Fraud',

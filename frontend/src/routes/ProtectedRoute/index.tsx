@@ -7,7 +7,7 @@ const ProtectedRoute = () => {
         return !!extractData("access_token")
     }
 
-    return isAuthenticated() ? <Navigate to="/dashboard" /> : <Outlet />
+    return isAuthenticated() ? <Navigate to="/home" /> : <Outlet />
 
 };
 

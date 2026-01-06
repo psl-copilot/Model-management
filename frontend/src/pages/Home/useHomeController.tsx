@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DropdownOption } from "../../components/DropDown";
+import type { TableColumn } from "../../components/Table";
+import TableActions from "../../components/TableActions";
+import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
-import { rule_types, Status } from "../../utils/Constants/data";
-import { useModal } from "../../contexts/ModalContext";
-import TableActions from "../../components/TableActions";
+import { extractData } from "../../utils/Common/storage";
+import { getStatusOptionsForRole, rule_types } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
-import type { TableColumn } from "../../components/Table";
 
 const useHomeController = () => {
     const navigate = useNavigate();
-    const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
     const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
+    const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
 
     const { open } = useModal()
+    const user = extractData('user')
 
     const {
         offset,
@@ -52,10 +54,15 @@ const useHomeController = () => {
         fetchRules();
     }, [getRules, offset, limit, searchTerm, status, ruleType]);
 
+    // useEffect(() => {
+    //     if (user.claims) {
+    //         setStatus(getStatusOptionsForRole(user.claims))
+    //     }
+    // }, [user])
+
     useEffect(() => {
         setOffset(0);
     }, [status, ruleType, setOffset]);
-
 
     const pagination = useMemo(() => {
         return {
@@ -101,7 +108,8 @@ const useHomeController = () => {
             searchTerm,
             status,
             ruleType,
-            status_options: [{ label: 'All', value: null }, ...Object.entries(Status).map(([_, value]) => { return { label: value, value } })],
+            user,
+            status_options: [{ label: 'All', value: null }, ...getStatusOptionsForRole(user.claims)],
             rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {

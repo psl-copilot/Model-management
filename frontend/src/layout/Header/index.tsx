@@ -49,14 +49,18 @@ const Header = ({ expanded, setExpanded }: { expanded: boolean; setExpanded: (v:
                     </Text>
                 </Box>
 
-                <Stack direction="row" spacing={1}>
-                    <Text color="text.black" weight={600} size="body">
-                        {user.username}
-                    </Text>
-                    <Text color="static.ternary" size="body">
-                        - {capitalize(user.claims)}
-                    </Text>
-                </Stack>
+                {
+                    user.claims && user.username ?
+
+                        <Stack direction="row" spacing={1}>
+                            <Text color="text.black" weight={600} size="body">
+                                {user.username}
+                            </Text>
+                            <Text color="static.ternary" size="body">
+                                - {capitalize(user.claims)}
+                            </Text>
+                        </Stack>
+                        : null}
             </Box>
         </Box>
     );

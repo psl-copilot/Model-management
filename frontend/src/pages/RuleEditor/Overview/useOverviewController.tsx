@@ -6,6 +6,7 @@ import RuleConfig from "../Modals/RuleConfig";
 import { rule_types } from "../../../utils/Constants/data";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
 import { useCreateRuleMutation } from "../../../redux/Api/Rules";
+import { extractData } from "../../../utils/Common/storage";
 
 interface RuleFormValues {
     rule_name: string;
@@ -24,9 +25,10 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
     const [submit, { isLoading: createLoading }] = useCreateRuleMutation()
 
     const { open } = useModal()
+    const user = extractData('user')
 
     const initial = {
-        rule_name: (data?.rule_name as string) || "",
+        rule_name: '',
         description: (data?.description as string) || "",
         txtp: (data?.txtp as DropdownOption) || null,
         version: (data?.version as string) || "",
@@ -48,8 +50,10 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
         submit(payload)
     }
 
-    const handleRuleValue = (value: DropdownOption) => {
-        setValue('rule_config', value)
+    const handleRuleValue = (val: DropdownOption) => {
+        setValue('rule_config', val)
+        const rule_no = val?.value?.toString().split('@')
+        setValue('rule_name', `${user.tenantId}-${rule_no?.[0]}`)
     }
 
     const handleRuleConfig = () => {

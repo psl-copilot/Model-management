@@ -37,7 +37,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                     render={({ field, fieldState: { error } }) => (
                         <Input
                             required
-                            // disabled
+                            disabled
                             label="Rule Name"
                             {...field}
                             error={values.errors.rule_name?.message}

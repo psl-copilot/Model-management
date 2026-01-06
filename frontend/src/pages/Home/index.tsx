@@ -10,6 +10,7 @@ import Table from "../../components/Table";
 import { Text } from "../../components/Text";
 import BoxWrapper from "../../components/Wrappers/BoxWrapper";
 import useHomeController from "./useHomeController";
+import { claims } from "../../utils/Constants/data";
 
 const Home = () => {
     const { values, functions } = useHomeController();
@@ -28,14 +29,17 @@ const Home = () => {
                         Rules Home
                     </Text>
                 </Box>
-                <Button
-                    Icon={AddIcon}
-                    height="40px"
-                    type="secondary"
-                    size="md"
-                    text="Create New Rule"
-                    onClick={functions.handleCreateNew}
-                />
+                {
+                    values?.user?.claims === claims.editor ?
+                        <Button
+                            Icon={AddIcon}
+                            height="40px"
+                            type="secondary"
+                            size="md"
+                            text="Create New Rule"
+                            onClick={functions.handleCreateNew}
+                        />
+                        : null}
             </Grid>
 
             <Grid
