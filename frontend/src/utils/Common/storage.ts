@@ -17,9 +17,6 @@ const insertData = (
     switch (type) {
         case CookieStorage:
             Cookies.set(key, value, {
-                sameSite: 'strict',
-                secure: true,
-                httpOnly: true,
                 ...cookieOptions,
             });
             break;
