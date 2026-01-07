@@ -8,28 +8,12 @@ interface NestedCanvasData {
 }
 
 /**
- * Converts text with variable references to template literal syntax
- * Example: "User ID is {{ RuleRequest.userId }}" -> `User ID is ${RuleRequest.userId}`
- * Example: "The value is {{ x }}" -> `The value is ${x}`
+ * Strips {{ }} wrapping from variable indicators (UI-only syntax)
+ * Example: "{{ x }}" -> "x", "The value is {{ x }}" -> "The value is x"
  */
-const convertToTemplateLiteral = (text: string): string => {
-  // Pattern to match {{ variableName }} or {{ RuleRequest.property }}
-  const varPattern = /\{\{\s*(.+?)\s*\}\}/g;
-  
-  // Check if text contains any variables
-  if (!varPattern.test(text)) {
-    // No variables, return as string literal
-    return `'${text.replace(/'/g, "\\'")}'`;
-  }
-  
-  // Reset regex
-  varPattern.lastIndex = 0;
-  
-  // Replace {{ varName }} with ${varName}
-  const templateContent = text.replace(varPattern, '${$1}');
-  
-  // Return as template literal
-  return '`' + templateContent.replace(/`/g, '\\`') + '`';
+const stripVariableIndicators = (text: string): string => {
+  if (!text || typeof text !== 'string') return text;
+  return text.replace(/\{\{\s*(.+?)\s*\}\}/g, '$1');
 };
 
 /**
@@ -48,20 +32,20 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
       
     case 'SetVariable': {
       const varName = params.name || params.variableName || 'variable';
-      const varValue = params.value || params.variableValue || '""';
+      let varValue = params.value || params.variableValue || '""';
+      
+      // Strip {{ }} variable indicators from value
+      varValue = stripVariableIndicators(varValue);
       
       // Check if value is a number
       const isNumber = !isNaN(Number(varValue)) && varValue.trim() !== '';
       
-      // Check if value contains variables in {{ }} syntax
-      const hasVariables = /\{\{\s*.+?\s*\}\}/.test(varValue);
-      
       let valueStr: string;
       if (isNumber) {
         valueStr = varValue;
-      } else if (hasVariables) {
-        // Convert to template literal if it contains variables
-        valueStr = convertToTemplateLiteral(varValue);
+      } else if (varValue.includes('$')) {
+        // Contains variable references like RuleRequest.userId
+        valueStr = `\`${varValue.replace(/`/g, '\\`')}\``;
       } else {
         // Regular string
         valueStr = varValue.startsWith('"') ? varValue : `"${varValue}"`;
@@ -71,9 +55,48 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
     }
     
     case 'Log': {
-      const message = params.text || params.message || '';
-      // Convert to template literal if it contains variables
-      const messageStr = convertToTemplateLiteral(message);
+      let message = params.text || params.message || '';
+      
+      // Debug logging to trace corruption
+      console.log('[CodeGenerator Log] Original message:', JSON.stringify(message));
+      
+      // Check if it contains {{ }} variables
+      const hasVariables = /\{\{\s*.+?\s*\}\}/.test(message);
+      
+      // Remove any surrounding quotes if they exist (from UI input)
+      message = message.replace(/^['"]|['"]$/g, '').trim();
+      
+      console.log('[CodeGenerator Log] After trim:', JSON.stringify(message));
+      console.log('[CodeGenerator Log] Has variables:', hasVariables);
+      
+      // Determine the format based on content
+      let messageStr: string;
+      
+      if (!message) {
+        // Empty message
+        messageStr = "''";
+      } else if (hasVariables) {
+        // Check if it's ONLY a single variable (nothing before or after the {{ }})
+        // Use more precise regex: start of string, optional whitespace, {{, content, }}, optional whitespace, end of string
+        const onlyVariableMatch = message.match(/^\s*\{\{\s*([^}]+)\s*\}\}\s*$/);
+        console.log('[CodeGenerator Log] Only variable match:', onlyVariableMatch);
+        
+        if (onlyVariableMatch) {
+          // Single variable only, pass directly without quotes or template literal
+          messageStr = onlyVariableMatch[1].trim();
+          console.log('[CodeGenerator Log] Single variable mode:', messageStr);
+        } else {
+          // Variable(s) mixed with text, use template literal
+          const interpolatedMessage = message.replace(/\{\{\s*(.+?)\s*\}\}/g, '${$1}');
+          messageStr = `\`${interpolatedMessage.replace(/`/g, '\\`')}\``;
+          console.log('[CodeGenerator Log] Template literal mode:', messageStr);
+        }
+      } else {
+        // Plain text only (no variables)
+        messageStr = `'${message.replace(/'/g, "\\'")}'`;
+        console.log('[CodeGenerator Log] Plain text mode:', messageStr);
+      }
+      
       return `${indent}loggerService.log(${messageStr}, context, msgId);`;
     }
     
@@ -90,11 +113,14 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
         
         let code = '';
         conditions.forEach((cond: { type: string; condition?: string }) => {
+          // Extract and strip {{ }} from condition
+          const conditionText = cond.condition || 'true';
+          const cleanCondition = stripVariableIndicators(conditionText);
+          
           if (cond.type === 'if') {
-            // Keep variable paths as-is in generated code
-            code += `${indent}if (${cond.condition || 'true'}) {\n${indent}  // Add logic here\n${indent}}`;
+            code += `${indent}if (${cleanCondition}) {\n${indent}  // Add logic here\n${indent}}`;
           } else if (cond.type === 'elseif') {
-            code += ` else if (${cond.condition || 'true'}) {\n${indent}  // Add logic here\n${indent}}`;
+            code += ` else if (${cleanCondition}) {\n${indent}  // Add logic here\n${indent}}`;
           } else if (cond.type === 'else') {
             code += ` else {\n${indent}  // Default logic\n${indent}}`;
           }
@@ -155,15 +181,42 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
     }
     
     case 'Code': {
-      const code = params.code || '// Custom code';
-      // Keep variable paths as-is in generated code
+      let code = params.code || '// Custom code';
+      // Strip {{ }} variable indicators from code
+      code = stripVariableIndicators(code);
       return `${indent}${code}`;
     }
     
     case 'ThrowError': {
-      const message = params.text || params.message || 'Error occurred';
-      // Convert to template literal if it contains variables
-      const messageStr = convertToTemplateLiteral(message);
+      let message = params.text || params.message || 'Error occurred';
+      
+      // Check if it contains {{ }} variables
+      const hasVariables = /\{\{\s*.+?\s*\}\}/.test(message);
+      
+      // Remove any surrounding quotes if they exist (from UI input)
+      message = message.replace(/^['"]|['"]$/g, '').trim();
+      
+      // Determine the format based on content
+      let messageStr: string;
+      
+      if (!message) {
+        messageStr = "'Error occurred'";
+      } else if (hasVariables) {
+        // Check if it's ONLY a single variable (nothing before or after the {{ }})
+        const onlyVariableMatch = message.match(/^\s*\{\{\s*([^}]+)\s*\}\}\s*$/);
+        if (onlyVariableMatch) {
+          // Single variable only, pass directly
+          messageStr = onlyVariableMatch[1].trim();
+        } else {
+          // Variable(s) mixed with text, use template literal
+          const interpolatedMessage = message.replace(/\{\{\s*(.+?)\s*\}\}/g, '${$1}');
+          messageStr = `\`${interpolatedMessage.replace(/`/g, '\\`')}\``;
+        }
+      } else {
+        // Plain text only
+        messageStr = `'${message.replace(/'/g, "\\'")}'`;
+      }
+      
       return `${indent}throw new Error(${messageStr});`;
     }
     
@@ -222,11 +275,13 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
             .join('\n');
           
           if (cond.type === 'if') {
-            ifCode += `${indent}if (${cond.condition || 'true'}) {\n`;
+            const cleanCondition = stripVariableIndicators(cond.condition || 'true');
+            ifCode += `${indent}if (${cleanCondition}) {\n`;
             ifCode += branchCode || `${indent}  // Empty if branch\n`;
             ifCode += `${indent}}`;
           } else if (cond.type === 'elseif') {
-            ifCode += ` else if (${cond.condition || 'true'}) {\n`;
+            const cleanCondition = stripVariableIndicators(cond.condition || 'true');
+            ifCode += ` else if (${cleanCondition}) {\n`;
             ifCode += branchCode || `${indent}  // Empty else if branch\n`;
             ifCode += `${indent}}`;
           } else if (cond.type === 'else') {

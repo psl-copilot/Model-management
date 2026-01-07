@@ -192,8 +192,11 @@ export const simulateNodeExecution = (
               if (cond.type === 'if') {
                 conditionText = cond.condition || 'true';
                 
+                // Strip {{ }} indicators first
+                let evalExpression = conditionText.replace(/\{\{\s*/g, '').replace(/\s*\}\}/g, '');
+                
                 // First resolve global variables
-                let evalExpression = replaceGlobalVariables(conditionText);
+                evalExpression = replaceGlobalVariables(evalExpression);
                 
                 // Then replace local variable names with their values for evaluation
                 Object.keys(currentVariables).forEach((key) => {
@@ -216,8 +219,11 @@ export const simulateNodeExecution = (
               } else if (cond.type === 'elseif') {
                 const elseIfCondition = cond.condition || 'true';
                 
+                // Strip {{ }} indicators first
+                let evalExpression = elseIfCondition.replace(/\{\{\s*/g, '').replace(/\s*\}\}/g, '');
+                
                 // First resolve global variables
-                let evalExpression = replaceGlobalVariables(elseIfCondition);
+                evalExpression = replaceGlobalVariables(evalExpression);
                 
                 // Then replace local variable names with their values for evaluation
                 Object.keys(currentVariables).forEach((key) => {

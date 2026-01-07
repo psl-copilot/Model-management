@@ -5,22 +5,23 @@ import {
   Background,
   Controls,
   MiniMap,
-  addEdge,
   useNodesState,
   useEdgesState,
+  addEdge,
   Panel,
   type ReactFlowInstance,
+  type Connection,
 } from '@xyflow/react';
-import type { Node, Edge, Connection } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Box, Paper, Typography, IconButton, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import EditableNode, { type EditableNodeData } from '../EditableNode';
+import EditableNode from '../EditableNode';
 import LeftSidebar from '../LeftSidebar';
 import RightSidebar from '../RightSidebar';
-import { getNodeTemplate, type BaseNodeTemplate, type NodeInput } from '../../../utils/Templates/customFuncTemplate';
-import { getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
+import { getNodeTemplate } from '../../../utils/Templates/customFuncTemplate';
 import { generateNestedNodeId } from '../../../utils/Flow/FlowDefaults';
+import { getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
 
 const nodeTypes = {
   editableNode: EditableNode,
@@ -45,19 +46,6 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   onSave,
   viewOnly = false,
 }) => {
-  // Remove tab state - no longer needed
-  
-  // Helper function to get default params from template
-  const getDefaultParams = (template: BaseNodeTemplate | null | undefined) => {
-    const params: Record<string, string> = {};
-    if (template?.inputs) {
-      template.inputs.forEach((input: NodeInput) => {
-        params[input.key] = input.defaultValue || '';
-      });
-    }
-    return params;
-  };
-
   // Generate initial nodes and edges once using lazy initialization
   const [initialNodesEdges] = useState(() => {
     // Use provided nodes/edges if available, otherwise create defaults
@@ -71,6 +59,17 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
     const startTemplate = getNodeTemplate('Start');
     const endTemplate = getNodeTemplate('End');
 
+    // Helper to get default params
+    const getDefaultParams = (template: ReturnType<typeof getNodeTemplate>) => {
+      const params: Record<string, string> = {};
+      if (template?.inputs) {
+        template.inputs.forEach((input) => {
+          params[input.key] = input.defaultValue || '';
+        });
+      }
+      return params;
+    };
+
     const nodes: Node[] = [
       {
         id: startNodeId,
@@ -80,7 +79,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
           label: startTemplate?.displayName || 'Start',
           nodeType: 'Start',
           params: getDefaultParams(startTemplate),
-        } as EditableNodeData,
+        },
       },
       {
         id: endNodeId,
@@ -90,14 +89,11 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
           label: endTemplate?.displayName || 'End',
           nodeType: 'End',
           params: getDefaultParams(endTemplate),
-        } as EditableNodeData,
+        },
       },
     ];
 
-    // No initial edges - nodes are NOT connected
-    const edges: Edge[] = [];
-
-    return { nodes, edges };
+    return { nodes, edges: [] };
   });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodesEdges.nodes);
@@ -108,53 +104,155 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
 
   // Auto-save: whenever nodes or edges change, save to parent
   useEffect(() => {
-    // Skip initial render to avoid overwriting with default values
     if (nodes.length > 0) {
       onSave(nodes, edges);
     }
   }, [nodes, edges, onSave]);
 
-  // Connection handler
+  // Node operations (inline implementation)
+  const updateNode = useCallback(
+    (nodeId: string, updates: Record<string, unknown>) => {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...node.data, ...updates } }
+            : node
+        )
+      );
+    },
+    [setNodes]
+  );
+
+  const deleteSelectedNodes = useCallback(() => {
+    const selectedNodes = nodes.filter((n) => n.selected);
+
+    // Filter out protected nodes (Start, End) from deletion
+    const deletableNodes = selectedNodes.filter(
+      (node) =>
+        String(node.data.nodeType) !== 'Start' &&
+        String(node.data.nodeType) !== 'End'
+    );
+
+    if (deletableNodes.length > 0) {
+      const deletableIds = new Set(deletableNodes.map((n) => n.id));
+
+      // Remove nodes
+      setNodes((currentNodes) =>
+        currentNodes.filter((node) => !deletableIds.has(node.id))
+      );
+
+      // Remove all edges connected to these nodes
+      setEdges((currentEdges) =>
+        currentEdges.filter(
+          (edge) => !deletableIds.has(edge.source) && !deletableIds.has(edge.target)
+        )
+      );
+    }
+  }, [nodes, setNodes, setEdges]);
+
+  const deleteSelectedEdges = useCallback(() => {
+    setEdges((currentEdges) => currentEdges.filter((edge) => !edge.selected));
+  }, [setEdges]);
+
+  // Edge operations (inline implementation)
   const onConnect = useCallback(
-    (connection: Connection) => {
+    (params: Connection) => {
       // Find the source node to check if it's an If node
-      const sourceNode = nodes.find((n) => n.id === connection.source);
+      const sourceNode = nodes.find((n) => n.id === params.source);
       const isIfNode = sourceNode?.data.nodeType === 'If';
-      
-      if (!isIfNode) {
-        // For non-If nodes, check if source already has an outgoing edge
-        const sourceHasEdge = edges.some((edge) => edge.source === connection.source);
-        
-        if (sourceHasEdge) {
-          console.warn('Each node can only have one outgoing connection');
+
+      setEdges((eds) => {
+        if (!isIfNode) {
+          // For non-If nodes, check if source already has an outgoing edge
+          const sourceHasEdge = eds.some((edge) => edge.source === params.source);
+
+          if (sourceHasEdge) {
+            console.warn('Each node can only have one outgoing connection');
+            return eds;
+          }
+        } else {
+          // For If nodes, check if this specific handle already has an edge
+          const handleHasEdge = eds.some(
+            (edge) =>
+              edge.source === params.source && edge.sourceHandle === params.sourceHandle
+          );
+
+          if (handleHasEdge) {
+            console.warn('This condition already has a connection');
+            return eds;
+          }
+        }
+
+        // Add label and style for If node edges
+        const edgeWithLabel = {
+          ...params,
+          label:
+            isIfNode && params.sourceHandle
+              ? getLabelForHandle(params.sourceHandle)
+              : undefined,
+          style:
+            isIfNode && params.sourceHandle
+              ? {
+                  stroke: getColorForHandle(params.sourceHandle),
+                  strokeWidth: 2,
+                }
+              : undefined,
+        };
+
+        return addEdge(edgeWithLabel, eds);
+      });
+    },
+    [nodes, setEdges]
+  );
+
+  // Keyboard shortcuts (inline implementation)
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      // Delete: Delete or Backspace
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        const target = event.target as HTMLElement;
+        // Don't delete when typing in input fields
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
           return;
         }
-      } else {
-        // For If nodes, check if this specific handle already has an edge
-        const handleHasEdge = edges.some(
-          (edge) => edge.source === connection.source && edge.sourceHandle === connection.sourceHandle
-        );
-        
-        if (handleHasEdge) {
-          console.warn('This condition already has a connection');
-          return;
+
+        event.preventDefault();
+        const selectedEdges = edges.filter((edge) => edge.selected);
+
+        if (selectedEdges.length > 0) {
+          deleteSelectedEdges();
+        } else {
+          deleteSelectedNodes();
         }
       }
-      
-      // Add label and style for If node edge
-      const edgeWithLabel = {
-        ...connection,
-        label: isIfNode && connection.sourceHandle ? getLabelForHandle(connection.sourceHandle) : undefined,
-        style: isIfNode && connection.sourceHandle ? { 
-          stroke: getColorForHandle(connection.sourceHandle),
-          strokeWidth: 2,
-        } : undefined,
-      };
-      
-      setEdges((eds) => addEdge(edgeWithLabel, eds));
+
+      // Select All: Ctrl+A
+      if (event.ctrlKey && event.key === 'a') {
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+          return;
+        }
+
+        event.preventDefault();
+        setNodes((nds) => nds.map((node) => ({ ...node, selected: true })));
+        setEdges((eds) => eds.map((edge) => ({ ...edge, selected: true })));
+      }
+
+      // Deselect All: Escape
+      if (event.key === 'Escape') {
+        setNodes((nds) => nds.map((node) => ({ ...node, selected: false })));
+        setEdges((eds) => eds.map((edge) => ({ ...edge, selected: false })));
+        setSelectedNode(null);
+      }
     },
-    [nodes, edges, setEdges]
+    [edges, setNodes, setEdges, deleteSelectedNodes, deleteSelectedEdges]
   );
+
+  // Setup keyboard event listener
+  useEffect(() => {
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onKeyDown]);
 
   // Drag and drop handlers
   const onDragOver = useCallback((event: DragEvent) => {
@@ -169,7 +267,6 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       if (!reactFlowInstance) return;
 
       const type = event.dataTransfer.getData('application/reactflow');
-
       if (!type) return;
 
       const position = reactFlowInstance.screenToFlowPosition({
@@ -177,10 +274,10 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
         y: event.clientY,
       });
 
+      // Create node with nested canvas ID
       const template = getNodeTemplate(type);
       const newNodeId = generateNestedNodeId();
 
-      // Initialize params with default values from template
       const defaultParams: Record<string, string> = {};
       if (template?.inputs) {
         template.inputs.forEach((input) => {
@@ -196,7 +293,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
           label: template?.displayName || type,
           nodeType: type,
           params: defaultParams,
-        } as EditableNodeData,
+        },
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -229,73 +326,8 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
 
   // Handle node updates from RightSidebar
   const handleNodeUpdate = (nodeId: string, updates: Record<string, unknown>) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              ...updates,
-            },
-          };
-        }
-        return node;
-      })
-    );
+    updateNode(nodeId, updates);
   };
-
-  // Keyboard shortcuts - Protect Start and End nodes from deletion
-  const onKeyDown = useCallback(
-    (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Delete' || event.key === 'Backspace') {
-        // Check if any input/textarea is focused - don't delete if user is typing
-        const target = event.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-          return; // Don't delete when typing in input fields
-        }
-
-        const selectedNodes = nodes.filter((node) => node.selected);
-        const selectedEdges = edges.filter((edge) => edge.selected);
-
-        // Check if any protected nodes are selected
-        const hasProtectedNodes = selectedNodes.some(
-          (node) => node.data.nodeType === 'Start' || node.data.nodeType === 'End'
-        );
-
-        // Filter out protected nodes (Start, End) from deletion
-        const deletableNodes = selectedNodes.filter(
-          (node) => node.data.nodeType !== 'Start' && node.data.nodeType !== 'End'
-        );
-
-        // Only proceed if there are nodes/edges to delete
-        if (deletableNodes.length > 0 || selectedEdges.length > 0) {
-          event.preventDefault(); // Prevent browser back navigation
-          
-          // Delete only non-protected nodes
-          if (deletableNodes.length > 0) {
-            const deletableIds = new Set(deletableNodes.map((n) => n.id));
-            setNodes((nds) => nds.filter((node) => !deletableIds.has(node.id)));
-          }
-          
-          // Delete selected edges
-          if (selectedEdges.length > 0) {
-            setEdges((eds) => eds.filter((edge) => !edge.selected));
-          }
-        } else if (hasProtectedNodes) {
-          // Prevent default to stop browser navigation even if only protected nodes are selected
-          event.preventDefault();
-        }
-      }
-    },
-    [nodes, edges, setNodes, setEdges]
-  );
-
-  // Register keyboard event listener
-  useEffect(() => {
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onKeyDown]);
 
   // Handle back button - save state before returning
   const handleBack = () => {
@@ -351,45 +383,45 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
         {/* Left Sidebar with Global Variables */}
         {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} />}
 
-            {/* Canvas */}
-            <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={viewOnly ? undefined : onNodesChange}
-                onEdgesChange={viewOnly ? undefined : onEdgesChange}
-                onConnect={viewOnly ? undefined : onConnect}
-                onInit={setReactFlowInstance}
-                onDrop={viewOnly ? undefined : onDrop}
-                onDragOver={viewOnly ? undefined : onDragOver}
-                onNodeClick={onNodeClick}
-                onPaneClick={onPaneClick}
-                nodeTypes={nodeTypes}
-                defaultViewport={{ x: 150, y: 50, zoom: 1 }}
-                nodesDraggable={!viewOnly}
-                nodesConnectable={!viewOnly}
-                elementsSelectable={!viewOnly}
-                deleteKeyCode={null}
+        {/* Canvas */}
+        <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={viewOnly ? undefined : onNodesChange}
+            onEdgesChange={viewOnly ? undefined : onEdgesChange}
+            onConnect={viewOnly ? undefined : onConnect}
+            onInit={setReactFlowInstance}
+            onDrop={viewOnly ? undefined : onDrop}
+            onDragOver={viewOnly ? undefined : onDragOver}
+            onNodeClick={onNodeClick}
+            onPaneClick={onPaneClick}
+            nodeTypes={nodeTypes}
+            defaultViewport={{ x: 150, y: 50, zoom: 1 }}
+            nodesDraggable={!viewOnly}
+            nodesConnectable={!viewOnly}
+            elementsSelectable={!viewOnly}
+            deleteKeyCode={null}
+          >
+            <Background />
+            <Controls />
+            <MiniMap />
+            <Panel position="top-right">
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 1.5,
+                  backgroundColor: 'background.paper',
+                  borderRadius: 1,
+                }}
               >
-                <Background />
-                <Controls />
-                <MiniMap />
-                <Panel position="top-right">
-                  <Paper
-                    elevation={2}
-                    sx={{
-                      p: 1.5,
-                      backgroundColor: 'background.paper',
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography variant="caption" color="text.secondary">
-                      Nested Canvas: {nodeId}
-                    </Typography>
-                  </Paper>
-                </Panel>
-              </ReactFlow>
-            </Box>
+                <Typography variant="caption" color="text.secondary">
+                  Nested Canvas: {nodeId}
+                </Typography>
+              </Paper>
+            </Panel>
+          </ReactFlow>
+        </Box>
 
         {/* Right Sidebar */}
         <RightSidebar
