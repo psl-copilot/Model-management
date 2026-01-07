@@ -33,6 +33,14 @@ const useHomeController = () => {
     const [total, setTotal] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
 
+    const resetFilter = () => {
+        setRuleType(null)
+        setStatus(null)
+        setPublishing(null)
+        setSearchTerm('')
+    }
+
+
     useEffect(() => {
         const fetchRules = async () => {
             try {
@@ -125,7 +133,8 @@ const useHomeController = () => {
             setSearchTerm,
             setStatus,
             setRuleType,
-            setPublishing
+            setPublishing,
+            resetFilter
         },
     };
 };

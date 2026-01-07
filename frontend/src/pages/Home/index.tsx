@@ -1,7 +1,7 @@
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import { Box } from "@mui/material";
+import { Box, IconButton } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Button from "../../components/Button";
 import DropDown from "../../components/DropDown";
@@ -11,6 +11,7 @@ import { Text } from "../../components/Text";
 import BoxWrapper from "../../components/Wrappers/BoxWrapper";
 import useHomeController from "./useHomeController";
 import { claims } from "../../utils/Constants/data";
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 
 const Home = () => {
     const { values, functions } = useHomeController();
@@ -45,7 +46,7 @@ const Home = () => {
             <Grid
                 container
                 spacing={2}
-                alignItems="flex-end"
+                alignItems="center"
                 mt={2}
             >
                 <Input
@@ -90,6 +91,15 @@ const Home = () => {
                     onChange={(val) => functions.setRuleType(val)}
                     multiple={false}
                 />
+                <IconButton title="Reset Filters" onClick={functions.resetFilter}>
+                    <FilterAltOffIcon sx={{
+                        width: '25px',
+                        height: '25px',
+                        "&:hover": {
+                            bgcolor: "#f3f4f6",
+                        },
+                    }} />
+                </IconButton>
             </Grid>
 
             <Box mt={3}>
