@@ -28,7 +28,7 @@ const resultCard = ({
                 width: '100%',
                 borderRadius: 2,
                 p: 2,
-                bgcolor: isPassed ? 'rgba(76, 175, 80,0.1)' : "rgba(254, 242, 242)",
+                bgcolor: 'transparent',
                 borderColor: isPassed ? "success.main" : "error.main",
             }}
         >

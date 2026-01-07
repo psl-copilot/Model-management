@@ -94,7 +94,7 @@ const useHomeController = () => {
 
     const columns: TableColumn[] = [
         { label: "Rule Name", key: "rule_name" },
-        { label: "Rule Id", key: "id" },
+        { label: "Rule ID", key: "id" },
         { label: "Status", key: "status" },
         { label: "Created At", key: "created_at", type: 'date' as const },
         { label: "Version", key: "version" },

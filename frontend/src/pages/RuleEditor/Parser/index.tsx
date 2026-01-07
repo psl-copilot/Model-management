@@ -76,7 +76,7 @@ const Parser = (props: IParseProps) => {
             <Grid container display={'flex'} justifyContent={'center'} width={'100%'} size={{ xs: 12, md: 12, sm: 12 }}>
                 {
                     values?.result ?
-                        <Grid size={{ xs: 6, md: 6, sm: 11 }} display={'flex'} justifyContent={'center'}>
+                        <Grid size={{ xs: 12, md: 12, sm: 12 }} display={'flex'} justifyContent={'center'}>
                             <SimulationResultCard result={values?.result} />
                         </Grid>
                         : null}
