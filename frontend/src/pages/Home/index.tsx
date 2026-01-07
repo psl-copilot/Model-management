@@ -62,7 +62,7 @@ const Home = () => {
                     label="Status"
                     height="sm"
                     placeholder="Select status"
-                    options={values.status_options}
+                    options={values.statusOptions}
                     value={values.status ?? null}
                     onChange={(val) => functions.setStatus(val)}
                     multiple={false}
@@ -72,9 +72,9 @@ const Home = () => {
                     label="Publishing Status"
                     height="sm"
                     placeholder="Select Publishing status"
-                    options={values.publising_status}
+                    options={values.publishingOptions}
                     value={values.status ?? null}
-                    onChange={(val) => functions.setStatus(val)}
+                    onChange={(val) => functions.setPublishing(val)}
                     multiple={false}
                 />
 
@@ -83,7 +83,7 @@ const Home = () => {
                     maxWidth={300}
                     label="Rule Type"
                     placeholder="Select rule type"
-                    options={values.rule_types}
+                    options={values.ruleTypes}
                     value={values.ruleType ?? null}
                     onChange={(val) => functions.setRuleType(val)}
                     multiple={false}

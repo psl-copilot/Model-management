@@ -14,6 +14,7 @@ const useHomeController = () => {
     const navigate = useNavigate();
     const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
     const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
+    const [publishing, setPublishing] = useState<DropdownOption | DropdownOption[] | null>(null)
 
     const { open } = useModal()
     const user = extractData('user')
@@ -81,9 +82,6 @@ const useHomeController = () => {
         return getStatusOptionsForRole(user.claims).map((item) => item.value).join(',')
     }, [user.claims])
 
-    const getAllPublishingStatus = useCallback(() => {
-        return getStatusOptionsForRole(user.claims).map((item) => item.value).join(',')
-    }, [user.claims])
 
     const columns: TableColumn[] = [
         { label: "Rule Name", key: "rule_name" },
@@ -117,15 +115,17 @@ const useHomeController = () => {
             status,
             ruleType,
             user,
-            status_options: [{ label: 'All', value: getAllStatus() }, ...getStatusOptionsForRole(user.claims)],
-            rule_types: [{ label: 'All', value: null }, ...Object.entries(ruleTypes).map(([_, value]) => { return { label: value, value } })],
-            publising_status: [{ label: 'All', value: getAllPublishingStatus() }, ...Object.entries(publishingStatus).map(([_, value]) => { return { label: value, value } })],
+            publishing,
+            statusOptions: [{ label: 'All', value: getAllStatus() }, ...getStatusOptionsForRole(user.claims)],
+            ruleTypes: [{ label: 'All', value: null }, ...Object.entries(ruleTypes).map(([_, value]) => { return { label: value, value } })],
+            publishingOptions: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleCreateNew,
             setSearchTerm,
             setStatus,
-            setRuleType
+            setRuleType,
+            setPublishing
         },
     };
 };
