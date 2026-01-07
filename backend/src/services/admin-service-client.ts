@@ -540,4 +540,26 @@ export class AdminServiceClient {
       return this.handleError(error, 'createRuleFlow');
     }
   }
+   async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'getRuleFlow');
+    }
+  }
+
 }

@@ -147,5 +147,25 @@ export class RulesController {
   async createRuleFlow(@Param('ruleId') ruleId: string, @Body() flowData: CreateRuleFlowDto, @User() user: AuthenticatedUser): Promise<ResponseRuleFlowDto> {
     return await this.rulesService.createRuleFlow(ruleId, flowData, user.token.tokenString);
   }
+
+      @Get('/api/:ruleId/flow')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getRuleFlow(
+    @Param('ruleId') ruleId: string,
+    @User() user: AuthenticatedUser,
+
+  ): Promise<ResponseRuleFlowDto> {
+    const result = await this.rulesService.getRuleFlow(
+      ruleId,
+      user.token.tokenString,
+    );
+
+    return result;
+  }
+
   
 }

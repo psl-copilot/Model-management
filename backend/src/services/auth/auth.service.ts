@@ -54,15 +54,7 @@ export class AuthService {
       const claimsToCheck = ['editor', 'approver', 'publisher', 'exporter'];
       const claimResult = validateTokenAndClaims(token, claimsToCheck);
 
-      // if (claimResult.exporter) {
-      //   this.loggerService.warn(
-      //     `User ${username} attempted login with exporter role. Access denied.`,
-      //     AuthService.name,
-      //   );
-      //   throw new UnauthorizedException(
-      //     'Access denied. Exporter role is not permitted for Model Management.',
-      //   );
-      // }
+      
 
       const hasRequiredClaim = claimResult.editor || claimResult.approver || claimResult.publisher;
       if (!hasRequiredClaim) {
@@ -71,7 +63,7 @@ export class AuthService {
           AuthService.name,
         );
         throw new UnauthorizedException(
-          'Access denied. Model Management requires Editor, Approver, or Publisher role.',
+          'Invalid credentials',
         );
       }
 

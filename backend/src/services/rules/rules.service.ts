@@ -98,6 +98,16 @@ export class RulesService {
     }
   }
 
+      async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+          return await this.adminServiceClient.getRuleFlow(ruleId, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching configuration for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
   async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
     try {
       return await this.adminServiceClient.createRuleFlow(ruleId, flowData, token);
