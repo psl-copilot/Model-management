@@ -77,7 +77,11 @@ const useHomeController = () => {
         open('View Rule', <ViewRule data={data} />)
     }
 
-    const getAll = useCallback(() => {
+    const getAllStatus = useCallback(() => {
+        return getStatusOptionsForRole(user.claims).map((item) => item.value).join(',')
+    }, [user.claims])
+
+    const getAllPublishingStatus = useCallback(() => {
         return getStatusOptionsForRole(user.claims).map((item) => item.value).join(',')
     }, [user.claims])
 
@@ -113,9 +117,9 @@ const useHomeController = () => {
             status,
             ruleType,
             user,
-            status_options: [{ label: 'All', value: getAll() }, ...getStatusOptionsForRole(user.claims)],
+            status_options: [{ label: 'All', value: getAllStatus() }, ...getStatusOptionsForRole(user.claims)],
             rule_types: [{ label: 'All', value: null }, ...Object.entries(ruleTypes).map(([_, value]) => { return { label: value, value } })],
-            publising_status: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([_, value]) => { return { label: value, value } })],
+            publising_status: [{ label: 'All', value: getAllPublishingStatus() }, ...Object.entries(publishingStatus).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleCreateNew,
