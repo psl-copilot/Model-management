@@ -7,7 +7,7 @@ import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
-import { claims, getStatusOptionsForRole, rule_types } from "../../utils/Constants/data";
+import { claims, getStatusOptionsForRole, publishingStatus, ruleTypes } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
 
 const useHomeController = () => {
@@ -114,7 +114,8 @@ const useHomeController = () => {
             ruleType,
             user,
             status_options: [{ label: 'All', value: getAll() }, ...getStatusOptionsForRole(user.claims)],
-            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
+            rule_types: [{ label: 'All', value: null }, ...Object.entries(ruleTypes).map(([_, value]) => { return { label: value, value } })],
+            publising_status: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleCreateNew,

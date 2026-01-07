@@ -36,6 +36,11 @@ export const Status = {
     ARCHIVED: 'STATUS_09_ARCHIVED',
 }
 
+export const publishingStatus = {
+    Active: 'Active',
+    Inactive: 'In-Active'
+}
+
 
 export const claims = {
     editor: 'editor',
@@ -64,7 +69,7 @@ export const getStatusOptionsForRole = (role: string) => {
 };
 
 
-export const rule_types = {
+export const ruleTypes = {
     Fraud: 'Fraud',
     AML: 'AML',
     FRAUD_AML: "Fraud & AML"
