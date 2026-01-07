@@ -14,7 +14,7 @@ const useHomeController = () => {
     const navigate = useNavigate();
     const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
     const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
-    const [publishing, setPublishing] = useState<DropdownOption | DropdownOption[] | null>(null)
+    const [publishing, setPublishing] = useState<DropdownOption | null>(null)
 
     const { open } = useModal()
     const user = extractData('user')
@@ -42,7 +42,8 @@ const useHomeController = () => {
                 }
                 const statusValue = status && !Array.isArray(status) ? status.value : undefined;
                 const ruleValue = ruleType && !Array.isArray(ruleType) ? ruleType.value : undefined;
-                const body = { ruleName: searchTerm ?? undefined, status: statusValue, ruleType: ruleValue };
+                const publishingStatus = publishing ? publishing.value : undefined;
+                const body = { ruleName: searchTerm.length > 0 ? searchTerm : undefined, status: statusValue, ruleType: ruleValue, publishingStatus };
                 const response = await getRules({
                     params, body
                 }).unwrap();
@@ -55,7 +56,7 @@ const useHomeController = () => {
         };
 
         fetchRules();
-    }, [getRules, offset, limit, searchTerm, status, ruleType]);
+    }, [getRules, offset, limit, searchTerm, status, ruleType, publishing]);
 
     useEffect(() => {
         setOffset(0);

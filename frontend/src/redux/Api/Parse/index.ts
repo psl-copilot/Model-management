@@ -3,34 +3,27 @@ import { getAuthToken } from "../../../utils/Common/storage";
 
 const BASE_URL = import.meta.env.VITE_API_URL as string;
 
-export const configApi = createApi({
-    reducerPath: 'configApi',
+export const parseApi = createApi({
+    reducerPath: 'parseApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${BASE_URL}/config/api/`,
+        baseUrl: `${BASE_URL}/parse/api/`,
         prepareHeaders: (headers) => {
             const token = getAuthToken()
             if (token) headers.set("authorization", `Bearer ${token}`)
             return headers
         }
     }),
-
     endpoints: (builder) => ({
-        getTypes: builder.query({
-            query: () => ({
-                url: `transaction-types`,
-                method: "GET",
-            }),
-        }),
-        getSamplePayload: builder.query({
-            query: ({ type }) => ({
-                url: `payload/${type}`,
-                method: "GET",
+        parsePayload: builder.mutation({
+            query: (body) => ({
+                url: `validatePayload`,
+                method: "POST",
+                body: { ...body },
             }),
         }),
     }),
 })
 
 export const {
-    useGetTypesQuery,
-    useLazyGetSamplePayloadQuery
-} = configApi
+    useParsePayloadMutation
+} = parseApi

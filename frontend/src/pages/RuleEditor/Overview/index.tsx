@@ -5,11 +5,11 @@ import Input from "../../../components/Input";
 import Loader from "../../../components/Loader";
 import { Text } from "../../../components/Text";
 import Section from "../../../components/Wrappers/Section";
-import useOverviewController from "./useOverviewController";
+import useOverviewController, { type IOverviewProps } from "./useOverviewController";
 import Button from "../../../components/Button";
 import { Box } from "@mui/material";
 
-const Overview = (props: Record<string, unknown> | undefined) => {
+const Overview = (props: IOverviewProps) => {
 
     const { values, functions } = useOverviewController(props)
 

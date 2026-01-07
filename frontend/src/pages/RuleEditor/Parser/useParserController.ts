@@ -1,33 +1,23 @@
 import { useForm } from "react-hook-form";
-
-const transactions = [
-    { label: 'pacs008', value: 'pacs008' }
-]
-
-
-const simulationResultPassed = {
-    status: "PASSED",
-    summary: {
-        passedStages: 5,
-        totalStages: 5,
-        failedStages: 0,
-        mappingsApplied: 12,
-    },
-    stages: [
-        { name: "Schema Validation", status: "PASSED" },
-        { name: "Required Fields Check", status: "PASSED" },
-        { name: "Type Validation", status: "PASSED" },
-        { name: "Transformation Rules", status: "PASSED" },
-        { name: "Output Mapping", status: "PASSED" },
-    ],
-};
+import { useParsePayloadMutation } from "../../../redux/Api/Parse";
+import { useLazyGetSamplePayloadQuery } from "../../../redux/Api/Config";
+import { useEffect, useState } from "react";
+import type { IResult } from "../../../utils/Common/types";
 
 
+export interface IParseProps {
+    setSelected: (selected: string) => void,
+    data?: Record<string, unknown> | undefined
+}
 
-const useParserController = (props: Record<string, unknown> | undefined) => {
+const useParserController = (props: IParseProps) => {
 
-    const data = props?.data as Record<string, unknown> | undefined
-    
+    const { data, setSelected } = props
+
+    const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
+    const [getPayload] = useLazyGetSamplePayloadQuery()
+    const [result, setResult] = useState<IResult | null>(null)
+
     const initial = {
         payload: (data?.payload as string) || "",
     }
@@ -37,18 +27,30 @@ const useParserController = (props: Record<string, unknown> | undefined) => {
     const json = watch('payload')
 
     const onSubmit = () => {
-
+        submit(JSON.parse(json)).unwrap()
     }
 
-    const handleSimulation = () => { }
+    useEffect(() => {
+        if (isSuccess) {
+            setResult(parseBody)
+        }
+    }, [isSuccess, parseBody])
+
+
+    const handleSimulation = () => {
+        getPayload({ type: 'pain.001' }).then((res) => {
+            if (res) {
+                // setValue('payload', res.toString())
+            }
+        })
+    }
 
     return {
         values: {
             control,
-            errors,
-            transactions,
             json,
-            simulationResultPassed
+            result,
+            isLoading
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

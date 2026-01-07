@@ -2,43 +2,32 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
     Box,
+    Grid,
     Paper,
     Stack,
     Typography
 } from "@mui/material";
+import type { IResult } from "../../../utils/Common/types";
+import FormattedJsonSection from "../../JsonFormatter";
+import { Text } from "../../Text";
 
-interface SimulationResult {
-    status: "PASSED" | "FAILED";
-    summary?: {
-        passedStages?: number;
-        totalStages?: number;
-        failedStages?: number;
-        mappingsApplied?: number;
-    };
-    stages?: {
-        name: string;
-        status: "PASSED" | "FAILED" | "WARNING";
-    }[];
-    errors?: {
-        field: string;
-        message: string;
-        path?: string;
-    }[];
-}
 
-const SimulationResultCard = ({
-    simulationResult,
+
+const resultCard = ({
+    result,
 }: {
-    simulationResult: SimulationResult;
+    result: IResult;
 }) => {
-    const isPassed = simulationResult.status === "PASSED";
+
+    const isPassed = result.success ?? false;
 
     return (
         <Paper
             variant="outlined"
             sx={{
-                p: 2,
+                width: '100%',
                 borderRadius: 2,
+                p: 2,
                 bgcolor: isPassed ? 'rgba(76, 175, 80,0.1)' : "rgba(254, 242, 242)",
                 borderColor: isPassed ? "success.main" : "error.main",
             }}
@@ -58,65 +47,9 @@ const SimulationResultCard = ({
                 </Typography>
             </Stack>
 
-            <Stack spacing={1} mt={2}>
-                <SummaryRow
-                    label="Stages Passed"
-                    value={`${simulationResult.summary?.passedStages || 0} / ${simulationResult.summary?.totalStages || 0
-                        }`}
-                />
-                <SummaryRow
-                    label="Stages Failed"
-                    value={simulationResult.summary?.failedStages || 0}
-                />
-                <SummaryRow
-                    label="Mappings Applied"
-                    value={simulationResult.summary?.mappingsApplied || 0}
-                />
-            </Stack>
+            <Text mt={1} color="text.ternary" size={'sub'}>{result.message}</Text>
 
-            {/* ---------- Stages ---------- */}
-            {simulationResult.stages?.length ? (
-                <Box mt={2}>
-                    <Typography fontSize={14} fontWeight={500} color="text.secondary">
-                        Validation Stages:
-                    </Typography>
-
-                    <Stack spacing={1} mt={1}>
-                        {simulationResult.stages.map((stage, index) => (
-                            <Box
-                                key={index}
-                                sx={{
-                                    p: 1,
-                                    borderRadius: 1,
-                                    bgcolor: "grey.100",
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                }}
-                            >
-                                <Typography fontSize={13} fontWeight={500}>
-                                    {stage.name}
-                                </Typography>
-
-                                <Typography
-                                    fontSize={13}
-                                    fontWeight={500}
-                                    color={
-                                        stage.status === "PASSED"
-                                            ? "success.main"
-                                            : stage.status === "FAILED"
-                                                ? "error.main"
-                                                : "warning.main"
-                                    }
-                                >
-                                    {stage.status}
-                                </Typography>
-                            </Box>
-                        ))}
-                    </Stack>
-                </Box>
-            ) : null}
-
-            {(simulationResult.errors?.length || 0) > 0 && (
+            {(result.validationErrors?.length || 0) > 0 && (
                 <Box mt={2}>
                     <Typography
                         fontSize={14}
@@ -128,50 +61,30 @@ const SimulationResultCard = ({
                     </Typography>
 
                     <Stack spacing={1}>
-                        {simulationResult.errors?.map((error, index) => (
+                        {result.validationErrors?.map((error, index) => (
                             <Box
                                 key={index}
                                 sx={{
-                                    p: 1,
                                     borderRadius: 1,
-                                    bgcolor: "error.light",
                                 }}
                             >
-                                <Typography fontSize={13} fontWeight={500} color="error.main">
-                                    {error.field}
-                                </Typography>
-
                                 <Typography fontSize={13} color="error.main">
-                                    {error.message}
+                                    {error}
                                 </Typography>
 
-                                {error.path && (
-                                    <Typography fontSize={11} color="error.dark">
-                                        Path: {error.path}
-                                    </Typography>
-                                )}
                             </Box>
                         ))}
                     </Stack>
                 </Box>
             )}
+
+            {isPassed && result.ruleRequest ?
+                <Grid border={1} borderColor={'static.border'} mt={0.4} p={2} overflow={'auto'} borderRadius={1} height={310}>
+                    <FormattedJsonSection value={JSON.stringify(result.ruleRequest)} />
+                </Grid> :
+                null}
         </Paper>
     );
 };
 
-const SummaryRow = ({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | number;
-}) => (
-    <Stack direction="row" justifyContent="space-between">
-        <Typography fontSize={13}>{label}:</Typography>
-        <Typography fontSize={13} fontWeight={500} color="text.primary">
-            {value}
-        </Typography>
-    </Stack>
-);
-
-export default SimulationResultCard;
+export default resultCard;

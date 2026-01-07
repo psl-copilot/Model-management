@@ -25,6 +25,7 @@ export const rules = [
     },
 ]
 
+
 export const Status = {
     INPROGRESS: 'STATUS_01_IN_PROGRESS',
     ON_HOLD: 'STATUS_02_ON_HOLD',
@@ -37,9 +38,44 @@ export const Status = {
 }
 
 export const publishingStatus = {
-    Active: 'Active',
-    Inactive: 'In-Active'
+    Active: 'ACTIVE',
+    Inactive: 'INACTIVE'
 }
+
+export const Tabs = [
+    {
+        label: 'Overview',
+        value: 'overview'
+    },
+    {
+        label: 'Parser',
+        value: 'parser'
+    },
+    {
+        label: 'Rule Builder',
+        value: 'rule_builder'
+    },
+    {
+        label: 'Validation',
+        value: 'validation'
+    },
+    {
+        label: 'Generate Test Cases',
+        value: 'test_cases'
+    },
+    {
+        label: 'Simulation',
+        value: 'simulation'
+    },
+    {
+        label: 'Documentation',
+        value: 'documentation'
+    },
+    {
+        label: 'History',
+        value: 'History'
+    },
+]
 
 
 export const claims = {
@@ -74,3 +110,4 @@ export const ruleTypes = {
     AML: 'AML',
     FRAUD_AML: "Fraud & AML"
 }
+

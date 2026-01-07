@@ -1,41 +1,9 @@
 import { useCallback, useState } from "react"
 import Overview from "./Overview"
 import Parser from "./Parser"
+import { Tabs } from "../../utils/Constants/data"
 
-const Tabs = [
-    {
-        label: 'Overview',
-        value: 'overview'
-    },
-    {
-        label: 'Parser',
-        value: 'parser'
-    },
-    {
-        label: 'Rule Builder',
-        value: 'rule_builder'
-    },
-    {
-        label: 'Validation',
-        value: 'validation'
-    },
-    {
-        label: 'Generate Test Cases',
-        value: 'test_cases'
-    },
-    {
-        label: 'Simulation',
-        value: 'simulation'
-    },
-    {
-        label: 'Documentation',
-        value: 'documentation'
-    },
-    {
-        label: 'History',
-        value: 'History'
-    },
-]
+
 
 const useRuleEditorController = () => {
 
@@ -48,9 +16,9 @@ const useRuleEditorController = () => {
     const renderComponent = useCallback(() => {
         switch (selected) {
             case 'overview':
-                return <Overview />
+                return <Overview setSelected={setSelected}  />
             case 'parser':
-                return <Parser />
+                return <Parser setSelected={setSelected} />
             default:
                 return null;
         }

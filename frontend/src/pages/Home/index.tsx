@@ -73,8 +73,10 @@ const Home = () => {
                     height="sm"
                     placeholder="Select Publishing status"
                     options={values.publishingOptions}
-                    value={values.status ?? null}
-                    onChange={(val) => functions.setPublishing(val)}
+                    value={values.publishing ?? null}
+                    onChange={(val) => {
+                        if (!Array.isArray(val)) functions.setPublishing(val);
+                    }}
                     multiple={false}
                 />
 

@@ -5,11 +5,11 @@ import Input from "../../../components/Input";
 import FormattedJsonSection from "../../../components/JsonFormatter";
 import { Text } from "../../../components/Text";
 import Section from "../../../components/Wrappers/Section";
-import useParserController from "./useParserController";
+import useParserController, { type IParseProps } from "./useParserController";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SimulationResultCard from "../../../components/Cards/SimulationResult";
 
-const Parser = (props: Record<string, unknown> | undefined) => {
+const Parser = (props: IParseProps) => {
 
     const { values, functions } = useParserController(props)
 
@@ -60,19 +60,27 @@ const Parser = (props: Record<string, unknown> | undefined) => {
                     </Grid>
                 </Grid>
 
-                {values?.json ?
-                    <Button
-                        height="40px"
-                        type="secondary"
-                        size="md"
-                        text="Simulate"
-                        onClick={functions.handleSimulation}
-                    />
-                    : null}
-                {/* <Grid size={12} width={'100%'}>
-                    <SimulationResultCard simulationResult={values?.simulationResultPassed} />
-                </Grid> */}
+                <Grid size={12} width={'100%'} display={'flex'} justifyContent={'center'}>
+                    {values?.json ?
+                        <Button
+                            height="40px"
+                            type="secondary"
+                            size="md"
+                            text="Simulate"
+                            loading={values.isLoading}
+                            onClick={functions.handleSubmit}
+                        />
+                        : null}
+                </Grid>
             </Section >
+            <Grid container display={'flex'} justifyContent={'center'} width={'100%'} size={{ xs: 12, md: 12, sm: 12 }}>
+                {
+                    values?.result ?
+                        <Grid size={{ xs: 6, md: 6, sm: 11 }} display={'flex'} justifyContent={'center'}>
+                            <SimulationResultCard result={values?.result} />
+                        </Grid>
+                        : null}
+            </Grid>
         </Grid >
     )
 }
