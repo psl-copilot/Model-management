@@ -5,13 +5,10 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { LoggerService } from '@tazama-lf/frms-coe-lib';
-import { validateTokenAndClaims } from '@tazama-lf/auth-lib';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService {
-  private readonly ALLOWED_CLAIMS = ['editor', 'approver', 'publisher'];
-
   constructor(
     private readonly httpService: HttpService,
     private readonly loggerService: LoggerService,
@@ -53,20 +50,8 @@ export class AuthService {
             response.data?.jwt ??
             response.data?.user?.token);
 
-      const validationResult = validateTokenAndClaims(token, this.ALLOWED_CLAIMS);
-      
-      if (!validationResult.isValid || !validationResult.hasRequiredClaim) {
-        this.loggerService.warn(
-          `User ${username} failed token validation or claim check`,
-          AuthService.name,
-        );
-        throw new UnauthorizedException(
-          'Access denied. Model Management requires Editor, Approver, or Publisher role.',
-        );
-      }
-
       this.loggerService.log(
-        `User ${username} authenticated successfully with valid claims`,
+        `User ${username} authenticated successfully`,
         AuthService.name,
       );
 
