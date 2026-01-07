@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AdminServiceClient } from '../admin-service-client';
-import { Rules } from './dto/rules.dto';
+import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from './dto/rules.dto';
 
 @Injectable()
 export class RulesService {
@@ -94,6 +94,16 @@ export class RulesService {
     } catch (error) {
       const err = error as Error;
       this.logger.error(`Error fetching active network map: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      return await this.adminServiceClient.createRuleFlow(ruleId, flowData, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error creating flow for rule ${ruleId}: ${err.message}`);
       throw error;
     }
   }

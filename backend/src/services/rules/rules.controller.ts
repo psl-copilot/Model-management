@@ -14,7 +14,7 @@ import { User } from '../../decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { TazamaClaims, RequireAnyClaims } from '../../decorators/auth.decorator';
 import { RulesService } from './rules.service';
-import { Rules } from './dto/rules.dto';
+import { Rules, CreateRuleFlowDto, ResponseRuleFlowDto } from './dto/rules.dto';
 
 @Controller('rules')
 @UseGuards(TazamaAuthGuard)
@@ -138,5 +138,14 @@ export class RulesController {
     );
   }
 
+  @Post('/api/:ruleId/flow')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async createRuleFlow(@Param('ruleId') ruleId: string, @Body() flowData: CreateRuleFlowDto, @User() user: AuthenticatedUser): Promise<ResponseRuleFlowDto> {
+    return await this.rulesService.createRuleFlow(ruleId, flowData, user.token.tokenString);
+  }
   
 }

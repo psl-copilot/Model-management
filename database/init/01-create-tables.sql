@@ -41,8 +41,8 @@ CREATE TABLE nodes (
     default_data JSONB,
     tenant_id VARCHAR(255) NOT NULL DEFAULT 'DEFAULT',
     created_by VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at DATE,
+    updated_at DATE
 );
 
 -- Index on tenant_id for faster retrieval of nodes by tenant
@@ -53,3 +53,14 @@ CREATE INDEX idx_nodes_type ON nodes (type);
 
 -- Composite index if you frequently query by tenant_id and type together
 CREATE INDEX idx_nodes_tenant_type ON nodes (tenant_id, type);
+
+CREATE TABLE trs_rule_flow (
+    id SERIAL PRIMARY KEY,
+    rule_id INT NOT NULL,
+    flow_json JSONB NOT NULL,
+    created_at DATE,
+    updated_at DATE
+);
+
+-- Index on rule_id for faster retrieval of flow by rule
+CREATE INDEX idx_trs_rule_flow_rule_id ON trs_rule_flow (rule_id);
