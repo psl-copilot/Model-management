@@ -3,7 +3,7 @@ import type { DropdownOption } from "../../../components/DropDown";
 import { useGetTypesQuery } from "../../../redux/Api/Config";
 import { useModal } from "../../../contexts/ModalContext";
 import RuleConfig from "../Modals/RuleConfig";
-import { rule_types } from "../../../utils/Constants/data";
+import { ruleTypes } from "../../../utils/Constants/data";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
 import { useCreateRuleMutation } from "../../../redux/Api/Rules";
 import { extractData } from "../../../utils/Common/storage";
@@ -72,7 +72,7 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
             rule_config_id,
             createLoading,
             transactions: types?.map((item: string) => ({ label: item, value: item })) || [],
-            rule_types: [...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
+            rule_types: [...Object.entries(ruleTypes).map(([_, value]) => { return { label: value, value } })],
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
