@@ -57,17 +57,11 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
     case 'Log': {
       let message = params.text || params.message || '';
       
-      // Debug logging to trace corruption
-      console.log('[CodeGenerator Log] Original message:', JSON.stringify(message));
-      
       // Check if it contains {{ }} variables
       const hasVariables = /\{\{\s*.+?\s*\}\}/.test(message);
       
       // Remove any surrounding quotes if they exist (from UI input)
       message = message.replace(/^['"]|['"]$/g, '').trim();
-      
-      console.log('[CodeGenerator Log] After trim:', JSON.stringify(message));
-      console.log('[CodeGenerator Log] Has variables:', hasVariables);
       
       // Determine the format based on content
       let messageStr: string;
@@ -79,22 +73,18 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
         // Check if it's ONLY a single variable (nothing before or after the {{ }})
         // Use more precise regex: start of string, optional whitespace, {{, content, }}, optional whitespace, end of string
         const onlyVariableMatch = message.match(/^\s*\{\{\s*([^}]+)\s*\}\}\s*$/);
-        console.log('[CodeGenerator Log] Only variable match:', onlyVariableMatch);
         
         if (onlyVariableMatch) {
           // Single variable only, pass directly without quotes or template literal
           messageStr = onlyVariableMatch[1].trim();
-          console.log('[CodeGenerator Log] Single variable mode:', messageStr);
         } else {
           // Variable(s) mixed with text, use template literal
           const interpolatedMessage = message.replace(/\{\{\s*(.+?)\s*\}\}/g, '${$1}');
           messageStr = `\`${interpolatedMessage.replace(/`/g, '\\`')}\``;
-          console.log('[CodeGenerator Log] Template literal mode:', messageStr);
         }
       } else {
         // Plain text only (no variables)
         messageStr = `'${message.replace(/'/g, "\\'")}'`;
-        console.log('[CodeGenerator Log] Plain text mode:', messageStr);
       }
       
       return `${indent}loggerService.log(${messageStr}, context, msgId);`;
