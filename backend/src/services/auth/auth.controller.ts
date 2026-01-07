@@ -20,9 +20,7 @@ export class AuthController {
     private readonly logger: LoggerService,
   ) {}
 
-
   @Post('login')
-  @RequireAnyClaims(TazamaClaims.EDITOR, TazamaClaims.APPROVER, TazamaClaims.PUBLISHER)
   @HttpCode(200)
   async login(
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
@@ -30,6 +28,7 @@ export class AuthController {
   ): Promise<{ message: string; token: string; expiresIn?: number }> {
     try {
       const result = await this.authService.login(body.username, body.password);
+
       const response: { token: string; message: string; expiresIn?: number } = {
         message: 'Login successful',
         token: result.token,
@@ -39,12 +38,23 @@ export class AuthController {
       }
       return response;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      const err = error as Error;
+
+      if (
+        error instanceof UnauthorizedException ||
+        err.message?.toLowerCase?.().includes('expired') ||
+        err.message?.toLowerCase?.().includes('invalid') ||
+        err.message?.toLowerCase?.().includes('denied')
+      ) {
         this.logger.warn(
-          `Authentication failed for user ${body.username}`,
+          `Authentication failed for user ${body.username}: ${err.message}`,
           AuthController.name,
         );
-        throw error;
+        throw new UnauthorizedException(
+          err.message?.toLowerCase?.().includes('expired')
+            ? 'Token is expired or invalid. Please log in again.'
+            : err.message,
+        );
       } else if (error instanceof ServiceUnavailableException) {
         this.logger.error(
           'Auth service unavailable during login attempt',
@@ -52,7 +62,7 @@ export class AuthController {
         );
         throw error;
       } else {
-        this.logger.error('Unexpected error during login', AuthController.name);
+        this.logger.error(`Unexpected error during login: ${err.message}`, AuthController.name);
         throw new InternalServerErrorException(
           'An unexpected error occurred during login',
         );
