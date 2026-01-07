@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { LoggerService } from '@tazama-lf/frms-coe-lib';
+import { validateTokenAndClaims } from '@tazama-lf/auth-lib';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -49,6 +50,30 @@ export class AuthService {
             response.data?.access_token ??
             response.data?.jwt ??
             response.data?.user?.token);
+
+      const claimsToCheck = ['editor', 'approver', 'publisher', 'exporter'];
+      const claimResult = validateTokenAndClaims(token, claimsToCheck);
+
+      // if (claimResult.exporter) {
+      //   this.loggerService.warn(
+      //     `User ${username} attempted login with exporter role. Access denied.`,
+      //     AuthService.name,
+      //   );
+      //   throw new UnauthorizedException(
+      //     'Access denied. Exporter role is not permitted for Model Management.',
+      //   );
+      // }
+
+      const hasRequiredClaim = claimResult.editor || claimResult.approver || claimResult.publisher;
+      if (!hasRequiredClaim) {
+        this.loggerService.warn(
+          `User ${username} does not have required claims (editor, approver, or publisher).`,
+          AuthService.name,
+        );
+        throw new UnauthorizedException(
+          'Access denied. Model Management requires Editor, Approver, or Publisher role.',
+        );
+      }
 
       this.loggerService.log(
         `User ${username} authenticated successfully`,
