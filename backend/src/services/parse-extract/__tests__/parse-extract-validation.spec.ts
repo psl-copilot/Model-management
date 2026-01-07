@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ParseExtractService } from '../parse-extract.service';
-import { AdminServiceClient } from '../../services/admin-service-client';
+import { AdminServiceClient } from '../../admin-service-client';
 import { RuleRequest } from '../dto/message.dto';
 
 describe('ParseExtractService - AJV Validation', () => {
@@ -59,7 +59,7 @@ describe('ParseExtractService - AJV Validation', () => {
         },
       };
 
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(mockSchema);
 
       const result = await service.processTransactionalMessage(
         { 
@@ -84,7 +84,7 @@ describe('ParseExtractService - AJV Validation', () => {
         },
       };
 
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(mockSchema);
 
       const result = await service.processTransactionalMessage(
         { TxTp: 'pacs.008.001.10', Payload: invalidPayload },
@@ -108,7 +108,7 @@ describe('ParseExtractService - AJV Validation', () => {
         },
       };
 
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(mockSchema);
 
       const result = await service.processTransactionalMessage(
         { 
@@ -126,7 +126,7 @@ describe('ParseExtractService - AJV Validation', () => {
     });
 
     it('should handle missing schema configuration', async () => {
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(null);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(null);
 
       const result = await service.processTransactionalMessage(
         { TxTp: 'unknown.transaction', SomeData: {} },
@@ -148,7 +148,7 @@ describe('ParseExtractService - AJV Validation', () => {
         },
       };
 
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(mockSchema);
 
       const result = await service.processTransactionalMessage(
         requestWithEmbeddedPayload,
@@ -179,7 +179,7 @@ describe('ParseExtractService - AJV Validation', () => {
         },
       };
 
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(mockSchema);
 
       const result = await service.processTransactionalMessage(
         { 
@@ -218,7 +218,7 @@ describe('ParseExtractService - AJV Validation', () => {
         },
       };
 
-      mockAdminServiceClient.getSchemaByTxTp.mockResolvedValue(mockSchema);
+      mockAdminServiceClient.getConfigRowByTxTp.mockResolvedValue(mockSchema);
 
       const result = await service.processTransactionalMessage(
         { TxTp: 'pacs.008.001.10', Payload: invalidPayload },
