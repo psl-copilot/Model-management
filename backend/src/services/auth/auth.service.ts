@@ -53,10 +53,13 @@ export class AuthService {
             response.data?.jwt ??
             response.data?.user?.token);
 
-      const validationResult = await validateTokenAndClaims(token, this.ALLOWED_CLAIMS);
+      const validationResult = validateTokenAndClaims(token, this.ALLOWED_CLAIMS);
       
       if (!validationResult.isValid || !validationResult.hasRequiredClaim) {
-        
+        this.loggerService.warn(
+          `User ${username} failed token validation or claim check`,
+          AuthService.name,
+        );
         throw new UnauthorizedException(
           'Access denied. Model Management requires Editor, Approver, or Publisher role.',
         );
@@ -73,28 +76,36 @@ export class AuthService {
         expiresIn: response.data?.expires_in ?? response.data?.expiresIn,
       };
     } catch (error) {
-      if (error.response?.status === 429) {
-        const errorMessage =
-          error.response?.data?.message ??
-          error.response?.data?.error ??
-          'Account temporarily locked due to too many failed login attempts.';
-        this.loggerService.warn(`Account locked (429): ${errorMessage}`);
-        throw new UnauthorizedException(errorMessage);
+      if (error instanceof UnauthorizedException) {
+        throw error;
       }
-      if (error.response?.status === 401) {
-        const errorMessage =
-          error.response?.data?.message ??
-          error.response?.data?.error ??
-          'Invalid credentials';
-        this.loggerService.warn(`Authentication failed: ${errorMessage}`);
-        throw new UnauthorizedException(errorMessage);
-      }
-      this.loggerService.error(
-        `Auth service error during login: ${error.message}`,
-      );
-      throw new ServiceUnavailableException(
-        'Authentication service unavailable',
-      );
+      
+      this.handleLoginError(error);
     }
+  }
+
+  private handleLoginError(error: any): never {
+    if (error.response?.status === 429) {
+      const errorMessage =
+        error.response.data?.message ??
+        error.response.data?.error ??
+        'Account temporarily locked due to too many failed login attempts.';
+      this.loggerService.warn(`Account locked (429): ${errorMessage}`);
+      throw new UnauthorizedException(errorMessage);
+    }
+    if (error.response?.status === 401) {
+      const errorMessage =
+        error.response.data?.message ??
+        error.response.data?.error ??
+        'Invalid credentials';
+      this.loggerService.warn(`Authentication failed: ${errorMessage}`);
+      throw new UnauthorizedException(errorMessage);
+    }
+    this.loggerService.error(
+      `Auth service error during login: ${error.message}`,
+    );
+    throw new ServiceUnavailableException(
+      'Authentication service unavailable',
+    );
   }
 }

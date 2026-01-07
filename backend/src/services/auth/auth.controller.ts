@@ -11,7 +11,6 @@ import {
 import { LoggerService } from '@tazama-lf/frms-coe-lib';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RequireAnyClaims, TazamaClaims } from '../../decorators/auth.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -38,35 +37,39 @@ export class AuthController {
       }
       return response;
     } catch (error) {
-      const err = error as Error;
+      this.handleLoginError(error, body.username);
+    }
+  }
 
-      if (
-        error instanceof UnauthorizedException ||
-        err.message?.toLowerCase?.().includes('expired') ||
-        err.message?.toLowerCase?.().includes('invalid') ||
-        err.message?.toLowerCase?.().includes('denied')
-      ) {
-        this.logger.warn(
-          `Authentication failed for user ${body.username}: ${err.message}`,
-          AuthController.name,
-        );
-        throw new UnauthorizedException(
-          err.message?.toLowerCase?.().includes('expired')
-            ? 'Token is expired or invalid. Please log in again.'
-            : err.message,
-        );
-      } else if (error instanceof ServiceUnavailableException) {
-        this.logger.error(
-          'Auth service unavailable during login attempt',
-          AuthController.name,
-        );
-        throw error;
-      } else {
-        this.logger.error(`Unexpected error during login: ${err.message}`, AuthController.name);
-        throw new InternalServerErrorException(
-          'An unexpected error occurred during login',
-        );
-      }
+  private handleLoginError(error: unknown, username: string): never {
+    const err = error as Error;
+
+    if (
+      error instanceof UnauthorizedException ||
+      err.message?.toLowerCase().includes('expired') ||
+      err.message?.toLowerCase().includes('invalid') ||
+      err.message?.toLowerCase().includes('denied')
+    ) {
+      this.logger.warn(
+        `Authentication failed for user ${username}: ${err.message}`,
+        AuthController.name,
+      );
+      throw new UnauthorizedException(
+        err.message?.toLowerCase().includes('expired')
+          ? 'Token is expired or invalid. Please log in again.'
+          : err.message,
+      );
+    } else if (error instanceof ServiceUnavailableException) {
+      this.logger.error(
+        'Auth service unavailable during login attempt',
+        AuthController.name,
+      );
+      throw error;
+    } else {
+      this.logger.error(`Unexpected error during login: ${err.message}`, AuthController.name);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred during login',
+      );
     }
   }
 }
