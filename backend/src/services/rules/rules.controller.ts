@@ -10,6 +10,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { TazamaAuthGuard } from '../../guards/tazama-auth.guard';
+// import { StatusValidationGuard } from '../../guards/status-validation.guard';
 import { User } from '../../decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { TazamaClaims, RequireAnyClaims } from '../../decorators/auth.decorator';
@@ -23,11 +24,13 @@ export class RulesController {
 
 
   @Post('/api/all')
+  // @UseGuards(StatusValidationGuard)
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
     TazamaClaims.PUBLISHER,
   )
+  
   async getAllRules(
     @Query('offset') offset: string,
     @Query('limit') limit: string,
@@ -148,23 +151,25 @@ export class RulesController {
     return await this.rulesService.createRuleFlow(ruleId, flowData, user.token.tokenString);
   }
 
-      @Get('/api/:ruleId/flow')
+  @Get('/api/:ruleId/flow')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
     TazamaClaims.PUBLISHER,
   )
-  async getRuleFlow(
-    @Param('ruleId') ruleId: string,
-    @User() user: AuthenticatedUser,
-
-  ): Promise<ResponseRuleFlowDto> {
-    const result = await this.rulesService.getRuleFlow(
-      ruleId,
-      user.token.tokenString,
-    );
-
+  async getRuleFlow(@Param('ruleId') ruleId: string,@User() user: AuthenticatedUser,): Promise<ResponseRuleFlowDto> {
+    const result = await this.rulesService.getRuleFlow(ruleId,user.token.tokenString,);
     return result;
+  }
+
+  @Put('/api/:ruleId/flow')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async updateRuleFlow(
+    @Param('ruleId') ruleId: string,
+    @Body() flowData: CreateRuleFlowDto,
+    @User() user: AuthenticatedUser,
+  ): Promise<ResponseRuleFlowDto> {
+    return await this.rulesService.updateRuleFlow(ruleId, flowData, user.token.tokenString);
   }
 
   

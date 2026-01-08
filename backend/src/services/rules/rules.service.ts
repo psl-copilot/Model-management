@@ -23,6 +23,8 @@ export class RulesService {
     filters: Record<string, unknown>,
     token: string,
   ): Promise<Rules[]> {
+
+    
     return await this.adminServiceClient.getAllRulesWithFilters(
       offset,
       limit,
@@ -114,6 +116,16 @@ export class RulesService {
     } catch (error) {
       const err = error as Error;
       this.logger.error(`Error creating flow for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async updateRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      return await this.adminServiceClient.updateRuleFlow(ruleId, flowData, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error updating flow for rule ${ruleId}: ${err.message}`);
       throw error;
     }
   }

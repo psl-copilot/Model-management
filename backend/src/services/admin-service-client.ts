@@ -562,4 +562,32 @@ export class AdminServiceClient {
     }
   }
 
+  async updateRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.put(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
+          flowData,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+      if (!response.data) {
+        this.logger.error(`No response data after updating flow for rule ${ruleId}`);
+        throw new HttpException(
+          `Failed to update flow for rule ${ruleId}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'updateRuleFlow');
+    }
+  }
+
 }
