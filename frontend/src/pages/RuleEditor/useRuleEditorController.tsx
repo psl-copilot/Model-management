@@ -1,24 +1,29 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { useSearchParams } from "react-router-dom"
+import { useGetRuleByIdQuery } from "../../redux/Api/Rules"
+import { Tabs } from "../../utils/Constants/data"
 import Overview from "./Overview"
 import Parser from "./Parser"
-import { Tabs } from "../../utils/Constants/data"
-import { useLocation } from "react-router-dom"
-import { useGetRuleByIdQuery } from "../../redux/Api/Rules"
-
-
+import RuleBuilder from "./RuleBuilder"
 
 const useRuleEditorController = () => {
 
     const [selected, setSelected] = useState(Tabs[0].value)
 
-    const { state } = useLocation();
-    const id = state?.id ?? null;
+    const [searchParams] = useSearchParams();
+    const tab = searchParams.get('tab') ?? 'overview';
 
-    const { data, isLoading } = useGetRuleByIdQuery({ id }, { skip: !id })
+    const id = null;
+
+    const { data, isLoading } = useGetRuleByIdQuery({ id }, { skip: !id, refetchOnMountOrArgChange: true })
 
     const handleSubmit = () => {
 
     }
+
+    useEffect(() => {
+        setSelected(tab)
+    }, [tab])
 
     const renderComponent = useCallback(() => {
         switch (selected) {
@@ -26,10 +31,12 @@ const useRuleEditorController = () => {
                 return <Overview data={data} setSelected={setSelected} />
             case 'parser':
                 return <Parser data={data} setSelected={setSelected} />
+            case 'rule_builder':
+                return <RuleBuilder />
             default:
                 return null;
         }
-    }, [selected])
+    }, [selected, data])
 
     return {
         values: {
