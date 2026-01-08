@@ -40,13 +40,13 @@ export const ROUTES = [
         layout: true,
     },
     {
-        path: '/rule-builder',
+        path: '/rule-builder/:id',
         element: <RuleBuilder />,
         private: true,
         layout: false
     },
     {
-        path: '/rule-builder/view',
+        path: '/rule-builder/view/:id',
         element: <RuleBuilder viewOnly />,
         private: true,
         layout: false
