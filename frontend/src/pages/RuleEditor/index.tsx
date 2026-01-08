@@ -6,10 +6,15 @@ import { Text } from "../../components/Text";
 import BoxWrapper from "../../components/Wrappers/BoxWrapper";
 import useRuleEditorController from './useRuleEditorController';
 import Tabs from '../../components/Tabs';
+import SuspenseLoader from '../../components/SuspenseLoader';
 
 const RuleEditor = () => {
 
     const { values, functions } = useRuleEditorController()
+
+    if (values?.isLoading) {
+        return <SuspenseLoader />
+    }
 
     return (
         <BoxWrapper>

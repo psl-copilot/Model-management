@@ -22,7 +22,7 @@ const useParserController = (props: IParseProps) => {
         payload: (data?.payload as string) || "",
     }
 
-    const { handleSubmit, control, watch } = useForm({ defaultValues: initial })
+    const { handleSubmit, control, watch, setValue } = useForm({ defaultValues: initial })
     // eslint-disable-next-line react-hooks/incompatible-library
     const json = watch('payload')
 
@@ -38,9 +38,9 @@ const useParserController = (props: IParseProps) => {
 
 
     const handleSimulation = () => {
-        getPayload({ type: 'pain.001' }).then((res) => {
+        getPayload({ type: 'pain.001.001.11 ' }).then((res) => {
             if (res) {
-                // setValue('payload', res.toString())
+                setValue('payload', JSON.stringify(res))
             }
         })
     }
