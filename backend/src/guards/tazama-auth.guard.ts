@@ -35,10 +35,17 @@ export class TazamaAuthGuard implements CanActivate {
 
     const { requiredClaims, anyClaims } = this.getClaimsFromDecorators(context);
 
-    const validated = validateTokenAndClaims(token, [
-      ...requiredClaims,
-      ...anyClaims,
-    ]);
+    let validated: ClaimValidationResult;
+    try {
+      validated = validateTokenAndClaims(token, [
+        ...requiredClaims,
+        ...anyClaims,
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Token validation failed: ${err.message}`, logContext);
+      throw new UnauthorizedException('Token validation failed');
+    }
 
     const { status, valid, invalid } = this.evaluateClaimResult(
       requiredClaims,
