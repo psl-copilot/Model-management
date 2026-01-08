@@ -3,10 +3,11 @@ import type { DropdownOption } from "../../../components/DropDown";
 import { useGetTypesQuery } from "../../../redux/Api/Config";
 import { useModal } from "../../../contexts/ModalContext";
 import RuleConfig from "../Modals/RuleConfig";
-import { rule_types } from "../../../utils/Constants/data";
+import { ruleTypes, Tabs } from "../../../utils/Constants/data";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
 import { useCreateRuleMutation } from "../../../redux/Api/Rules";
 import { extractData } from "../../../utils/Common/storage";
+import toast from "react-hot-toast";
 
 interface RuleFormValues {
     rule_name: string;
@@ -17,9 +18,14 @@ interface RuleFormValues {
     rule_type: DropdownOption | null;
 }
 
-const useOverviewController = (props: Record<string, unknown> | undefined) => {
+export interface IOverviewProps {
+    data?: Record<string, unknown> | undefined
+    setSelected: (selected: string) => void,
+}
 
-    const data = props?.data as Record<string, unknown> | undefined
+const useOverviewController = (props: IOverviewProps) => {
+
+    const { data, setSelected } = props
 
     const { data: types, isLoading } = useGetTypesQuery({})
     const [submit, { isLoading: createLoading }] = useCreateRuleMutation()
@@ -47,7 +53,12 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
             rule_config: values?.rule_config?.value,
             rule_type: values?.rule_type?.value
         }
-        submit(payload)
+        submit(payload).then((res) => {
+            if (res) {
+                toast.success('Rule Successfully Created')
+                setSelected(Tabs[1].value)
+            }
+        })
     }
 
     const handleRuleValue = (val: DropdownOption) => {
@@ -72,7 +83,7 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
             rule_config_id,
             createLoading,
             transactions: types?.map((item: string) => ({ label: item, value: item })) || [],
-            rule_types: [...Object.entries(rule_types).map(([, value]) => { return { label: value, value } })],
+            rule_types: [...Object.entries(ruleTypes).map(([, value]) => { return { label: value, value } })],
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

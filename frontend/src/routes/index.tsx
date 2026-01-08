@@ -42,14 +42,14 @@ export const ROUTES = [
     {
         path: '/rule-builder',
         element: <RuleBuilder />,
-        private: false,
-        layout: false
+        private: true,
+        layout: true
     },
     {
         path: '/rule-builder/view',
         element: <RuleBuilder viewOnly />,
-        private: false,
-        layout: false
+        private: true,
+        layout: true
     },
     {
         path: "/datasets",

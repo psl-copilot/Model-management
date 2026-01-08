@@ -25,6 +25,7 @@ export const rules = [
     },
 ]
 
+
 export const Status = {
     INPROGRESS: 'STATUS_01_IN_PROGRESS',
     ON_HOLD: 'STATUS_02_ON_HOLD',
@@ -33,7 +34,48 @@ export const Status = {
     REJECTED: 'STATUS_05_REJECTED',
     READY: 'STATUS_07_READY_FOR_DEPLOYMENT',
     DEPLOYED: 'STATUS_08_DEPLOYED',
+    ARCHIVED: 'STATUS_09_ARCHIVED',
 }
+
+export const publishingStatus = {
+    Active: 'ACTIVE',
+    Inactive: 'INACTIVE'
+}
+
+export const Tabs = [
+    {
+        label: 'Overview',
+        value: 'overview'
+    },
+    {
+        label: 'Parser',
+        value: 'parser'
+    },
+    {
+        label: 'Rule Builder',
+        value: 'rule_builder'
+    },
+    {
+        label: 'Validation',
+        value: 'validation'
+    },
+    {
+        label: 'Generate Test Cases',
+        value: 'test_cases'
+    },
+    {
+        label: 'Simulation',
+        value: 'simulation'
+    },
+    {
+        label: 'Documentation',
+        value: 'documentation'
+    },
+    {
+        label: 'History',
+        value: 'History'
+    },
+]
 
 
 export const claims = {
@@ -63,8 +105,9 @@ export const getStatusOptionsForRole = (role: string) => {
 };
 
 
-export const rule_types = {
+export const ruleTypes = {
     Fraud: 'Fraud',
     AML: 'AML',
     FRAUD_AML: "Fraud & AML"
 }
+

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DropdownOption } from "../../components/DropDown";
 import type { TableColumn } from "../../components/Table";
@@ -7,16 +7,19 @@ import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
-import { getStatusOptionsForRole, rule_types } from "../../utils/Constants/data";
+import { claims, getStatusOptionsForRole, publishingStatus, ruleTypes } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
 
 const useHomeController = () => {
     const navigate = useNavigate();
     const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
     const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
+    const [publishing, setPublishing] = useState<DropdownOption | null>(null)
 
     const { open } = useModal()
     const user = extractData('user')
+
+    const isEditor = user.claims === claims.editor
 
     const {
         offset,
@@ -30,6 +33,14 @@ const useHomeController = () => {
     const [total, setTotal] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
 
+    const resetFilter = () => {
+        setRuleType(null)
+        setStatus(null)
+        setPublishing(null)
+        setSearchTerm('')
+    }
+
+
     useEffect(() => {
         const fetchRules = async () => {
             try {
@@ -39,7 +50,8 @@ const useHomeController = () => {
                 }
                 const statusValue = status && !Array.isArray(status) ? status.value : undefined;
                 const ruleValue = ruleType && !Array.isArray(ruleType) ? ruleType.value : undefined;
-                const body = { ruleName: searchTerm ?? undefined, status: statusValue, ruleType: ruleValue };
+                const publishingStatus = publishing ? publishing.value : undefined;
+                const body = { ruleName: searchTerm.length > 0 ? searchTerm : undefined, status: statusValue, ruleType: ruleValue, publishingStatus };
                 const response = await getRules({
                     params, body
                 }).unwrap();
@@ -52,13 +64,7 @@ const useHomeController = () => {
         };
 
         fetchRules();
-    }, [getRules, offset, limit, searchTerm, status, ruleType]);
-
-    // useEffect(() => {
-    //     if (user.claims) {
-    //         setStatus(getStatusOptionsForRole(user.claims))
-    //     }
-    // }, [user])
+    }, [getRules, offset, limit, searchTerm, status, ruleType, publishing]);
 
     useEffect(() => {
         setOffset(0);
@@ -81,10 +87,14 @@ const useHomeController = () => {
         open('View Rule', <ViewRule data={data} />)
     }
 
+    const getAllStatus = useCallback(() => {
+        return getStatusOptionsForRole(user.claims).map((item) => item.value).join(',')
+    }, [user.claims])
+
+
     const columns: TableColumn[] = [
         { label: "Rule Name", key: "rule_name" },
-        { label: "Rule Id", key: "id" },
-        { label: "Rule Type", key: "rule_type" },
+        { label: "Rule ID", key: "id" },
         { label: "Status", key: "status" },
         { label: "Created At", key: "created_at", type: 'date' as const },
         { label: "Version", key: "version" },
@@ -94,6 +104,10 @@ const useHomeController = () => {
             render: (row: unknown) => (
                 <TableActions
                     onView={() => onView(row as Record<string, string>)}
+                    {...(isEditor && {
+                        onEdit: () => onView(row as Record<string, string>),
+                        onClone: () => onView(row as Record<string, string>)
+                    })}
                 />
             )
         }
@@ -109,14 +123,18 @@ const useHomeController = () => {
             status,
             ruleType,
             user,
-            status_options: [{ label: 'All', value: null }, ...getStatusOptionsForRole(user.claims)],
-            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([, value]) => { return { label: value, value } })],
+            publishing,
+            statusOptions: [{ label: 'All', value: getAllStatus() }, ...getStatusOptionsForRole(user.claims)],
+            ruleTypes: [{ label: 'All', value: null }, ...Object.entries(ruleTypes).map(([, value]) => { return { label: value, value } })],
+            publishingOptions: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value } })],
         },
         functions: {
             handleCreateNew,
             setSearchTerm,
             setStatus,
-            setRuleType
+            setRuleType,
+            setPublishing,
+            resetFilter
         },
     };
 };

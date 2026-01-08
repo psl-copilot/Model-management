@@ -24,7 +24,7 @@ export const rulesApi = createApi({
             }),
         }),
         createRule: builder.mutation({
-            query: ({ body }) => ({
+            query: ( body ) => ({
                 url: `create`,
                 method: "POST",
                 body: { ...body },
