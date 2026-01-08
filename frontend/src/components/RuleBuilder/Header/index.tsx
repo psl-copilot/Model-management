@@ -6,6 +6,7 @@ import {
   Tooltip,
   Divider,
   Badge,
+  IconButton,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
@@ -13,6 +14,8 @@ import CodeIcon from '@mui/icons-material/Code';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom';
 import { StyledToolbar, ButtonGroup, ActionButton } from './styles';
 import { useValidationContext } from '../../../validation/context';
 
@@ -38,6 +41,7 @@ const Header: React.FC<HeaderProps> = ({
   viewOnly = false,
 }) => {
   const { hasErrors, getErrorCount } = useValidationContext();
+  const navigate = useNavigate();
   
   // Disable actions if there are validation errors
   const isDisabled = disabled || hasErrors;
@@ -46,6 +50,15 @@ const Header: React.FC<HeaderProps> = ({
     <Paper elevation={0} square>
       <StyledToolbar>
         <Box display="flex" alignItems="center" gap={1}>
+          <Tooltip title="Back to Editor">
+            <IconButton
+              onClick={() => navigate('/editor?tab=rule_builder')}
+              color="primary"
+              size="medium"
+            >
+              <ArrowBackIcon />
+            </IconButton>
+          </Tooltip>
           <AccountTreeIcon color="primary" sx={{ fontSize: 28 }} />
           <Typography
             variant="h6"
