@@ -19,6 +19,7 @@ function App() {
 
   const publicNoLayoutRoutes = ROUTES.filter(route => route.private === false && route.layout === false);
 
+  const privateWithoutLayoutRoutes = ROUTES.filter(route => route.private === true && route.layout === false);
   return (
     <ThemeProvider theme={themeMode}>
       <ModalProvider>
@@ -42,7 +43,16 @@ function App() {
                   ))
                 }
               </Route>
+              <Route>
+                {
+                  privateWithoutLayoutRoutes.map((item, index) => (
+                    <Route key={index} path={item.path} element={item.element} />
+                  ))
+                }
+              </Route>
             </Route>
+            
+
           </Routes>
         </BrowserRouter>
       </ModalProvider>

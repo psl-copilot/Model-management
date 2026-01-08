@@ -43,13 +43,13 @@ export const ROUTES = [
         path: '/rule-builder',
         element: <RuleBuilder />,
         private: true,
-        layout: true
+        layout: false
     },
     {
         path: '/rule-builder/view',
         element: <RuleBuilder viewOnly />,
         private: true,
-        layout: true
+        layout: false
     },
     {
         path: "/datasets",
