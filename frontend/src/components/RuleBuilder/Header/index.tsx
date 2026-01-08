@@ -5,13 +5,16 @@ import {
   Paper,
   Tooltip,
   Divider,
+  Badge,
 } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import CodeIcon from '@mui/icons-material/Code';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { StyledToolbar, ButtonGroup, ActionButton } from './styles';
+import { useValidationContext } from '../../../validation/context';
 
 interface HeaderProps {
   isPlaying?: boolean;
@@ -19,6 +22,7 @@ interface HeaderProps {
   onStopClick: () => void;
   onDisplayJson: () => void;
   onGenerateCode: () => void;
+  onViewErrors?: () => void;
   disabled?: boolean;
   viewOnly?: boolean;
 }
@@ -29,9 +33,15 @@ const Header: React.FC<HeaderProps> = ({
   onStopClick,
   onDisplayJson,
   onGenerateCode,
+  onViewErrors,
   disabled = false,
   viewOnly = false,
 }) => {
+  const { hasErrors, getErrorCount } = useValidationContext();
+  
+  // Disable actions if there are validation errors
+  const isDisabled = disabled || hasErrors;
+  
   return (
     <Paper elevation={0} square>
       <StyledToolbar>
@@ -49,19 +59,21 @@ const Header: React.FC<HeaderProps> = ({
 
         <ButtonGroup>
           {!isPlaying ? (
-            <Tooltip title="Run flow animation">
-              <ActionButton
-                variant="contained"
-                color="primary"
-                startIcon={<PlayArrowIcon />}
-                onClick={onPlayClick}
-                disabled={disabled}
-                sx={{
-                  minWidth: '100px',
-                }}
-              >
-                Play
-              </ActionButton>
+            <Tooltip title={hasErrors ? 'Fix validation errors before running' : 'Run flow animation'}>
+              <span>
+                <ActionButton
+                  variant="contained"
+                  color="primary"
+                  startIcon={<PlayArrowIcon />}
+                  onClick={onPlayClick}
+                  disabled={isDisabled}
+                  sx={{
+                    minWidth: '100px',
+                  }}
+                >
+                  Play
+                </ActionButton>
+              </span>
             </Tooltip>
           ) : (
             <Tooltip title="Stop animation">
@@ -81,37 +93,59 @@ const Header: React.FC<HeaderProps> = ({
 
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
 
-          <Tooltip title="View flow structure as JSON">
-            <ActionButton
-              variant="outlined"
-              color="info"
-              startIcon={<DataObjectIcon />}
-              onClick={onDisplayJson}
-              disabled={disabled || isPlaying}
-            >
-              Display JSON
-            </ActionButton>
+          <Tooltip title={hasErrors ? 'Fix validation errors before viewing JSON' : 'View flow structure as JSON'}>
+            <span>
+              <ActionButton
+                variant="outlined"
+                color="info"
+                startIcon={<DataObjectIcon />}
+                onClick={onDisplayJson}
+                disabled={isDisabled || isPlaying}
+              >
+                Display JSON
+              </ActionButton>
+            </span>
           </Tooltip>
 
-          <Tooltip title="Generate executable TypeScript code">
-            <ActionButton
-              variant="contained"
-              color="secondary"
-              startIcon={<CodeIcon />}
-              onClick={onGenerateCode}
-              disabled={disabled || isPlaying}
-              sx={{
-                background: 'linear-gradient(45deg, #9c27b0 30%, #ba68c8 90%)',
-                boxShadow: '0 2px 4px rgba(156, 39, 176, 0.3)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #7b1fa2 30%, #9c27b0 90%)',
-                  boxShadow: '0 3px 6px rgba(156, 39, 176, 0.4)',
-                },
-              }}
-            >
-              Generate Code
-            </ActionButton>
+          <Tooltip title={hasErrors ? 'Fix validation errors before generating code' : 'Generate executable TypeScript code'}>
+            <span>
+              <ActionButton
+                variant="contained"
+                color="secondary"
+                startIcon={<CodeIcon />}
+                onClick={onGenerateCode}
+                disabled={isDisabled || isPlaying}
+                sx={{
+                  background: 'linear-gradient(45deg, #9c27b0 30%, #ba68c8 90%)',
+                  boxShadow: '0 2px 4px rgba(156, 39, 176, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #7b1fa2 30%, #9c27b0 90%)',
+                    boxShadow: '0 3px 6px rgba(156, 39, 176, 0.4)',
+                  },
+                }}
+              >
+                Generate Code
+              </ActionButton>
+            </span>
           </Tooltip>
+
+          {hasErrors && onViewErrors && (
+            <>
+              <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+              <Tooltip title="View all validation errors">
+                <Badge badgeContent={getErrorCount()} color="error">
+                  <ActionButton
+                    variant="outlined"
+                    color="error"
+                    startIcon={<ErrorOutlineIcon />}
+                    onClick={onViewErrors}
+                  >
+                    View Errors
+                  </ActionButton>
+                </Badge>
+              </Tooltip>
+            </>
+          )}
         </ButtonGroup>
       </StyledToolbar>
     </Paper>

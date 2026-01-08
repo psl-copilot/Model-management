@@ -57,7 +57,7 @@ const Table = ({
         <>
             {columns.map((col) => (
                 <TableCell
-                    key={`${(row as any)?.id ?? index}-${col.key}`}
+                    key={`${(row as Record<string, unknown>)?.id ?? index}-${col.key}`}
                     sx={{
                         borderBottom: "1px solid #e0e0e0",
                         whiteSpace: "pre-line",
@@ -107,7 +107,7 @@ const Table = ({
                         ) : data.length ? (
                             data.map((row, index) => (
                                 <TableRow
-                                    key={`${pagination?.offset ?? 1}-${(row as any)?.id ?? index}`}
+                                    key={`${pagination?.offset ?? 1}-${(row as Record<string, unknown>)?.id ?? index}`}
                                     hover
                                     onClick={() => onRowClick?.(row)}
                                     sx={{

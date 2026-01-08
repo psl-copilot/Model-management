@@ -31,7 +31,7 @@ const useLoginController = () => {
             insertData(details, 'user')
             navigate("/home")
         }
-    }, [isSuccess, data])
+    }, [isSuccess, data, navigate])
 
     const onSubmit = (data: unknown) => {
         submit(data)

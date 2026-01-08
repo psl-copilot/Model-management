@@ -31,7 +31,7 @@ interface DropdownProps {
     onClick?: () => void;
     multiple?: boolean;
     required?: boolean;
-    error?: string | FieldError | Merge<FieldError, FieldErrorsImpl<any>>;
+    error?: string | FieldError | Merge<FieldError, FieldErrorsImpl<Record<string, unknown>>>;
     view_only?: boolean;
     disabled?: boolean;
     searchable?: boolean;
@@ -78,13 +78,15 @@ const Dropdown = ({
         if (multiple) {
             const current = Array.isArray(value) ? value : [];
             const exists = current.some(v => v.value === opt.value);
-            onChange && onChange(
+            if (onChange) {
+              onChange(
                 exists
                     ? current.filter(v => v.value !== opt.value)
                     : [...current, opt]
             );
+            }
         } else {
-            onChange && onChange(opt);
+            if (onChange) onChange(opt);
             setOpen(false);
         }
     };
@@ -142,7 +144,7 @@ const Dropdown = ({
                                             size="small"
                                             onClick={e => {
                                                 e.stopPropagation();
-                                                onChange && onChange(multiple ? [] : null);
+                                                if (onChange) onChange(multiple ? [] : null);
                                             }}
                                         >
                                             <CloseIcon fontSize="small" />

@@ -22,6 +22,7 @@ import RightSidebar from '../RightSidebar';
 import { getNodeTemplate } from '../../../utils/Templates/customFuncTemplate';
 import { generateNestedNodeId } from '../../../utils/Flow/FlowDefaults';
 import { getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
+import { useValidationContext } from '../../../validation/context';
 
 const nodeTypes = {
   editableNode: EditableNode,
@@ -101,8 +102,8 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const { clearNodeErrors } = useValidationContext();
 
-  // Auto-save: whenever nodes or edges change, save to parent
   useEffect(() => {
     if (nodes.length > 0) {
       onSave(nodes, edges);
@@ -126,7 +127,6 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   const deleteSelectedNodes = useCallback(() => {
     const selectedNodes = nodes.filter((n) => n.selected);
 
-    // Filter out protected nodes (Start, End) from deletion
     const deletableNodes = selectedNodes.filter(
       (node) =>
         String(node.data.nodeType) !== 'Start' &&
@@ -136,19 +136,25 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
     if (deletableNodes.length > 0) {
       const deletableIds = new Set(deletableNodes.map((n) => n.id));
 
-      // Remove nodes
+      if (selectedNode && deletableIds.has(selectedNode.id)) {
+        setSelectedNode(null);
+      }
+
+      deletableIds.forEach((nodeId) => {
+        clearNodeErrors(nodeId);
+      });
+
       setNodes((currentNodes) =>
         currentNodes.filter((node) => !deletableIds.has(node.id))
       );
 
-      // Remove all edges connected to these nodes
       setEdges((currentEdges) =>
         currentEdges.filter(
           (edge) => !deletableIds.has(edge.source) && !deletableIds.has(edge.target)
         )
       );
     }
-  }, [nodes, setNodes, setEdges]);
+  }, [nodes, setNodes, setEdges, clearNodeErrors, selectedNode]);
 
   const deleteSelectedEdges = useCallback(() => {
     setEdges((currentEdges) => currentEdges.filter((edge) => !edge.selected));

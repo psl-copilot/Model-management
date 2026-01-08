@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, Typography, Divider } from '@mui/material';
+import { TextField, Typography, Divider, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import type { Node } from '@xyflow/react';
 import type { NodeInput } from '../../../../utils/Templates/customFuncTemplate';
 import { PropertyRow, SectionContainer, SectionTitle } from '../styles';
@@ -16,6 +16,7 @@ interface ParameterSectionProps {
   viewOnly: boolean;
   nodeType?: string;
   allNodes?: Node[];
+  getFieldError?: (fieldName: string) => string | undefined;
 }
 
 const ParameterSection: React.FC<ParameterSectionProps> = ({
@@ -29,6 +30,7 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
   isReadOnly,
   viewOnly,
   nodeType,
+  getFieldError,
 }) => {
   if (!inputs || inputs.length === 0) return null;
 
@@ -48,9 +50,75 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
           // Determine if this should be a multiline input
           const isMultiline = input.key === 'code' || input.key === 'query' || input.key === 'importStatement' || currentValue.length > 50;
 
+          // Check for validation errors
+          const fieldError = getFieldError?.(input.key);
+          
           // Check if this is the variable name field for SetVariable node
           const isVariableNameField = nodeType === 'SetVariable' && (input.key === 'name' || input.key === 'variableName');
-          const hasError = isVariableNameField && !!variableError;
+          const hasError = !!fieldError || (isVariableNameField && !!variableError);
+          
+          // Determine helper text
+          const helperText = fieldError 
+            || (isVariableNameField && variableError) 
+            || (isReadOnly ? 'Start/End nodes cannot be edited' : '')
+            || (viewOnly ? 'View only mode' : '')
+            || `Default: ${input.defaultValue}. Drop variables here.`;
+
+          // Render dropdown for declarationType
+          if (input.key === 'declarationType') {
+            return (
+              <PropertyRow key={input.key}>
+                <FormControl fullWidth size="small" error={hasError} disabled={isReadOnly || viewOnly}>
+                  <InputLabel>{input.label}</InputLabel>
+                  <Select
+                    value={currentValue || 'var'}
+                    onChange={(e) => {
+                      const syntheticEvent = {
+                        target: { value: e.target.value as string }
+                      } as React.ChangeEvent<HTMLInputElement>;
+                      onParamChange(input.key)(syntheticEvent);
+                    }}
+                    label={input.label}
+                  >
+                    <MenuItem value="var">var</MenuItem>
+                    <MenuItem value="let">let</MenuItem>
+                    <MenuItem value="const">const</MenuItem>
+                  </Select>
+                  {helperText && <FormHelperText>{helperText}</FormHelperText>}
+                </FormControl>
+              </PropertyRow>
+            );
+          }
+
+          // Render dropdown for dataType
+          if (input.key === 'dataType') {
+            return (
+              <PropertyRow key={input.key}>
+                <FormControl fullWidth size="small" error={hasError} disabled={isReadOnly || viewOnly}>
+                  <InputLabel>{input.label}</InputLabel>
+                  <Select
+                    value={currentValue || 'any'}
+                    onChange={(e) => {
+                      const syntheticEvent = {
+                        target: { value: e.target.value as string }
+                      } as React.ChangeEvent<HTMLInputElement>;
+                      onParamChange(input.key)(syntheticEvent);
+                    }}
+                    label={input.label}
+                  >
+                    <MenuItem value="string">string</MenuItem>
+                    <MenuItem value="number">number</MenuItem>
+                    <MenuItem value="boolean">boolean</MenuItem>
+                    <MenuItem value="array">array</MenuItem>
+                    <MenuItem value="object">object</MenuItem>
+                    <MenuItem value="any">any</MenuItem>
+                    <MenuItem value="undefined">undefined</MenuItem>
+                  </Select>
+                  {helperText && <FormHelperText>{helperText}</FormHelperText>}
+                </FormControl>
+              </PropertyRow>
+            );
+          }
 
           return (
             <PropertyRow
@@ -73,9 +141,7 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
                 multiline={isMultiline}
                 rows={isMultiline ? 3 : 1}
                 error={hasError}
-                helperText={
-                  hasError ? variableError : isReadOnly ? 'Start/End nodes cannot be edited' : viewOnly ? 'View only mode' : `Default: ${input.defaultValue}. Drop variables here.`
-                }
+                helperText={helperText}
                 disabled={isReadOnly || viewOnly}
                 inputRef={(el) => {
                   if (el) inputRefsRef.current[input.key] = el;

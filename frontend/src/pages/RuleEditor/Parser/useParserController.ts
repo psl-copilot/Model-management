@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 const transactions = [
@@ -16,7 +15,7 @@ const useParserController = (props: Record<string, unknown> | undefined) => {
     }
 
     const { handleSubmit, formState: { errors }, control, watch } = useForm({ defaultValues: initial })
-
+    // eslint-disable-next-line react-hooks/incompatible-library
     const json = watch('payload')
 
     const onSubmit = () => {

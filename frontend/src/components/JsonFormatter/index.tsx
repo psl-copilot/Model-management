@@ -12,14 +12,14 @@ const FormattedJsonSection = ({ value, onChange }: IFormattedJsonSection) => {
 
     const safeJsonParse = useCallback((
         jsonString: string,
-    ): { success: boolean; data?: unknown; error?: string } => {
+    ): { success: boolean; data?: unknown } => {
         try {
             const parsed = JSON.parse(jsonString || '{}');
             return { success: true, data: parsed };
-        } catch (error) {
-            return { success: false, error: 'Invalid JSON format' };
+        } catch {
+            return { success: false };
         }
-    }, [value])
+    }, [])
 
     const parseResult = safeJsonParse(value);
 

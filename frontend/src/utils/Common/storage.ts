@@ -10,9 +10,7 @@ const insertData = (
     encrypted = false,
     cookieOptions?: Cookies.CookieAttributes
 ) => {
-    let value: string;
-
-    value = encrypted ? encrypt(data) : JSON.stringify(data);
+    const value: string = encrypted ? encrypt(data) : JSON.stringify(data);
 
     switch (type) {
         case CookieStorage:

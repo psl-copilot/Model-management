@@ -26,8 +26,15 @@ export const useLocalVariables = ({ allNodes }: UseLocalVariablesProps) => {
       if (nodeData?.nodeType === 'SetVariable') {
         const varName = params.name || params.variableName;
         const varValue = params.value || params.variableValue || '';
+        const dataType = params.dataType || 'any';
+        
         if (varName) {
-          localVars[varName] = varValue;
+          // Handle undefined or empty value
+          if (!varValue || varValue.trim() === '' || dataType === 'undefined') {
+            localVars[varName] = undefined;
+          } else {
+            localVars[varName] = varValue;
+          }
         }
       }
 

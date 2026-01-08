@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import { Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -19,6 +19,7 @@ import {
   FunctionPropertiesSection,
   AdvancedSection,
 } from './components';
+import { useNodeValidation } from '../../../hooks/RuleBuilder/useNodeValidation';
 
 interface RightSidebarProps {
   selectedNode: Node | null;
@@ -57,6 +58,13 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const nodeData = selectedNode?.data as NodeData | undefined;
   const template = nodeData?.nodeType ? getNodeTemplate(nodeData.nodeType) || null : null;
 
+  // Validation hook
+  const { validate, getFieldError } = useNodeValidation(
+    selectedNode?.id || '',
+    nodeData?.nodeType || '',
+    nodeData?.label || 'Unknown'
+  );
+
   // Memoized current values
   const currentLabel = useMemo(
     () => editingLabel !== null ? editingLabel : (nodeData?.label || ''),
@@ -73,6 +81,13 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     setEditingLabel(null);
     setEditingParams(null);
   }, [selectedNode?.id]);
+
+  // Validate params whenever they change
+  useEffect(() => {
+    if (selectedNode && nodeData?.nodeType) {
+      validate(currentParams);
+    }
+  }, [currentParams, selectedNode, nodeData?.nodeType, validate]);
 
   // Get If conditions
   const conditions: IfCondition[] = useMemo(() => {
@@ -289,6 +304,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
           onDragOver={handleDragOver}
           viewOnly={viewOnly}
           allNodes={allNodes}
+          getFieldError={getFieldError}
         />
       ) : (
         template.inputs &&
@@ -305,6 +321,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             viewOnly={viewOnly}
             nodeType={nodeData?.nodeType}
             allNodes={allNodes}
+            getFieldError={getFieldError}
           />
         )
       )}

@@ -99,6 +99,10 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     deleteSelectedNodes: () => {
       const selectedNodes = nodes.filter((n) => n.selected);
       setNodes((currentNodes) => nodeOps.deleteSelectedNodes(currentNodes, selectedNodes));
+      
+      if (onNodeSelect && selectedNodes.length > 0) {
+        onNodeSelect(null);
+      }
     },
     deleteSelectedEdges: () => {
       setEdges((currentEdges) => nodeOps.deleteSelectedEdges(currentEdges));

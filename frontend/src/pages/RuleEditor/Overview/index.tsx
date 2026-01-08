@@ -34,7 +34,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                     name="rule_name"
                     control={values.control}
                     rules={{ required: "Rule Name is required" }}
-                    render={({ field, fieldState: { error } }) => (
+                    render={({ field }) => (
                         <Input
                             required
                             disabled
@@ -48,7 +48,7 @@ const Overview = (props: Record<string, unknown> | undefined) => {
                     name="description"
                     control={values.control}
                     rules={{ required: "Description is required" }}
-                    render={({ field, fieldState: { error } }) => (
+                    render={({ field }) => (
                         <Input
                             maxWidth={'100%'}
                             required

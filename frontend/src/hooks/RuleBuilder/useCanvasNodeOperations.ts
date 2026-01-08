@@ -3,6 +3,7 @@ import type { Node, Edge } from '@xyflow/react';
 import { getNodeTemplate } from '../../utils/Templates/customFuncTemplate';
 import { generateNodeId } from '../../utils/Flow/FlowDefaults';
 import type { EditableNodeData } from '../../components/RuleBuilder/EditableNode';
+import { useValidationContext } from '../../validation/context';
 
 interface UseCanvasNodeOperationsProps {
   setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
@@ -15,7 +16,8 @@ export const useCanvasNodeOperations = ({
   saveHistory,
   setEdges,
 }: UseCanvasNodeOperationsProps) => {
-  // Create a new node from a template at the given position
+  const { clearNodeErrors } = useValidationContext();
+
   const createNodeFromTemplate = useCallback(
     (type: string, position: { x: number; y: number }) => {
       const template = getNodeTemplate(type);
@@ -90,7 +92,6 @@ export const useCanvasNodeOperations = ({
   // Delete selected nodes (excluding protected ones)
   const deleteSelectedNodes = useCallback(
     (currentNodes: Node[], selectedNodes: Node[]) => {
-      // Filter out protected nodes (Start, HandleTransaction, End) from deletion
       const deletableNodes = selectedNodes.filter(
         (node) =>
           String(node.data.nodeType) !== 'Start' &&
@@ -101,7 +102,10 @@ export const useCanvasNodeOperations = ({
       if (deletableNodes.length > 0) {
         const deletableIds = new Set(deletableNodes.map((n) => n.id));
 
-        // Also remove all edges connected to these nodes
+        deletableIds.forEach((nodeId) => {
+          clearNodeErrors(nodeId);
+        });
+
         setEdges((currentEdges) =>
           currentEdges.filter(
             (edge) => !deletableIds.has(edge.source) && !deletableIds.has(edge.target)
@@ -113,7 +117,7 @@ export const useCanvasNodeOperations = ({
 
       return currentNodes;
     },
-    [setEdges]
+    [setEdges, clearNodeErrors]
   );
 
   // Delete selected edges

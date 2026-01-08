@@ -27,7 +27,6 @@ export const useFlowAnimation = ({
   const setEdgesRef = useRef<((edges: Edge[] | ((prevEdges: Edge[]) => Edge[])) => void) | null>(null);
 
   const stopAnimation = useCallback(() => {
-    console.log('STOP command received.');
     
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
@@ -149,7 +148,6 @@ export const useFlowAnimation = ({
       if (startNodeId) {
         startNode = nodesRef.current.find((n) => n.id === startNodeId);
       } else {
-        console.log('--- ANIMATION START ---');
         startNode = nodesRef.current.find((n) => n.data.nodeType === 'Start');
         
         if (startNode) {

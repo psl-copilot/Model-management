@@ -1,14 +1,14 @@
 import { Box, styled, Typography } from "@mui/material";
 import { motion } from "framer-motion";
 
-export const Wrapper = styled(Box)(({ theme }) => ({
+export const Wrapper = styled(Box)(() => ({
     width: "100%",
     overflowX: "auto",
 }));
 
-export const TabsContainer = styled(Box)(({ theme }) => ({
+export const TabsContainer = styled(Box)(() => ({
     display: "inline-flex",
-    gap: theme.spacing(2),
+    gap: 16,
     minWidth: "max-content",
     marginTop: '20px'
 }));

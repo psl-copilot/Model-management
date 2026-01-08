@@ -18,8 +18,6 @@ export const simulateNodeExecution = (
   const type = node.data.nodeType as string;
   const params = (node.data.params as Record<string, string>) || {};
 
-  console.log(`[Simulator] Node: ${type}`, params);
-
   const newVariables = { ...currentVariables };
   let logMessage: string | null = null;
   let error: string | null = null;
@@ -117,6 +115,8 @@ export const simulateNodeExecution = (
       case 'SetVariable': {
         const varName = getParam(['name', 'variableName']);
         const varValueRaw = getParam(['value', 'variableValue']);
+        const declarationType = getParam(['declarationType']) || 'var';
+        const dataType = getParam(['dataType']) || 'any';
 
         if (varName) {
           // Check if variable already exists (duplicate variable warning)
@@ -126,29 +126,58 @@ export const simulateNodeExecution = (
             console.warn(logMessage);
           }
           
-          let finalValue: unknown = varValueRaw;
+          let finalValue: unknown;
 
-          // First check if it's a global variable path
-          const globalVarValue = resolveGlobalVariable(varValueRaw || '');
-          if (globalVarValue !== varValueRaw) {
-            finalValue = globalVarValue;
-          }
-          // If value is a variable reference, resolve it
-          else if (varValueRaw && currentVariables[varValueRaw] !== undefined) {
-            finalValue = currentVariables[varValueRaw];
-          }
-          // If it's a number, parse it
-          else if (varValueRaw && !isNaN(Number(varValueRaw))) {
-            finalValue = parseFloat(varValueRaw);
+          // Handle undefined or empty value case
+          if (!varValueRaw || varValueRaw.trim() === '' || dataType === 'undefined') {
+            finalValue = undefined;
+          } else {
+            // First check if it's a global variable path
+            const globalVarValue = resolveGlobalVariable(varValueRaw);
+            if (globalVarValue !== varValueRaw) {
+              finalValue = globalVarValue;
+            }
+            // If value is a variable reference, resolve it
+            else if (currentVariables[varValueRaw] !== undefined) {
+              finalValue = currentVariables[varValueRaw];
+            }
+            // Handle based on data type
+            else if (dataType === 'number' && !isNaN(Number(varValueRaw))) {
+              finalValue = parseFloat(varValueRaw);
+            } else if (dataType === 'boolean') {
+              finalValue = varValueRaw.toLowerCase() === 'true' || varValueRaw === '1';
+            } else if (dataType === 'array') {
+              try {
+                finalValue = JSON.parse(varValueRaw);
+              } catch {
+                finalValue = [varValueRaw];
+              }
+            } else if (dataType === 'object') {
+              try {
+                finalValue = JSON.parse(varValueRaw);
+              } catch {
+                finalValue = { value: varValueRaw };
+              }
+            } else if (!isNaN(Number(varValueRaw))) {
+              // Auto-detect number for 'any' type
+              finalValue = parseFloat(varValueRaw);
+            } else {
+              // String or default
+              finalValue = varValueRaw;
+            }
           }
 
           newVariables[varName] = finalValue;
           
-          // Update log message if there was a warning
+          // Update log message with type info
+          const typeInfo = dataType !== 'any' ? ` (${dataType})` : '';
+          const declInfo = declarationType !== 'var' ? `[${declarationType}] ` : '';
+          
           if (!error) {
-            logMessage = `✅ Set ${varName} = ${finalValue}`;
+            const displayValue = finalValue === undefined ? 'undefined' : finalValue;
+            logMessage = `✅ Set ${declInfo}${varName}${typeInfo} = ${displayValue}`;
           } else {
-            logMessage = `⚠️ Set ${varName} = ${finalValue} (duplicate variable)`;
+            logMessage = `⚠️ Set ${declInfo}${varName}${typeInfo} = ${finalValue} (duplicate variable)`;
           }
         }
         break;

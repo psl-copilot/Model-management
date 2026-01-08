@@ -44,6 +44,8 @@ export const nodeTemplates: Readonly<NodeTemplates> = {
     displayName: 'Set Variable',
     inputs: [
       { key: 'name', label: 'Variable Name', defaultValue: 'x' },
+      { key: 'declarationType', label: 'Declaration Type', defaultValue: 'var' },
+      { key: 'dataType', label: 'Data Type', defaultValue: 'any' },
       { key: 'value', label: 'Value', defaultValue: '10' },
     ],
     handles: { source: true, target: true },

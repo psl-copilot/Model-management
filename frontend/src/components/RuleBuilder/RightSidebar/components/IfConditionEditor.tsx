@@ -16,6 +16,7 @@ interface IfConditionEditorProps {
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   viewOnly: boolean;
   allNodes?: Node[];
+  getFieldError?: (fieldName: string) => string | undefined;
 }
 
 const IfConditionEditor: React.FC<IfConditionEditorProps> = ({
@@ -27,6 +28,7 @@ const IfConditionEditor: React.FC<IfConditionEditorProps> = ({
   inputRefs: inputRefsRef,
   onDragOver,
   viewOnly,
+  getFieldError,
 }) => {
   return (
     <>
@@ -88,12 +90,14 @@ const IfConditionEditor: React.FC<IfConditionEditorProps> = ({
                   inputRef={(el) => {
                     if (el && cond.type !== 'else') inputRefsRef.current[`condition_${index}`] = el;
                   }}
+                  error={!!getFieldError?.('conditions')}
                   helperText={
-                    cond.type === 'else'
+                    getFieldError?.('conditions') ||
+                    (cond.type === 'else'
                       ? 'Default fallback path'
                       : viewOnly
                         ? 'View only mode'
-                        : 'Enter boolean expression or drop variables'
+                        : 'Enter boolean expression or drop variables')
                   }
                   sx={{
                     '& .MuiOutlinedInput-root': {

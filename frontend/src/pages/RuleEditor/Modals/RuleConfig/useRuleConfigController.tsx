@@ -28,7 +28,7 @@ const useRuleConfigController = ({ handleRuleValue }: RuleConfigProps) => {
         }
       })
     }
-  }, [ruleId])
+  }, [ruleId, submit])
 
   const handleRuleId = (value: DropdownOption) => {
     setRuleId(value)

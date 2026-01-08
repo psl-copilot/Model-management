@@ -32,26 +32,47 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
       
     case 'SetVariable': {
       const varName = params.name || params.variableName || 'variable';
-      let varValue = params.value || params.variableValue || '""';
+      const declarationType = params.declarationType || 'var';
+      const dataType = params.dataType || 'any';
+      let varValue = params.value || params.variableValue || '';
       
       // Strip {{ }} variable indicators from value
       varValue = stripVariableIndicators(varValue);
       
-      // Check if value is a number
+      // Handle undefined or empty value case
+      if (!varValue || varValue.trim() === '' || dataType === 'undefined') {
+        // Generate declaration without value assignment
+        return `${indent}${declarationType} ${varName};`;
+      }
+      
+      // Determine value string based on data type and content
+      let valueStr: string;
+      
+      // Check if value is a number (for number dataType or auto-detection)
       const isNumber = !isNaN(Number(varValue)) && varValue.trim() !== '';
       
-      let valueStr: string;
-      if (isNumber) {
+      if (dataType === 'number' && isNumber) {
+        valueStr = varValue;
+      } else if (dataType === 'boolean') {
+        valueStr = varValue.toLowerCase() === 'true' || varValue === '1' ? 'true' : 'false';
+      } else if (dataType === 'array') {
+        // If it looks like JSON array, use as-is, otherwise wrap in brackets
+        valueStr = varValue.trim().startsWith('[') ? varValue : `[${varValue}]`;
+      } else if (dataType === 'object') {
+        // If it looks like JSON object, use as-is, otherwise wrap in braces
+        valueStr = varValue.trim().startsWith('{') ? varValue : `{${varValue}}`;
+      } else if (isNumber && dataType === 'any') {
+        // Auto-detect number
         valueStr = varValue;
       } else if (varValue.includes('$')) {
         // Contains variable references like RuleRequest.userId
         valueStr = `\`${varValue.replace(/`/g, '\\`')}\``;
       } else {
-        // Regular string
-        valueStr = varValue.startsWith('"') ? varValue : `"${varValue}"`;
+        // String type or default
+        valueStr = varValue.startsWith('"') || varValue.startsWith("'") ? varValue : `"${varValue}"`;
       }
       
-      return `${indent}const ${varName} = ${valueStr};`;
+      return `${indent}${declarationType} ${varName} = ${valueStr};`;
     }
     
     case 'Log': {

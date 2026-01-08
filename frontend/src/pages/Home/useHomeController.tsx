@@ -71,7 +71,7 @@ const useHomeController = () => {
             total,
             onPageChange: (page: number) => setOffset(page - 1),
         };
-    }, [offset, limit, total])
+    }, [offset, limit, total, setOffset])
 
     const handleCreateNew = () => {
         navigate("/editor");
@@ -110,7 +110,7 @@ const useHomeController = () => {
             ruleType,
             user,
             status_options: [{ label: 'All', value: null }, ...getStatusOptionsForRole(user.claims)],
-            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
+            rule_types: [{ label: 'All', value: null }, ...Object.entries(rule_types).map(([, value]) => { return { label: value, value } })],
         },
         functions: {
             handleCreateNew,

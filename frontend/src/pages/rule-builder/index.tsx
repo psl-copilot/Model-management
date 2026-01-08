@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { Box } from '@mui/material';
 import type { Node, Edge } from '@xyflow/react';
 import LeftSidebar from '../../components/RuleBuilder/LeftSidebar';
@@ -7,21 +7,13 @@ import RuleBuilderCanvas from '../../components/RuleBuilder/Canvas';
 import RightSidebar from '../../components/RuleBuilder/RightSidebar';
 import NestedCanvas from '../../components/RuleBuilder/NestedCanvas';
 import OutputModal from '../../components/RuleBuilder/OutputModal';
+import { ValidationProvider } from '../../validation/context';
+import { ValidationErrorModal } from '../../components/RuleBuilder/ValidationErrorModal';
 import {
   useFlowAnimation,
   useFlowState,
   useNestedCanvasManager,
 } from '../../hooks/RuleBuilder';
-
-// Extend Window interface for flow generation methods
-declare global {
-  interface Window {
-    generateFlowJson?: () => void;
-    generateFlowCode?: () => void;
-    generateNestedFlowJson?: () => void;
-    generateNestedFlowCode?: () => void;
-  }
-}
 
 interface RuleBuilderProps {
   viewOnly?: boolean;
@@ -31,6 +23,23 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
   // Custom hooks for state and animation management
   const flowState = useFlowState();
   const nestedCanvasManager = useNestedCanvasManager();
+  
+  // Validation state
+  const [showErrorModal, setShowErrorModal] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
   
   // Animation hook
   const {
@@ -133,6 +142,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         onStopClick={handleStopClick}
         onDisplayJson={handleDisplayJson}
         onGenerateCode={handleGenerateCode}
+        onViewErrors={() => setShowErrorModal(true)}
         viewOnly={viewOnly}
       />
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -201,8 +211,23 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         onDownload={() => flowState.handleDownload(flowState.generatedCode)}
         language="typescript"
       />
+
+      {/* Validation Error Modal */}
+      <ValidationErrorModal
+        open={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+      />
     </Box>
   );
 };
 
-export default RuleBuilder;
+// Wrap with ValidationProvider
+const RuleBuilderWithValidation: React.FC<RuleBuilderProps> = (props) => {
+  return (
+    <ValidationProvider>
+      <RuleBuilder {...props} />
+    </ValidationProvider>
+  );
+};
+
+export default RuleBuilderWithValidation;

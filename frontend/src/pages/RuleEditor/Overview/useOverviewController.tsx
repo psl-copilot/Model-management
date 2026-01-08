@@ -37,7 +37,7 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
     }
 
     const { handleSubmit, formState: { errors }, control, setValue, watch } = useForm({ defaultValues: initial })
-
+    // eslint-disable-next-line react-hooks/incompatible-library
     const rule_config_id = watch('rule_config')
 
     const onSubmit = (values: RuleFormValues) => {
@@ -72,7 +72,7 @@ const useOverviewController = (props: Record<string, unknown> | undefined) => {
             rule_config_id,
             createLoading,
             transactions: types?.map((item: string) => ({ label: item, value: item })) || [],
-            rule_types: [...Object.entries(rule_types).map(([_, value]) => { return { label: value, value } })],
+            rule_types: [...Object.entries(rule_types).map(([, value]) => { return { label: value, value } })],
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

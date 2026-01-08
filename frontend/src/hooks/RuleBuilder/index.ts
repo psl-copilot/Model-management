@@ -1,6 +1,7 @@
 // Form and Node Management Hooks
 export { useNodeForm } from './useNodeForm';
 export { useIfConditions, type IfCondition } from './useIfConditions';
+export { useNodeValidation } from './useNodeValidation';
 
 // Variable Tree Hooks
 export { useVariableTree, type VariableTreeNode } from './useVariableTree';
