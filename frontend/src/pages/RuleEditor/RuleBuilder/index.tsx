@@ -18,7 +18,7 @@ const RuleBuilder = () => {
                 width="170px"
                 type="secondary"
                 size="md"
-                text="View Rule Builder"
+                text="Open Rule Builder"
                 onClick={functions.handleBuilder}
             />
         </Grid>

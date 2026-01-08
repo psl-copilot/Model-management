@@ -190,7 +190,7 @@ const Dropdown = ({
 
                             <List dense>
                                 {filteredOptions?.length === 0 ? (
-                                    <Typography variant="body2" color="text.secondary" p={2}>
+                                    <Typography variant="body2" color="text.secondary" px={2} py={0.5}>
                                         No options found
                                     </Typography>
                                 ) : (
