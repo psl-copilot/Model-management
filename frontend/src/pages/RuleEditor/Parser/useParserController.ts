@@ -37,7 +37,7 @@ const useParserController = (props: IParseProps) => {
     }, [isSuccess, parseBody])
 
 
-    const handleSimulation = () => {
+    const fetchJson = () => {
         getPayload({ type: 'pain.001.001.11' }).unwrap().then((res) => {
             if (res) {
                 setValue('payload', JSON.stringify(res, null, 4))
@@ -55,7 +55,7 @@ const useParserController = (props: IParseProps) => {
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
-            handleSimulation
+            fetchJson
         }
     }
 }

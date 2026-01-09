@@ -16,7 +16,7 @@ interface RuleFormValues {
     txtp: DropdownOption | null;
     txtpVersion: DropdownOption | null;
     version: string;
-    rule_config: DropdownOption | null;
+    rule_config_id: DropdownOption | null;
     rule_type: DropdownOption | null;
 }
 
@@ -43,19 +43,19 @@ const useOverviewController = (props: IOverviewProps) => {
         txtp: (data?.txtp as DropdownOption) || null,
         txtpVersion: (data?.txtp as DropdownOption) || null,
         version: (data?.version as string) || "",
-        rule_config: (data?.rule_config as DropdownOption) || null,
+        rule_config_id: (data?.rule_config_id as DropdownOption) || null,
         rule_type: (data?.rule_type as DropdownOption) || null,
     }
 
     const { handleSubmit, formState: { errors }, control, setValue, watch } = useForm({ defaultValues: initial })
     // eslint-disable-next-line react-hooks/incompatible-library
-    const rule_config_id = watch('rule_config')
+    const rule_config_id = watch('rule_config_id')
 
     const onSubmit = (values: RuleFormValues) => {
         const payload = {
             ...values,
             txtp: values?.txtp?.value,
-            rule_config: values?.rule_config?.value,
+            rule_config_id: values?.rule_config_id?.value,
             rule_type: values?.rule_type?.value,
             txtpVersion: values?.txtpVersion?.value,
         }
@@ -68,7 +68,7 @@ const useOverviewController = (props: IOverviewProps) => {
     }
 
     const handleRuleValue = (val: DropdownOption) => {
-        setValue('rule_config', val)
+        setValue('rule_config_id', val)
         const rule_no = val?.value?.toString().split('@')
         setValue('rule_name', `${user.tenantId}-${rule_no?.[0]}`)
     }

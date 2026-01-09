@@ -125,9 +125,21 @@ const useHomeController = () => {
             user,
             publishing,
             statusLoad,
-            statusOptions: [{ label: 'All', value: '' }, statuses && [...statuses?.map((item: string) => ({ label: item, value: item }))]],
-            ruleTypes: [{ label: 'All', value: null }, ...ruleTypes.map(({ display, value }) => { return { label: display, value } })],
-            publishingOptions: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value } })],
+            statusOptions: [
+                { label: 'All', value: '' },
+                ...(statuses && statuses.length > 0
+                    ? statuses.map((item: string) => ({
+                        label: item,
+                        value: item,
+                    }))
+                    : []),
+            ],
+            ruleTypes: [
+                { label: 'All', value: null },
+                ...ruleTypes.map(({ display, value }) => { return { label: display, value } })],
+            publishingOptions: [
+                { label: 'All', value: null },
+                ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value: value } })],
         },
         functions: {
             handleCreateNew,
