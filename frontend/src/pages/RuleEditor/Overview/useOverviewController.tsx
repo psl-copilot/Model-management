@@ -75,11 +75,13 @@ const useOverviewController = (props: IOverviewProps) => {
 
     const handleTxTp = (val: DropdownOption) => {
         setValue('txtp', val)
-        getVersions({ type: val.value }).unwrap().then((res) => {
-            if (res) {
-                setVersions(res)
-            }
-        })
+        if (val?.value) {
+            getVersions({ type: val.value }).unwrap().then((res) => {
+                if (res) {
+                    setVersions(res)
+                }
+            })
+        }
     }
 
     const handleRuleConfig = () => {
@@ -99,7 +101,7 @@ const useOverviewController = (props: IOverviewProps) => {
             createLoading,
             transactions: types?.map((item: string) => ({ label: item, value: item })) || [],
             txtpVersions: versions?.map((item: string) => ({ label: item, value: item })) || [],
-            rule_types: [...Object.entries(ruleTypes).map(([, value]) => { return { label: value, value } })],
+            ruleTypes: ruleTypes.map(({ display, value }) => { return { label: display, value } }),
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

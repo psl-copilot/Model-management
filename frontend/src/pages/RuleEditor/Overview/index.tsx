@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Grid";
 import { Controller } from "react-hook-form";
-import DropDown from "../../../components/DropDown";
+import DropDown, { type DropdownOption } from "../../../components/DropDown";
 import Input from "../../../components/Input";
 import Loader from "../../../components/Loader";
 import { Text } from "../../../components/Text";
@@ -75,7 +75,7 @@ const Overview = (props: IOverviewProps) => {
                                 <DropDown
                                     required
                                     label="Rule Type"
-                                    options={values.rule_types}
+                                    options={values.ruleTypes}
                                     {...field}
                                     placeholder="Select Rule type"
                                     error={values.errors.rule_type?.message}
@@ -111,7 +111,7 @@ const Overview = (props: IOverviewProps) => {
                                     label="Transaction Type"
                                     options={values.transactions}
                                     {...field}
-                                    onChange={functions.handleTxTp}
+                                    onChange={(val) => functions.handleTxTp(val as DropdownOption)}
                                     placeholder="Select Transaction type"
                                     error={values.errors.txtp?.message}
                                 />
@@ -169,7 +169,7 @@ const Overview = (props: IOverviewProps) => {
                 </Grid>
             </Section>
             <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
-                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
+                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={() => { }} />
             </Box>
 
         </Grid>

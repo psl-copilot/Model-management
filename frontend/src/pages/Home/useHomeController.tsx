@@ -9,6 +9,7 @@ import { useGetRulesMutation } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
 import { claims, getStatusOptionsForRole, publishingStatus, ruleTypes } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
+import { capitalize } from "../../utils/Common/helpers";
 
 const useHomeController = () => {
     const navigate = useNavigate();
@@ -125,7 +126,7 @@ const useHomeController = () => {
             user,
             publishing,
             statusOptions: [{ label: 'All', value: getAllStatus() }, ...getStatusOptionsForRole(user.claims)],
-            ruleTypes: [{ label: 'All', value: null }, ...Object.entries(ruleTypes).map(([, value]) => { return { label: value, value } })],
+            ruleTypes: [{ label: 'All', value: null }, ...ruleTypes.map(({ display, value }) => { return { label: display, value } })],
             publishingOptions: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value } })],
         },
         functions: {

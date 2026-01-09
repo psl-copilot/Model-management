@@ -8,6 +8,7 @@ import Section from "../../../components/Wrappers/Section";
 import useParserController, { type IParseProps } from "./useParserController";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SimulationResultCard from "../../../components/Cards/SimulationResult";
+import { Box } from "@mui/material";
 
 const Parser = (props: IParseProps) => {
 
@@ -33,6 +34,7 @@ const Parser = (props: IParseProps) => {
                         type="secondary"
                         size="md"
                         text="Fetch Json"
+                        loading={values?.sampleLoader}
                         Icon={FileUploadIcon}
                         onClick={functions.handleSimulation}
                     />
@@ -81,6 +83,11 @@ const Parser = (props: IParseProps) => {
                         </Grid>
                         : null}
             </Grid>
+            {values?.result?.success ?
+                <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
+                    <Button height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
+                </Box>
+                : null}
         </Grid >
     )
 }
