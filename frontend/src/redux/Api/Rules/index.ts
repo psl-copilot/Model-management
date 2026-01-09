@@ -24,7 +24,7 @@ export const rulesApi = createApi({
             }),
         }),
         createRule: builder.mutation({
-            query: ( body ) => ({
+            query: (body) => ({
                 url: `create`,
                 method: "POST",
                 body: { ...body },
@@ -54,6 +54,12 @@ export const rulesApi = createApi({
                 method: "GET",
             }),
         }),
+        getStatus: builder.query({
+            query: () => ({
+                url: `status`,
+                method: "GET",
+            }),
+        }),
     }),
 })
 
@@ -63,5 +69,6 @@ export const {
     useGetRuleConfigsIdsQuery,
     useLazyGetRuleConfigQuery,
     useGetNetworkMapQuery,
-    useCreateRuleMutation
+    useCreateRuleMutation,
+    useGetStatusQuery
 } = rulesApi

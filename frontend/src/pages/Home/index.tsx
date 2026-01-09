@@ -12,9 +12,14 @@ import BoxWrapper from "../../components/Wrappers/BoxWrapper";
 import useHomeController from "./useHomeController";
 import { claims } from "../../utils/Constants/data";
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
+import SuspenseLoader from "../../components/SuspenseLoader";
 
 const Home = () => {
     const { values, functions } = useHomeController();
+
+    if (values?.statusLoad) {
+        return <SuspenseLoader />
+    }
 
     return (
         <BoxWrapper>

@@ -5,11 +5,10 @@ import type { TableColumn } from "../../components/Table";
 import TableActions from "../../components/TableActions";
 import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
-import { useGetRulesMutation } from "../../redux/Api/Rules";
+import { useGetRulesMutation, useGetStatusQuery } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
 import { claims, getStatusOptionsForRole, publishingStatus, ruleTypes } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
-import { capitalize } from "../../utils/Common/helpers";
 
 const useHomeController = () => {
     const navigate = useNavigate();
@@ -29,6 +28,7 @@ const useHomeController = () => {
     } = useFilters();
 
     const [getRules, { isLoading }] = useGetRulesMutation();
+    const { data: statuses, isLoading: statusLoad } = useGetStatusQuery({}, { refetchOnMountOrArgChange: true });
 
     const [data, setData] = useState<unknown[]>([]);
     const [total, setTotal] = useState(0);
@@ -113,7 +113,6 @@ const useHomeController = () => {
             )
         }
     ];
-
     return {
         values: {
             columns,
@@ -125,7 +124,8 @@ const useHomeController = () => {
             ruleType,
             user,
             publishing,
-            statusOptions: [{ label: 'All', value: getAllStatus() }, ...getStatusOptionsForRole(user.claims)],
+            statusLoad,
+            statusOptions: [{ label: 'All', value: '' }, statuses && [...statuses?.map((item: string) => ({ label: item, value: item }))]],
             ruleTypes: [{ label: 'All', value: null }, ...ruleTypes.map(({ display, value }) => { return { label: display, value } })],
             publishingOptions: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value } })],
         },
