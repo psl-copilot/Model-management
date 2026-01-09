@@ -52,9 +52,12 @@ export class ConfigController {
     @Param('transactionType') transactionType: string,
     @User() user: AuthenticatedUser,
   ): Promise<any> {
-    return await this.configService.getPayloadByTransactionType(
+    const response = await this.configService.getPayloadByTransactionType(
       transactionType,
       user.token.tokenString,
     );
+
+    return {...response, TxTp: transactionType, TenantId: user.token.tenantId}
+     
   }
 }

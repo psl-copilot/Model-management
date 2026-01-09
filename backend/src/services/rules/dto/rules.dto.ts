@@ -8,19 +8,11 @@ import {
 export class Rules {
   @IsString()
   @IsNotEmpty()
-  rule_id: string;
-
-  @IsString()
-  @IsNotEmpty()
   rule_name: string;
 
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @IsString()
-  @IsNotEmpty()
-  tenant_id: string;
 
   @IsString()
   @IsNotEmpty()
@@ -41,10 +33,6 @@ export class Rules {
   @IsOptional()
   @IsString()
   publishing_status?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  updated_by: string;
 
   @IsOptional()
   @IsString()

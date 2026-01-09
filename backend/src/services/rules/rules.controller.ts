@@ -74,7 +74,7 @@ export class RulesController {
   @Post('/api/create')
   @RequireAnyClaims(TazamaClaims.EDITOR)
   async createRule(
-    @Body() ruleData: Partial<Rules>,
+    @Body() ruleData: Rules,
     @User() user: AuthenticatedUser,
   ): Promise<Rules> {
     console.log('Creating rule with data:', ruleData);
