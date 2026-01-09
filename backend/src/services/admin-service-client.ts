@@ -227,6 +227,28 @@ export class AdminServiceClient {
     }
   }
 
+  async saveRuleRequest(
+    txTp: string,
+    tenantId: string,
+    token:string,
+    ruleRequest: any,
+  ): Promise<any> {
+    try {
+      const response = await this.forwardRequest(
+        'POST',
+        `/v1/admin/trs/saveRuleRequest`,
+        { txTp, tenantId, ruleRequest },
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      );
+
+      return response;
+    } catch (error) {
+      return this.handleError(error, 'saveRuleRequest');
+    }
+  }
+
   async createRule(ruleData: Partial<Rules>, token: string): Promise<Rules> {
     try {
       const response = await this.forwardRequest(

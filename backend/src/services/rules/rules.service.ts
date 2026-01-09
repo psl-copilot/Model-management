@@ -35,7 +35,7 @@ export class RulesService {
 
   async getRulesById(
     id: number,
-    tenantId: string,
+    tenantId: string, // need to fix this. where else is the tenantId being extracted from??
     token: string,
   ): Promise<Rules> {
     const rules = await this.getRuleOrThrow(id, token);
@@ -43,10 +43,12 @@ export class RulesService {
   }
 
   async createRule(
-    ruleData: Partial<Rules>,
+    ruleData: Partial<Rules>, // fix this 
     token: string,
   ): Promise<Rules> {
     try {
+      console.log("starting create Rule in rules service");
+      console.log("rule data at rules service:", ruleData);
       return await this.adminServiceClient.createRule(ruleData, token);
     } catch (error) {
       const err = error as Error;

@@ -26,10 +26,11 @@ export class ParseExtractService {
     
     try {
       this.logger.log(`Processing transactional message for ${request.TxTp} [${correlationId}]`);
+      this.logger.log('tenant id is ', request.TenantId);
       
       // Fetch schema from database via Admin Service
       const adminServiceResponse = await this.adminServiceClient.getConfigRowByTxTp(
-        request.TxTp,
+        request.TxTp, // needs to be sent for saving ruleRequest in db table
         token,
       );
 
@@ -120,6 +121,18 @@ export class ParseExtractService {
         validatedPayload: payloadToValidate,
         ruleRequest, 
       };
+
+      // now we need to store ruleRequest in db table (with the help of tenant_id and txTp)
+       const saveRuleRequestResponse = await this.adminServiceClient.saveRuleRequest(
+        TxTp, // needs to be sent for saving ruleRequest in db table
+        TenantId,
+        token,
+        ruleRequest
+      );
+
+      console.log("saveRuleRequestResponse txtp =  ,", TxTp, " tenantId = ", TenantId);
+      console.log("save rule request response is ",saveRuleRequestResponse);
+
 
       this.logger.log(`Message processing completed successfully for type: ${request.TxTp} [${correlationId}]`);
    
