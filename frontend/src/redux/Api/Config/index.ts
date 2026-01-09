@@ -21,6 +21,12 @@ export const configApi = createApi({
                 method: "GET",
             }),
         }),
+        getTxtpVersions: builder.query({
+            query: ({ type }) => ({
+                url: `versions/${type}`,
+                method: "GET",
+            }),
+        }),
         getSamplePayload: builder.query({
             query: ({ type }) => ({
                 url: `payload/${type}`,
@@ -32,5 +38,6 @@ export const configApi = createApi({
 
 export const {
     useGetTypesQuery,
-    useLazyGetSamplePayloadQuery
+    useLazyGetSamplePayloadQuery,
+    useLazyGetTxtpVersionsQuery,
 } = configApi

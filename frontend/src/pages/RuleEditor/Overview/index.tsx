@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Grid";
 import { Controller } from "react-hook-form";
-import DropDown from "../../../components/DropDown";
+import DropDown, { type DropdownOption } from "../../../components/DropDown";
 import Input from "../../../components/Input";
 import Loader from "../../../components/Loader";
 import { Text } from "../../../components/Text";
@@ -30,20 +30,60 @@ const Overview = (props: IOverviewProps) => {
             </Grid>
 
             <Section header={'General Information'}>
-                <Controller
-                    name="rule_name"
-                    control={values.control}
-                    rules={{ required: "Rule Name is required" }}
-                    render={({ field }) => (
-                        <Input
-                            required
-                            disabled
-                            label="Rule Name"
-                            {...field}
-                            error={values.errors.rule_name?.message}
+                <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            name="rule_name"
+                            control={values.control}
+                            rules={{ required: "Rule Name is required" }}
+                            render={({ field }) => (
+                                <Input
+                                    maxWidth={'100%'}
+                                    required
+                                    disabled
+                                    label="Rule Name"
+                                    {...field}
+                                    error={values.errors.rule_name?.message}
+                                />
+                            )}
                         />
-                    )}
-                />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            name="version"
+                            control={values.control}
+                            rules={{ required: "Version is required" }}
+                            render={({ field, fieldState: { error } }) => (
+                                <Input
+                                    maxWidth={'100%'}
+                                    required
+                                    label="Rule Version"
+                                    {...field}
+                                    error={error?.message}
+                                />
+                            )}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            control={values.control}
+                            name="rule_type"
+                            rules={{ required: "Rule  is required" }}
+                            render={({ field }) => (
+                                <DropDown
+                                    required
+                                    label="Rule Type"
+                                    options={values.ruleTypes}
+                                    {...field}
+                                    placeholder="Select Rule type"
+                                    error={values.errors.rule_type?.message}
+                                />
+                            )}
+                        />
+                    </Grid>
+                </Grid>
                 <Controller
                     name="description"
                     control={values.control}
@@ -71,6 +111,7 @@ const Overview = (props: IOverviewProps) => {
                                     label="Transaction Type"
                                     options={values.transactions}
                                     {...field}
+                                    onChange={(val) => functions.handleTxTp(val as DropdownOption)}
                                     placeholder="Select Transaction type"
                                     error={values.errors.txtp?.message}
                                 />
@@ -79,21 +120,24 @@ const Overview = (props: IOverviewProps) => {
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller
-                            name="version"
                             control={values.control}
-                            rules={{ required: "Version is required" }}
-                            render={({ field, fieldState: { error } }) => (
-                                <Input
-                                    maxWidth={'100%'}
+                            name="txtpVersion"
+                            rules={{ required: "Transaction Type Version Type is required" }}
+                            render={({ field }) => (
+                                <DropDown
                                     required
-                                    label="Version"
+                                    label="Transaction Type Versions"
+                                    options={values.txtpVersions}
                                     {...field}
-                                    error={error?.message}
+                                    placeholder="Select Version"
+                                    error={values.errors.txtpVersion?.message}
                                 />
                             )}
                         />
                     </Grid>
                 </Grid>
+
+
             </Section>
             <Section header={'Configuration Association'} subHeader={'Associate this rule with transaction flow, network context, and typology definitions'}>
                 <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
@@ -123,28 +167,9 @@ const Overview = (props: IOverviewProps) => {
                         />
                     </Grid>
                 </Grid>
-                <Grid container size={12} spacing={2} alignItems={'flex-end'} justifyContent={'space-between'}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Controller
-                            control={values.control}
-                            name="rule_type"
-                            rules={{ required: "Rule  is required" }}
-                            render={({ field }) => (
-                                <DropDown
-                                    required
-                                    label="Rule Type"
-                                    options={values.rule_types}
-                                    {...field}
-                                    placeholder="Select Rule type"
-                                    error={values.errors.rule_type?.message}
-                                />
-                            )}
-                        />
-                    </Grid>
-                </Grid>
             </Section>
             <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
-                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save" onClick={functions.handleSubmit} />
+                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={() => { }} />
             </Box>
 
         </Grid>

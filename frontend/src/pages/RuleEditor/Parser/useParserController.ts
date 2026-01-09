@@ -15,7 +15,7 @@ const useParserController = (props: IParseProps) => {
     const { data } = props
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
-    const [getPayload] = useLazyGetSamplePayloadQuery()
+    const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
     const [result, setResult] = useState<IResult | null>(null)
 
     const initial = {
@@ -38,9 +38,9 @@ const useParserController = (props: IParseProps) => {
 
 
     const handleSimulation = () => {
-        getPayload({ type: 'pain.001.001.11 ' }).then((res) => {
+        getPayload({ type: 'pain.001.001.11' }).unwrap().then((res) => {
             if (res) {
-                setValue('payload', JSON.stringify(res))
+                setValue('payload', JSON.stringify(res, null, 4))
             }
         })
     }
@@ -50,7 +50,8 @@ const useParserController = (props: IParseProps) => {
             control,
             json,
             result,
-            isLoading
+            isLoading,
+            sampleLoader
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

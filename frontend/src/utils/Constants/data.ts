@@ -105,9 +105,18 @@ export const getStatusOptionsForRole = (role: string) => {
 };
 
 
-export const ruleTypes = {
-    Fraud: 'Fraud',
-    AML: 'AML',
-    FRAUD_AML: "Fraud & AML"
-}
+export const ruleTypes = [
+    {
+        display: 'Fraud',
+        value: 'FRAUD'
+    },
+    {
+        display: 'AML',
+        value: 'AML'
+    },
+    {
+        display: 'Fraud & AML',
+        value: 'FRAUD/AML'
+    },
+]
 
