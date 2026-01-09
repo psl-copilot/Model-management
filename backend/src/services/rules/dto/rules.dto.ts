@@ -3,7 +3,12 @@ import {
   IsNotEmpty,
   IsOptional,
   IsDateString,
+  IsArray,
+  IsNumber,
+  IsObject,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class Rules {
   @IsString()
@@ -156,4 +161,100 @@ export class RuleConfigurationDto {
 
   @IsNotEmpty()
   configuration: any;
+}
+
+export class PositionDto {
+  @IsNumber()
+  @IsNotEmpty()
+  x: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  y: number;
+}
+
+export class NodeParamsDto {
+  [key: string]: any;
+}
+
+
+
+export class FlowEdgeDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  source: string;
+
+  @IsString()
+  @IsNotEmpty()
+  target: string;
+}
+
+export class FlowDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowNodeDto)
+  @IsNotEmpty()
+  nodes: FlowNodeDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowEdgeDto)
+  @IsNotEmpty()
+  edges: FlowEdgeDto[];
+}
+
+export class CreateRuleFlowDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowNodeDto)
+  @IsNotEmpty()
+  nodes: FlowNodeDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => FlowEdgeDto)
+  @IsNotEmpty()
+  edges: FlowEdgeDto[];
+}
+
+export class ResponseRuleFlowDto {
+  @IsString()
+  @IsNotEmpty()
+  rule_id: string;
+
+  @IsObject()
+  @IsNotEmpty()
+  flow: FlowDto;
+}
+
+export class FlowNodeDto {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  type: string;
+
+  @IsString()
+  @IsNotEmpty()
+  label: string;
+
+  @IsObject()
+  @IsOptional()
+  params?: NodeParamsDto;
+
+  @ValidateNested()
+  @Type(() => PositionDto)
+  @IsNotEmpty()
+  position: PositionDto;
+
+  @ValidateNested()
+  @Type(() => FlowDto)
+  @IsOptional()
+  nestedFlow?: FlowDto;
 }

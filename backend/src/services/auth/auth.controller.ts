@@ -42,34 +42,29 @@ export class AuthController {
   }
 
   private handleLoginError(error: unknown, username: string): never {
-    const err = error as Error;
-
-    if (
-      error instanceof UnauthorizedException ||
-      err.message?.toLowerCase().includes('expired') ||
-      err.message?.toLowerCase().includes('invalid') ||
-      err.message?.toLowerCase().includes('denied')
-    ) {
+    if (error instanceof UnauthorizedException) {
       this.logger.warn(
-        `Authentication failed for user ${username}: ${err.message}`,
+        `Authentication failed for user ${username}`,
         AuthController.name,
       );
-      throw new UnauthorizedException(
-        err.message?.toLowerCase().includes('expired')
-          ? 'Token is expired or invalid. Please log in again.'
-          : err.message,
-      );
-    } else if (error instanceof ServiceUnavailableException) {
+      throw error;
+    }
+    
+    if (error instanceof ServiceUnavailableException) {
       this.logger.error(
         'Auth service unavailable during login attempt',
         AuthController.name,
       );
       throw error;
-    } else {
-      this.logger.error(`Unexpected error during login: ${err.message}`, AuthController.name);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred during login',
-      );
     }
+    
+    const err = error as Error;
+    this.logger.error(
+      `Unexpected error during login: ${err.message}`,
+      AuthController.name,
+    );
+    throw new InternalServerErrorException(
+      'An unexpected error occurred during login',
+    );
   }
 }

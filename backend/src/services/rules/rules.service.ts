@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AdminServiceClient } from '../admin-service-client';
-import { Rules } from './dto/rules.dto';
+import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from './dto/rules.dto';
 import * as jwt from 'jsonwebtoken';
 
 @Injectable()
@@ -24,6 +24,8 @@ export class RulesService {
     filters: Record<string, unknown>,
     token: string,
   ): Promise<Rules[]> {
+
+    
     return await this.adminServiceClient.getAllRulesWithFilters(
       offset,
       limit,
@@ -97,6 +99,36 @@ export class RulesService {
     } catch (error) {
       const err = error as Error;
       this.logger.error(`Error fetching active network map: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      return await this.adminServiceClient.getRuleFlow(ruleId, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching configuration for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      return await this.adminServiceClient.createRuleFlow(ruleId, flowData, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error creating flow for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async updateRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      return await this.adminServiceClient.updateRuleFlow(ruleId, flowData, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error updating flow for rule ${ruleId}: ${err.message}`);
       throw error;
     }
   }

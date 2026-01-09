@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Rules } from '../services/rules/dto/rules.dto';
+import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
 import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
 import { GetNodesQuery } from './nodes/interfaces/node.interface';
@@ -560,5 +560,82 @@ export class AdminServiceClient {
       return this.handleError(error, 'getAllNodes');
     }
   }
+
+  async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
+          flowData,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+      if (!response.data) {
+        this.logger.error(`No response data after creating flow for rule ${ruleId}`);
+        throw new HttpException(
+          `Failed to create flow for rule ${ruleId}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'createRuleFlow');
+    }
+  }
+   async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'getRuleFlow');
+    }
+  }
+
+  async updateRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.put(
+          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
+          flowData,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+      if (!response.data) {
+        this.logger.error(`No response data after updating flow for rule ${ruleId}`);
+        throw new HttpException(
+          `Failed to update flow for rule ${ruleId}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'updateRuleFlow');
+    }
+  }
+
 }
-  
