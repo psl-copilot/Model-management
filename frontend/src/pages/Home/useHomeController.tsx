@@ -80,8 +80,8 @@ const useHomeController = () => {
         };
     }, [offset, limit, total, setOffset])
 
-    const handleCreateNew = () => {
-        navigate("/editor");
+    const handleCreateEdit = (row?: Record<string, unknown>) => {
+        navigate(row ? `/editor/${row?.id}` : "/editor");
     };
 
     const onView = (data: Record<string, string>) => {
@@ -102,11 +102,11 @@ const useHomeController = () => {
         {
             label: 'Actions',
             key: 'actions',
-            render: (row: unknown) => (
+            render: (row: Record<string, unknown>) => (
                 <TableActions
                     onView={() => onView(row as Record<string, string>)}
                     {...(isEditor && {
-                        onEdit: () => onView(row as Record<string, string>),
+                        onEdit: () => handleCreateEdit(row as Record<string, string>),
                         onClone: () => onView(row as Record<string, string>)
                     })}
                 />
@@ -142,7 +142,7 @@ const useHomeController = () => {
                 ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value: value } })],
         },
         functions: {
-            handleCreateNew,
+            handleCreateEdit,
             setSearchTerm,
             setStatus,
             setRuleType,

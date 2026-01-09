@@ -43,6 +43,7 @@ const Overview = (props: IOverviewProps) => {
                                     disabled
                                     label="Rule Name"
                                     {...field}
+                                    placeholder="tenant-rule_config_id"
                                     error={values.errors.rule_name?.message}
                                 />
                             )}

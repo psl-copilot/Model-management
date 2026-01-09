@@ -9,6 +9,7 @@ import { extractData } from "../../../utils/Common/storage";
 import { ruleTypes, Tabs } from "../../../utils/Constants/data";
 import RuleConfig from "../Modals/RuleConfig";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
+import { toDropdown } from "../../../utils/Common/helpers";
 
 interface RuleFormValues {
     rule_name: string;
@@ -37,16 +38,15 @@ const useOverviewController = (props: IOverviewProps) => {
     const { open } = useModal()
     const user = extractData('user')
 
-    const initial = {
-        rule_name: '',
-        description: (data?.description as string) || "",
-        txtp: (data?.txtp as DropdownOption) || null,
-        txtpVersion: (data?.txtp as DropdownOption) || null,
-        version: (data?.version as string) || "",
-        rule_config_id: (data?.rule_config_id as DropdownOption) || null,
-        rule_type: (data?.rule_type as DropdownOption) || null,
-    }
-
+    const initial: RuleFormValues = {
+        rule_name: (data?.rule_name as string) ?? '',
+        description: (data?.description as string) ?? '',
+        txtp: toDropdown(data?.txtp as string),
+        txtpVersion: toDropdown(data?.txtpVersion as string),
+        version: (data?.version as string) ?? '',
+        rule_config_id: toDropdown(data?.rule_config_id as string),
+        rule_type: toDropdown(data?.rule_type as string),
+    };
     const { handleSubmit, formState: { errors }, control, setValue, watch } = useForm({ defaultValues: initial })
     // eslint-disable-next-line react-hooks/incompatible-library
     const rule_config_id = watch('rule_config_id')

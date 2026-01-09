@@ -18,7 +18,7 @@ export type TableColumn = {
     key: string;
     label: string;
     type?: "date";
-    render?: (row: unknown) => React.ReactNode;
+    render?: (row: Record<string, unknown>) => React.ReactNode;
     filter?: React.ReactNode;
     capitalize?: boolean;
     sx?: object;
@@ -53,7 +53,7 @@ const Table = ({
 }: TableProps) => {
     const headers = [...columns];
 
-    const renderRow = (row: Record<string, string> | unknown, index: number) => (
+    const renderRow = (row: Record<string, unknown>, index: number) => (
         <>
             {columns.map((col) => (
                 <TableCell
@@ -116,7 +116,7 @@ const Table = ({
                                     }}
                                     className={getRowClassName?.(row)}
                                 >
-                                    {renderRow(row, index)}
+                                    {renderRow(row as Record<string, unknown>, index)}
                                 </TableRow>
                             ))
                         ) : (

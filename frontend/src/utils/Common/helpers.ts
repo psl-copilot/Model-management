@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import type { User } from "./types";
+import type { DropdownOption } from "../../components/DropDown";
 
 export const hideValue = (value: string, sign = "*") => sign?.repeat(value?.length)
 
@@ -189,6 +190,9 @@ export const getNestedValue = (
 
   return "-"
 }
+
+export const toDropdown = (value?: string | null): DropdownOption | null =>
+  value ? { label: value, value } : null;
 
 export const capitalize = (value: string) =>
   value.charAt(0).toUpperCase() + value.slice(1);
