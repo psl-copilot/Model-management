@@ -13,19 +13,11 @@ import { Type } from 'class-transformer';
 export class Rules {
   @IsString()
   @IsNotEmpty()
-  rule_id: string;
-
-  @IsString()
-  @IsNotEmpty()
   rule_name: string;
 
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @IsString()
-  @IsNotEmpty()
-  tenant_id: string;
 
   @IsString()
   @IsNotEmpty()
@@ -37,15 +29,15 @@ export class Rules {
 
   @IsOptional()
   @IsString()
+  txtpVersion?: string;
+
+  @IsOptional()
+  @IsString()
   status?: string;
 
   @IsOptional()
   @IsString()
   publishing_status?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  updated_by: string;
 
   @IsOptional()
   @IsString()
@@ -87,6 +79,10 @@ export class CreateRuleDto {
 
   @IsOptional()
   @IsString()
+  txtpVersion?: string;
+
+  @IsOptional()
+  @IsString()
   status?: string;
 
   @IsOptional()
@@ -122,6 +118,10 @@ export class UpdateRuleDto {
   @IsOptional()
   @IsString()
   version?: string;
+
+  @IsOptional()
+  @IsString()
+  txtpVersion?: string;
 
   @IsOptional()
   @IsString()

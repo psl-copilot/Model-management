@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AdminServiceClient } from '../admin-service-client';
 import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from './dto/rules.dto';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class RulesService {
@@ -36,7 +37,7 @@ export class RulesService {
 
   async getRulesById(
     id: number,
-    tenantId: string,
+    tenantId: string, // need to fix this. where else is the tenantId being extracted from??
     token: string,
   ): Promise<Rules> {
     const rules = await this.getRuleOrThrow(id, token);
@@ -44,10 +45,12 @@ export class RulesService {
   }
 
   async createRule(
-    ruleData: Partial<Rules>,
+    ruleData: Partial<Rules>, // fix this 
     token: string,
   ): Promise<Rules> {
     try {
+      console.log("starting create Rule in rules service");
+      console.log("rule data at rules service:", ruleData);
       return await this.adminServiceClient.createRule(ruleData, token);
     } catch (error) {
       const err = error as Error;
@@ -100,9 +103,9 @@ export class RulesService {
     }
   }
 
-      async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
+  async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
     try {
-          return await this.adminServiceClient.getRuleFlow(ruleId, token);
+      return await this.adminServiceClient.getRuleFlow(ruleId, token);
     } catch (error) {
       const err = error as Error;
       this.logger.error(`Error fetching configuration for rule ${ruleId}: ${err.message}`);
@@ -127,6 +130,40 @@ export class RulesService {
       const err = error as Error;
       this.logger.error(`Error updating flow for rule ${ruleId}: ${err.message}`);
       throw error;
+    }
+  }
+
+  async getRulesStatusbyRole(tokenString: string): Promise<string[]> {
+    try {
+      const outerDecoded = jwt.decode(tokenString) as any;
+      if (!outerDecoded) {
+        this.logger.error('Failed to decode outer JWT token - token is null or invalid');
+        return [];
+      }
+      const innerDecoded = jwt.decode(outerDecoded.tokenString) as any;
+      if (!innerDecoded) {
+        this.logger.error('Failed to decode inner JWT token - tokenString is null or invalid');
+        return [];
+      }
+
+      if (!innerDecoded.status) {
+        this.logger.warn('Inner token payload does not contain status field');
+        this.logger.log(`Available inner token fields: ${Object.keys(innerDecoded).join(', ')}`);
+        return [];
+      }
+
+      const statusString = innerDecoded.status as string;
+      const statuses = statusString
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      this.logger.log(`Extracted ${statuses.length} allowed statuses from token: ${statuses.join(', ')}`);
+      return statuses;
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Failed to decode JWT token: ${err.message}`);
+      return [];
     }
   }
 }

@@ -201,6 +201,54 @@ export class AdminServiceClient {
     }
   }
 
+  async getVersionsOfTransactionType(transactionType: string, token: string): Promise<string[]> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `${this.adminServiceUrl}/v1/admin/config/versions/${transactionType}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data?.versions) {
+        this.logger.warn(`No versions found for transaction type ${transactionType} in admin-service response`);
+        return [];
+      }
+
+      return response.data.versions;
+    } catch (error) {
+      return this.handleError(error, 'getVersionsOfTransactionType');
+    }
+  }
+
+  async saveRuleRequest(
+    txTp: string,
+    tenantId: string,
+    token:string,
+    ruleRequest: any,
+  ): Promise<any> {
+    try {
+      const response = await this.forwardRequest(
+        'POST',
+        `/v1/admin/trs/saveRuleRequest`,
+        { txTp, tenantId, ruleRequest },
+        {
+          Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
+        },
+      );
+
+      return response;
+    } catch (error) {
+      return this.handleError(error, 'saveRuleRequest');
+    }
+  }
+
   async createRule(ruleData: Partial<Rules>, token: string): Promise<Rules> {
     try {
       const response = await this.forwardRequest(

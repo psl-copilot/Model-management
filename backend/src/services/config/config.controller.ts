@@ -24,6 +24,24 @@ export class ConfigController {
     );
   }
 
+  // at this point, we need another API to get all versions for a transaction type
+  @Get('/api/versions/:transactionType')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getVersionsByTransactionType(
+    @Param('transactionType') transactionType: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<string[]> {
+    console.log("Controller --> Fetching versions for transaction type:", transactionType);
+    return await this.configService.getVersionsOfTransactionType(
+      transactionType,
+      user.token.tokenString,
+    );
+  }
+
   @Get('/api/payload/:transactionType')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
@@ -34,9 +52,12 @@ export class ConfigController {
     @Param('transactionType') transactionType: string,
     @User() user: AuthenticatedUser,
   ): Promise<any> {
-    return await this.configService.getPayloadByTransactionType(
+    const response = await this.configService.getPayloadByTransactionType(
       transactionType,
       user.token.tokenString,
     );
+
+    return {...response, TxTp: transactionType, TenantId: user.token.tenantId}
+     
   }
 }
