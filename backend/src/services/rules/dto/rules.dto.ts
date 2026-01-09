@@ -32,6 +32,10 @@ export class Rules {
 
   @IsOptional()
   @IsString()
+  txtpVersion?: string;
+
+  @IsOptional()
+  @IsString()
   status?: string;
 
   @IsOptional()
@@ -82,6 +86,10 @@ export class CreateRuleDto {
 
   @IsOptional()
   @IsString()
+  txtpVersion?: string;
+
+  @IsOptional()
+  @IsString()
   status?: string;
 
   @IsOptional()
@@ -117,6 +125,10 @@ export class UpdateRuleDto {
   @IsOptional()
   @IsString()
   version?: string;
+
+  @IsOptional()
+  @IsString()
+  txtpVersion?: string;
 
   @IsOptional()
   @IsString()

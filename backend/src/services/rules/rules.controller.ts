@@ -54,7 +54,8 @@ export class RulesController {
     );
   }
 
-   @Get('/api/ids')
+  // get rule IDs
+  @Get('/api/ids')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
@@ -69,9 +70,7 @@ export class RulesController {
     );
   }
 
-
- 
-
+  // create a new rule
   @Post('/api/create')
   @RequireAnyClaims(TazamaClaims.EDITOR)
   async createRule(
@@ -86,8 +85,7 @@ export class RulesController {
     );
   }
 
- 
-
+  // get rule configuration by rule ID
   @Get('/api/configuration/:ruleId')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
@@ -104,6 +102,7 @@ export class RulesController {
     );
   }
 
+  // update an existing rule
   @Put('/api/:ruleId')
   @RequireAnyClaims(TazamaClaims.EDITOR)
   async updateRule(
@@ -118,7 +117,8 @@ export class RulesController {
     );
   }
 
-   @Get('/api/:id')
+  // get rule by ID
+  @Get('/api/:id')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
     TazamaClaims.APPROVER,
@@ -136,6 +136,7 @@ export class RulesController {
     );
   }
 
+  // get active network map
   @Get('/api/network-map/active')
   @RequireAnyClaims(
     TazamaClaims.EDITOR,
@@ -149,6 +150,4 @@ export class RulesController {
       user.token.tokenString,
     );
   }
-
-  
 }
