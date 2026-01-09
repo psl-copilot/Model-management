@@ -8,7 +8,7 @@ import {
   CloseButton,
   EmptyState,
 } from './styles';
-import { getNodeTemplate, type FunctionNodeTemplate } from '../../../utils/Templates/customFuncTemplate';
+import { getNodeTemplate } from '../../../utils/Flow/nodeTemplateService';
 import {
   NodeHeader,
   BasicPropertiesSection,
@@ -265,9 +265,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
       </CloseButton>
 
       <NodeHeader
-        templateDisplayName={template.displayName}
+        templateDisplayName={template.displayName || template.label || 'Node'}
         isFunctionNode={isFunctionNode}
-        description={isFunctionNode ? (template as FunctionNodeTemplate).description : undefined}
+        description={isFunctionNode ? template.description : undefined}
       />
 
       <BasicPropertiesSection
@@ -275,7 +275,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         currentLabel={currentLabel}
         onLabelChange={handleLabelChange}
         onLabelBlur={handleLabelBlur}
-        templateDisplayName={template.displayName}
+        templateDisplayName={template.displayName || template.label || 'Node'}
         isReadOnly={isReadOnly}
         viewOnly={viewOnly}
       />
@@ -310,7 +310,10 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         template.inputs &&
         template.inputs.length > 0 && (
           <ParameterSection
-            inputs={template.inputs}
+            inputs={template.inputs.map(input => ({
+              ...input,
+              defaultValue: input.defaultValue || ''
+            }))}
             currentParams={currentParams}
             onParamChange={handleParamChange}
             onDrop={handleDrop}
@@ -326,9 +329,20 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         )
       )}
 
-      <ConnectionInfoSection template={template} />
+      <ConnectionInfoSection 
+        template={{
+          displayName: template.displayName || template.label || 'Node',
+          handles: template.handles || { source: true, target: true }
+        }} 
+      />
 
-      {isFunctionNode && <FunctionPropertiesSection template={template as FunctionNodeTemplate} />}
+      {isFunctionNode && template.description && (
+        <FunctionPropertiesSection 
+          template={{
+            description: template.description
+          }} 
+        />
+      )}
 
       <AdvancedSection selectedNode={selectedNode} />
     </SidebarContainer>

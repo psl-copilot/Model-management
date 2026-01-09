@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { EditableNodeData } from '../../components/RuleBuilder/EditableNode';
-import { getNodeTemplate } from '../../utils/Templates/customFuncTemplate';
+import { getNodeTemplate } from '../../utils/Flow/nodeTemplateService';
 import { useNodeStyles, useNodeHandles } from './index';
 
 export const useNodeRenderer = (nodeData: EditableNodeData) => {
@@ -34,8 +34,8 @@ export const useNodeRenderer = (nodeData: EditableNodeData) => {
   // Get handle configurations
   const { targetHandle, sourceHandles } = useNodeHandles(
     nodeData.nodeType,
-    template?.handles.target || false,
-    template?.handles.source || false,
+    template?.handles?.target || false,
+    template?.handles?.source || false,
     conditions
   );
 

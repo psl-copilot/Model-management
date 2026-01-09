@@ -1,10 +1,15 @@
 import React from 'react';
 import { Box, Chip, Divider } from '@mui/material';
-import type { BaseNodeTemplate } from '../../../../utils/Templates/customFuncTemplate';
 import { SectionContainer, SectionTitle } from '../styles';
 
 interface ConnectionInfoSectionProps {
-  template: BaseNodeTemplate;
+  template: {
+    displayName: string;
+    handles: {
+      source: boolean;
+      target: boolean;
+    };
+  };
 }
 
 const ConnectionInfoSection: React.FC<ConnectionInfoSectionProps> = ({ template }) => {

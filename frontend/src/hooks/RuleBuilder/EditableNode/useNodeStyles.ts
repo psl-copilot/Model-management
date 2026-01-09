@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getNodeTemplate } from '../../../utils/Templates/customFuncTemplate';
+import { getNodeTemplate } from '../../../utils/Flow/nodeTemplateService';
 
 interface NodeColors {
   backgroundColor: string;

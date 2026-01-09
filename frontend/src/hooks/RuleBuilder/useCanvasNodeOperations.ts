@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import type { Node, Edge } from '@xyflow/react';
-import { getNodeTemplate } from '../../utils/Templates/customFuncTemplate';
+import { getNodeTemplate } from '../../utils/Flow/nodeTemplateService';
 import { generateNodeId } from '../../utils/Flow/FlowDefaults';
 import type { EditableNodeData } from '../../components/RuleBuilder/EditableNode';
 import { useValidationContext } from '../../validation/context';

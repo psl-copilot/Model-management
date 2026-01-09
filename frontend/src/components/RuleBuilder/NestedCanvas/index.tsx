@@ -19,7 +19,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditableNode from '../EditableNode';
 import LeftSidebar from '../LeftSidebar';
 import RightSidebar from '../RightSidebar';
-import { getNodeTemplate } from '../../../utils/Templates/customFuncTemplate';
+import { getNodeTemplate } from '../../../utils/Flow/nodeTemplateService';
 import { generateNestedNodeId } from '../../../utils/Flow/FlowDefaults';
 import { getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
 import { useValidationContext } from '../../../validation/context';

@@ -10,6 +10,9 @@ export { useLocalVariables } from './useLocalVariables';
 // Node Palette Hook
 export { useNodePalette, type NodeTemplate as NodePaletteTemplate } from './useNodePalette';
 
+// API Nodes Hook
+export { useApiNodes } from './useApiNodes';
+
 // Flow Management Hooks
 export { useFlowAnimation } from './useFlowAnimation';
 export { useFlowState } from './useFlowState';
@@ -27,4 +30,3 @@ export { useDebuggerPanel } from './useDebuggerPanel';
 
 // EditableNode Hooks
 export { useNodeStyles, useNodeHandles } from './EditableNode';
-
