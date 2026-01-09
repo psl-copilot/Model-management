@@ -20,7 +20,19 @@ import { Rules } from './dto/rules.dto';
 @UseGuards(TazamaAuthGuard)
 export class RulesController {
   constructor(private readonly rulesService: RulesService) {}
-
+ @Get('/api/status')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getRulesStatus(
+    @User() user: AuthenticatedUser,
+  ): Promise<string[]> {
+    return await this.rulesService.getRulesStatusbyRole(
+      user.token.tokenString,
+    );
+  }
 
   @Post('/api/all')
   @RequireAnyClaims(
