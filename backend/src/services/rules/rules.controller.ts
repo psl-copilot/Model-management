@@ -184,6 +184,24 @@ export class RulesController {
   ): Promise<ResponseRuleFlowDto> {
     return await this.rulesService.updateRuleFlow(ruleId, flowData, user.token.tokenString);
   }
+ 
+
+  @Get('/api/global-variables/:ruleId')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getGlobalVariables(
+    @Param('ruleId') ruleId: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<any> {
+    return await this.rulesService.getGlobalVariables(
+      ruleId,
+      user.tenantId,
+      user.token.tokenString,
+    );
+  }
 
   
 }

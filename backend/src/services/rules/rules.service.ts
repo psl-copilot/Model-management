@@ -166,4 +166,16 @@ export class RulesService {
       return [];
     }
   }
+
+  async getGlobalVariables(ruleId: string, tenantId: string, token: string): Promise<any> {
+    try {
+      const ruleData = await this.adminServiceClient.getGlobalVariables(ruleId, tenantId, token);
+      return ruleData;
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching global variables for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
 }
