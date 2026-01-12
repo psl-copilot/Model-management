@@ -203,5 +203,20 @@ export class RulesController {
     );
   }
 
+  // Creating a new API for cloning an exising rule
+  @Post('/api/clone/:ruleId')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async cloneRule(
+    @Param('ruleId') ruleId: string,
+    @User() user: AuthenticatedUser, // ismei se i can take out tenantId
+  ): Promise<Rules> {
+    console.log('Cloning rule with ID:', ruleId);
+    console.log('User info:', user.validated);
+    return await this.rulesService.cloneRule(
+      ruleId,
+      user.token.tokenString,
+    );
+  }
+
   
 }

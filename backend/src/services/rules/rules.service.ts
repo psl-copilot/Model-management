@@ -178,4 +178,13 @@ export class RulesService {
     }
   }
 
+  async cloneRule(ruleId: string, token: string): Promise<Rules> {
+    try {
+      return await this.adminServiceClient.cloneRule(ruleId, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error cloning rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
 }
