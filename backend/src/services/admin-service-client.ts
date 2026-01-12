@@ -10,7 +10,7 @@ import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from '../services/rules
 import { firstValueFrom } from 'rxjs';
 import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
 import { GetNodesQuery } from './nodes/interfaces/node.interface';
-import { BASE_URL,RULES_WITH_FILTERS } from 'src/constants/constant';
+import { BASE_URL,GLOBAL_VARIABLES,RULE_FLOW,RULES_WITH_FILTERS, RULES_WITH_ID } from 'src/constants/constant';
 
 @Injectable()
 export class AdminServiceClient {
@@ -209,30 +209,12 @@ export class AdminServiceClient {
     );
   }
   async getRulesById(id: number, token: string): Promise<Rules> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.get(
-          `${this.adminServiceUrl}/v1/admin/trs/rules/${id}`,
-          {
-            headers: {
-              Authorization: token.startsWith('Bearer ')
-                ? token
-                : `Bearer ${token}`,
-            },
-          },
-        ),
-      );
-
-      if (!response.data?.rules) {
-        this.logger.warn(`Rules ${id} not found in admin-service response`);
-        throw new NotFoundException(`Rules with id ${id} not found`);
-      }
-
-      return response.data.rules;
-    } catch (error) {
-      return this.handleError(error, 'getRulesById');
-    }
-  }
+  return this.executeHttpRequest<Rules>(
+    'GET',
+    `${RULES_WITH_ID}/${id}`,
+    token,
+  );
+}
 
   async getVersionsOfTransactionType(transactionType: string, token: string): Promise<string[]> {
     try {
@@ -646,79 +628,41 @@ export class AdminServiceClient {
       return this.handleError(error, 'createRuleFlow');
     }
   }
-   async getRuleFlow(ruleId: string, token: string): Promise<ResponseRuleFlowDto> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.get(
-          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
-          {
-            headers: {
-              Authorization: token.startsWith('Bearer ')
-                ? token
-                : `Bearer ${token}`,
-            },
-          },
-        ),
-      );
+async getRuleFlow(
+  ruleId: string,
+  token: string,
+): Promise<ResponseRuleFlowDto> {
+  return this.executeHttpRequest<ResponseRuleFlowDto>(
+    'GET',
+    `${RULE_FLOW}/${ruleId}`,
+    token,
+  );
+}
 
-      return response.data;
-    } catch (error) {
-      return this.handleError(error, 'getRuleFlow');
-    }
-  }
+async updateRuleFlow(
+  ruleId: string,
+  flowData: CreateRuleFlowDto,
+  token: string,
+): Promise<ResponseRuleFlowDto> {
+  return this.executeHttpRequest<ResponseRuleFlowDto>(
+    'PUT',
+    `${RULE_FLOW}/${ruleId}`,
+    token,
+    flowData,
+  );
+}
 
-  async updateRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.put(
-          `${this.adminServiceUrl}/v1/admin/trs/rule-flow/${ruleId}`,
-          flowData,
-          {
-            headers: {
-              Authorization: token.startsWith('Bearer ')
-                ? token
-                : `Bearer ${token}`,
-            },
-          },
-        ),
-      );
-      if (!response.data) {
-        this.logger.error(`No response data after updating flow for rule ${ruleId}`);
-        throw new HttpException(
-          `Failed to update flow for rule ${ruleId}`,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      return response.data;
-    } catch (error) {
-      return this.handleError(error, 'updateRuleFlow');
-    }
-  }
+async getGlobalVariables(
+  ruleId: string,
+  tenantId: string,
+  token: string,
+): Promise<any> {
+  return this.executeHttpRequest<any>(
+    'GET',
+    `${GLOBAL_VARIABLES}/${ruleId}/${tenantId}`,
+    token,
+  );
+}
 
-  async getGlobalVariables(ruleId: string, tenantId: string, token: string): Promise<any> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.get(
-          `${this.adminServiceUrl}/v1/admin/trs/global-variables/${ruleId}/${tenantId}`,
-          {
-            headers: {
-              Authorization: token.startsWith('Bearer ')
-                ? token
-                : `Bearer ${token}`,
-            },
-          },
-        ),
-      );
-
-      if (!response.data) {
-        this.logger.warn(`No global variables found for rule ${ruleId} and tenant ${tenantId}`);
-        return null;
-      }
-
-      return response.data;
-    } catch (error) {
-      return this.handleError(error, 'getGlobalVariables');
-    }
-  }
 
 }
