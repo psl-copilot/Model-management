@@ -6,6 +6,7 @@ export { useNodeValidation } from './useNodeValidation';
 // Variable Tree Hooks
 export { useVariableTree, type VariableTreeNode } from './useVariableTree';
 export { useLocalVariables } from './useLocalVariables';
+export { useNodeScope } from './useNodeScope';
 
 // Node Palette Hook
 export { useNodePalette, type NodeTemplate as NodePaletteTemplate } from './useNodePalette';

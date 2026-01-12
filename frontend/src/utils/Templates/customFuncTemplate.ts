@@ -3,6 +3,9 @@ export interface NodeInput {
   label: string;
   defaultValue: string;
   required?: boolean;
+  type?: string; // e.g., 'text', 'textarea', 'dropdown', 'json'
+  options?: string[]; // For dropdown inputs
+  placeholder?: string; // Placeholder text for inputs
 }
 
 export interface NodeHandles {

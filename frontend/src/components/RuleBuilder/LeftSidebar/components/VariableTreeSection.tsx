@@ -4,7 +4,7 @@ import type { VariableTreeNode } from '../../../../hooks/RuleBuilder/useVariable
 import VariableTreeItem from './VariableTreeItem';
 
 interface VariableTreeSectionProps {
-  title: string;
+  title: string | React.ReactNode;
   icon: React.ReactNode;
   color: string;
   nodes: VariableTreeNode[];

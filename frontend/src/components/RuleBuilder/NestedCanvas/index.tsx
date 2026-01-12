@@ -163,13 +163,12 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   // Edge operations (inline implementation)
   const onConnect = useCallback(
     (params: Connection) => {
-      // Find the source node to check if it's an If node
-      const sourceNode = nodes.find((n) => n.id === params.source);
-      const isIfNode = sourceNode?.data.nodeType === 'If';
+  
+      const hasMultipleHandles = params.sourceHandle !== null;
 
       setEdges((eds) => {
-        if (!isIfNode) {
-          // For non-If nodes, check if source already has an outgoing edge
+        if (!hasMultipleHandles) {
+          // For nodes without multiple handles, check if source already has an outgoing edge
           const sourceHasEdge = eds.some((edge) => edge.source === params.source);
 
           if (sourceHasEdge) {
@@ -177,27 +176,27 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
             return eds;
           }
         } else {
-          // For If nodes, check if this specific handle already has an edge
+          // For nodes with multiple handles (If/Loop), check if this specific handle already has an edge
           const handleHasEdge = eds.some(
             (edge) =>
               edge.source === params.source && edge.sourceHandle === params.sourceHandle
           );
 
           if (handleHasEdge) {
-            console.warn('This condition already has a connection');
+            console.warn('This handle already has a connection');
             return eds;
           }
         }
 
-        // Add label and style for If node edges
+        // Add label and style for If and Loop node edges
         const edgeWithLabel = {
           ...params,
           label:
-            isIfNode && params.sourceHandle
+            hasMultipleHandles && params.sourceHandle
               ? getLabelForHandle(params.sourceHandle)
               : undefined,
           style:
-            isIfNode && params.sourceHandle
+            hasMultipleHandles && params.sourceHandle
               ? {
                   stroke: getColorForHandle(params.sourceHandle),
                   strokeWidth: 2,
@@ -208,7 +207,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
         return addEdge(edgeWithLabel, eds);
       });
     },
-    [nodes, setEdges]
+    [setEdges]
   );
 
   // Keyboard shortcuts (inline implementation)
@@ -387,7 +386,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       {/* Main Content with Sidebar and Canvas */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar with Global Variables */}
-        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} />}
+        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} />}
 
         {/* Canvas */}
         <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>

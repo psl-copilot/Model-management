@@ -17,11 +17,11 @@ export const useCanvasEdgeOperations = ({
       saveHistory();
 
       setEdges((eds) => {
-        // Check if source has multiple handles (indicating an If node)
-        const isIfNode = params.sourceHandle !== null;
+        // Check if source has multiple handles (indicating an If or Loop node)
+        const hasMultipleHandles = params.sourceHandle !== null;
 
-        if (!isIfNode) {
-          // For non-If nodes, check if source already has an outgoing edge
+        if (!hasMultipleHandles) {
+          // For nodes without multiple handles, check if source already has an outgoing edge
           const sourceHasEdge = eds.some((edge) => edge.source === params.source);
 
           if (sourceHasEdge) {
@@ -29,27 +29,27 @@ export const useCanvasEdgeOperations = ({
             return eds;
           }
         } else {
-          // For If nodes, check if this specific handle already has an edge
+          // For nodes with multiple handles (If/Loop), check if this specific handle already has an edge
           const handleHasEdge = eds.some(
             (edge) =>
               edge.source === params.source && edge.sourceHandle === params.sourceHandle
           );
 
           if (handleHasEdge) {
-            console.warn('This condition already has a connection');
+            console.warn('This handle already has a connection');
             return eds;
           }
         }
 
-        // Add label and style for If node edges
+        // Add label and style for If and Loop node edges
         const edgeWithLabel = {
           ...params,
           label:
-            isIfNode && params.sourceHandle
+            hasMultipleHandles && params.sourceHandle
               ? getLabelForHandle(params.sourceHandle)
               : undefined,
           style:
-            isIfNode && params.sourceHandle
+            hasMultipleHandles && params.sourceHandle
               ? {
                   stroke: getColorForHandle(params.sourceHandle),
                   strokeWidth: 2,

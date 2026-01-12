@@ -38,9 +38,36 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
     <>
       <Divider />
       <SectionContainer>
-        <SectionTitle>Parameters</SectionTitle>
+        <SectionTitle>Parameters</SectionTitle> 
 
         {inputs.map((input) => {
+          // Skip for/while specific fields if loopType is not 'for'
+          const loopType = currentParams['loopType'];
+          if ((input.key === 'customIncrement' || input.key === 'incrementOperation' || input.key === 'loopCondition' || input.key === 'initialization') && loopType !== 'for') {
+            return null;
+          }
+          
+          // Skip itemVariable for 'for' and 'while' loops (it's optional there)
+          if (input.key === 'itemVariable' && (loopType === 'for' || loopType === 'while')) {
+            return null;
+          }
+          
+          // Skip resultVariable for forEach, for, and while (only needed for map/filter)
+          if (input.key === 'resultVariable' && loopType !== 'map' && loopType !== 'filter') {
+            return null;
+          }
+          
+          // Skip filterCondition if loopType is not 'filter'
+          if (input.key === 'filterCondition' && loopType !== 'filter') {
+            return null;
+          }
+
+          // Skip returnValue if exitType is not 'return' (for Exit node)
+          const exitType = currentParams['exitType'];
+          if (input.key === 'returnValue' && exitType !== 'return') {
+            return null;
+          }
+
           const currentValue = currentParams[input.key] ?? input.defaultValue;
           const hasGlobalVariable =
             currentValue &&
@@ -48,7 +75,7 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             /\{\{\s*.+?\s*\}\}/.test(currentValue);
 
           // Determine if this should be a multiline input
-          const isMultiline = input.key === 'code' || input.key === 'query' || input.key === 'importStatement' || currentValue.length > 50;
+          const isMultiline = input.type === 'textarea' || input.key === 'code' || input.key === 'query' || input.key === 'importStatement' || input.key === 'loopBody' || (typeof currentValue === 'string' && currentValue.length > 50);
 
           // Check for validation errors
           const fieldError = getFieldError?.(input.key);
@@ -64,7 +91,35 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             || (viewOnly ? 'View only mode' : '')
             || `Default: ${input.defaultValue}. Drop variables here.`;
 
-          // Render dropdown for declarationType
+          // Render generic dropdown for inputs with options array
+          if (input.options && input.options.length > 0) {
+            return (
+              <PropertyRow key={input.key}>
+                <FormControl fullWidth size="small" error={hasError} disabled={isReadOnly || viewOnly}>
+                  <InputLabel>{input.label}{input.required && <Typography component="span" sx={{ color: 'error.main', ml: 0.5 }}>*</Typography>}</InputLabel>
+                  <Select
+                    value={currentValue || input.defaultValue || input.options[0]}
+                    onChange={(e) => {
+                      const syntheticEvent = {
+                        target: { value: e.target.value as string }
+                      } as React.ChangeEvent<HTMLInputElement>;
+                      onParamChange(input.key)(syntheticEvent);
+                    }}
+                    label={input.label}
+                  >
+                    {input.options.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {helperText && <FormHelperText>{helperText}</FormHelperText>}
+                </FormControl>
+              </PropertyRow>
+            );
+          }
+
+          // Render dropdown for declarationType (legacy support)
           if (input.key === 'declarationType') {
             return (
               <PropertyRow key={input.key}>
@@ -90,7 +145,7 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             );
           }
 
-          // Render dropdown for dataType
+          // Render dropdown for dataType (legacy support)
           if (input.key === 'dataType') {
             return (
               <PropertyRow key={input.key}>

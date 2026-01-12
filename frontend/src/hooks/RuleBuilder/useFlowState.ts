@@ -19,6 +19,7 @@ export const useFlowState = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [allNodes, setAllNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<import('@xyflow/react').Edge[]>([]);
 
   const handleToggleSidebar = useCallback(() => {
     setSidebarCollapsed(prev => !prev);
@@ -87,6 +88,8 @@ export const useFlowState = () => {
     setGeneratedCode,
     allNodes,
     setAllNodes,
+    edges,
+    setEdges,
     
     // Handlers
     handleToggleSidebar,

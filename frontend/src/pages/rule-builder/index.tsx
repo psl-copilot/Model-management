@@ -122,7 +122,10 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
     setEdges: (edges: Edge[] | ((prevEdges: Edge[]) => Edge[])) => void
   ) => {
     updateFlowState(nodes, edges, setNodes, setEdges);
-  }, [updateFlowState]);
+    // Sync edges and nodes to parent state for variable scoping
+    flowState.setAllNodes(nodes);
+    flowState.setEdges(edges);
+  }, [updateFlowState, flowState]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -153,6 +156,8 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
             onToggleCollapse={flowState.handleToggleSidebar}
             hideCustomFunctions={nestedCanvasManager.activeNestedCanvas !== null}
             allNodes={flowState.allNodes}
+            edges={flowState.edges}
+            selectedNodeId={flowState.selectedNode?.id || null}
           />
         )}
         <RuleBuilderCanvas

@@ -73,23 +73,25 @@ export const sortNodesInFlowOrder = <T extends NodeWithId, E extends EdgeWithSou
 }
 
 /**
- * Get label text for If node condition handles
+ * Get label text for If and Loop node handles
  */
 export const getLabelForHandle = (handleId: string): string => {
   if (handleId === 'if') return 'if';
   if (handleId === 'else') return 'else';
   if (handleId === 'exit') return 'exit';
+  if (handleId === 'loopBody') return 'loop body';
   if (handleId.startsWith('elseif')) return 'else if';
   return '';
 };
 
 /**
- * Get color for If node condition handles
+ * Get color for If and Loop node handles
  */
 export const getColorForHandle = (handleId: string): string => {
   if (handleId === 'if') return '#4caf50'; // green
   if (handleId === 'else') return '#4caf50'; // green
   if (handleId === 'exit') return '#000000'; // black for continuation
+  if (handleId === 'loopBody') return '#2196F3'; // blue for loop body
   if (handleId.startsWith('elseif')) return '#4caf50'; // green
   return '#555';
 };

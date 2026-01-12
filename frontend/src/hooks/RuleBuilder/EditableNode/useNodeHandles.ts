@@ -75,6 +75,33 @@ export const useNodeHandles = (
           border: '2px solid white',
         },
       });
+    } else if (hasSourceHandle && nodeType === 'Loop') {
+      // Right-side handle for loop body
+      result.sourceHandles.push({
+        id: 'loopBody',
+        type: 'source',
+        position: Position.Right,
+        style: {
+          background: '#2196F3',
+          width: '10px',
+          height: '10px',
+          border: '2px solid white',
+          top: '50%',
+        },
+      });
+
+      // Bottom handle for continuation after loop
+      result.sourceHandles.push({
+        id: 'exit',
+        type: 'source',
+        position: Position.Bottom,
+        style: {
+          background: '#000000',
+          width: '10px',
+          height: '10px',
+          border: '2px solid white',
+        },
+      });
     } else if (hasSourceHandle) {
       // Single output handle for other nodes
       result.sourceHandles.push({

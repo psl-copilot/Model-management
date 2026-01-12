@@ -32,6 +32,8 @@ interface LeftSidebarProps {
   hideCustomFunctions?: boolean;
   showGlobalVariables?: boolean;
   allNodes?: Node[];
+  edges?: import('@xyflow/react').Edge[];
+  selectedNodeId?: string | null;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
@@ -41,6 +43,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   hideCustomFunctions = false,
   showGlobalVariables = false,
   allNodes = [],
+  edges = [],
+  selectedNodeId = null,
 }) => {
   // State
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -71,10 +75,15 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   // Custom hooks for data management
   const { getNodesToShow } = useNodePalette({ mode, hideCustomFunctions, apiNodes: nodeTemplates });
-  const localVars = useLocalVariables({ allNodes });
+  const { localVars, loopVars, loopContext } = useLocalVariables({ 
+    allNodes, 
+    edges, 
+    selectedNodeId 
+  });
   
   // Build variable trees
   const localVarsTree = useVariableTree({ obj: localVars, parentPath: '' });
+  const loopVarsTree = useVariableTree({ obj: loopVars, parentPath: '' });
   const ruleRequestTree = useVariableTree({ obj: globalVariables.RuleRequest, parentPath: 'RuleRequest' });
   const ruleConfigTree = useVariableTree({ obj: globalVariables.RuleConfig, parentPath: 'RuleConfig' });
 
@@ -182,6 +191,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
               {showGlobalVariables && activeTab === 1 ? (
                 <VariableTree
                   localVarsTree={localVarsTree}
+                  loopVarsTree={loopVarsTree}
+                  loopContext={loopContext}
                   ruleRequestTree={ruleRequestTree}
                   ruleConfigTree={ruleConfigTree}
                 />

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import type { Node } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
+import { useNodeScope } from './useNodeScope';
 
 interface NodeData {
   nodeType?: string;
@@ -9,14 +10,38 @@ interface NodeData {
 
 interface UseLocalVariablesProps {
   allNodes: Node[];
+  edges?: Edge[];
+  selectedNodeId?: string | null;
+}
+
+interface UseLocalVariablesResult {
+  localVars: Record<string, unknown>;
+  loopVars: Record<string, unknown>;
+  loopContext: {
+    isInLoopScope: boolean;
+    loopNames: string[];
+  };
 }
 
 /**
  * Extract local variables from SetVariable, FetchDB, and CustomFunction nodes
+ * Also extracts loop variables if selectedNodeId is inside a loop scope
  */
-export const useLocalVariables = ({ allNodes }: UseLocalVariablesProps) => {
+export const useLocalVariables = ({ 
+  allNodes, 
+  edges = [], 
+  selectedNodeId = null 
+}: UseLocalVariablesProps): UseLocalVariablesResult => {
+  // Get loop scope context for selected node
+  const { parentLoops, isInLoopScope } = useNodeScope({
+    nodeId: selectedNodeId,
+    edges,
+    nodes: allNodes,
+  });
+
   return useMemo(() => {
     const localVars: Record<string, unknown> = {};
+    const loopVars: Record<string, unknown> = {};
 
     allNodes.forEach((node) => {
       const nodeData = node.data as NodeData;
@@ -55,6 +80,43 @@ export const useLocalVariables = ({ allNodes }: UseLocalVariablesProps) => {
       }
     });
 
-    return localVars;
-  }, [allNodes]);
+    // Extract loop variables from parent loops (if node is in loop scope)
+    const loopNames: string[] = [];
+    
+    parentLoops.forEach((loopContext, index) => {
+      const params = loopContext.loopNode.data.params as Record<string, string>;
+      const loopLabel = (loopContext.loopNode.data as { label?: string }).label || `Loop ${index + 1}`;
+      loopNames.push(loopLabel);
+
+      // Add item variable (current element in iteration) - only if defined
+      // For 'for' and 'while' loops, this is optional
+      if (loopContext.itemVariable && loopContext.itemVariable.trim() !== '') {
+        loopVars[loopContext.itemVariable] = `<item from ${loopContext.arrayVariable}>`;
+      }
+
+      // Add index variable (current iteration index) - only if defined
+      if (loopContext.indexVariable && loopContext.indexVariable.trim() !== '') {
+        loopVars[loopContext.indexVariable] = '<number>';
+      }
+
+      // Add array variable reference
+      if (loopContext.arrayVariable) {
+        loopVars[loopContext.arrayVariable] = '<array>';
+      }
+
+      // For map/filter loops, add result variable if exists
+      if ((loopContext.loopType === 'map' || loopContext.loopType === 'filter') && params.resultVariable) {
+        loopVars[params.resultVariable] = '<array>';
+      }
+    });
+
+    return {
+      localVars,
+      loopVars,
+      loopContext: {
+        isInLoopScope,
+        loopNames,
+      },
+    };
+  }, [allNodes, parentLoops, isInLoopScope]);
 };

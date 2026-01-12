@@ -170,7 +170,7 @@ export const mockRuleBuilderNodes: ApiNode[] = [
     name: 'Conditional Branch Node',
     node_type: 'If',
     label: 'If Condition',
-    description: 'Executes different branches based on conditional logic (if/else if/else)',
+    description: 'Executes different branches based on conditional logic (if/else if/else). Can optionally execute early exit actions (break, continue, return)',
     type: 'basic',
     category: 'rule_builder',
     color: '#FFC107',
@@ -391,4 +391,243 @@ export const mockRuleBuilderNodes: ApiNode[] = [
     created_at: '2026-01-08T00:00:00.000Z',
     updated_at: '2026-01-08T00:00:00.000Z',
   },
+  {
+    id: 12,
+    name: 'Loop Node',
+    node_type: 'Loop',
+    label: 'Loop',
+    description: 'Container node that iterates over an array. Connect nodes to loopBody edge (right) for loop body, exit edge (bottom) for code after loop',
+    type: 'basic',
+    category: 'rule_builder',
+    color: '#9C27B0',
+    handles: {
+      source: true,
+      target: true,
+    },
+    inputs: [
+      {
+        key: 'loopType',
+        label: 'Loop Type',
+        type: 'dropdown',
+        options: ['forEach', 'for', 'while', 'map', 'filter'],
+        defaultValue: 'forEach',
+        required: true,
+      },
+      {
+        key: 'arrayVariable',
+        label: 'Array Variable',
+        type: 'text',
+        defaultValue: 'items',
+        required: true,
+        placeholder: 'e.g., items, data, {{ RuleRequest.transactions }}',
+      },
+      {
+        key: 'itemVariable',
+        label: 'Item Variable',
+        type: 'text',
+        defaultValue: 'item',
+        required: false,
+        placeholder: 'Variable name for each item (forEach/map/filter)',
+      },
+      {
+        key: 'indexVariable',
+        label: 'Index Variable',
+        type: 'text',
+        defaultValue: '',
+        required: false,
+        placeholder: 'Variable name for index (optional)',
+      },
+      {
+        key: 'initialization',
+        label: 'Initialization (for loop)',
+        type: 'text',
+        defaultValue: 'i = 0',
+        required: false,
+        placeholder: 'e.g., i = 0, index = 1',
+      },
+      {
+        key: 'loopCondition',
+        label: 'Loop Condition (for loop)',
+        type: 'text',
+        defaultValue: '',
+        required: false,
+        placeholder: 'e.g., i < array.length, index <= 10',
+      },
+      {
+        key: 'incrementOperation',
+        label: 'Increment/Decrement (for loop)',
+        type: 'dropdown',
+        options: ['i++', '++i', 'i--', '--i', 'custom'],
+        defaultValue: 'i++',
+        required: false,
+      },
+      {
+        key: 'customIncrement',
+        label: 'Custom Increment (for loop)',
+        type: 'text',
+        defaultValue: '',
+        required: false,
+        placeholder: 'e.g., i += 2, i -= 1',
+      },
+      {
+        key: 'resultVariable',
+        label: 'Result Variable (map/filter only)',
+        type: 'text',
+        defaultValue: 'loopResult',
+        required: false,
+        placeholder: 'Variable to store returned array (map/filter)',
+      },
+      {
+        key: 'filterCondition',
+        label: 'Filter Condition (filter loop only)',
+        type: 'text',
+        defaultValue: '',
+        required: false,
+        placeholder: 'e.g., item.amount > 100 (only for filter loop)',
+      },
+    ],
+    code_template: `// Loop - iterates over array with optional conditions
+items.forEach((item, index) => {
+  // Custom logic here
+});`,
+    default_data: {
+      loopType: 'forEach',
+      arrayVariable: 'items',
+      itemVariable: 'item',
+      indexVariable: '',
+      initialization: 'i = 0',
+      loopCondition: '',
+      incrementOperation: 'i++',
+      customIncrement: '',
+      resultVariable: 'loopResult',
+      filterCondition: '',
+    },
+    tenant_id: 'cbe',
+    created_at: '2026-01-09T00:00:00.000Z',
+    updated_at: '2026-01-09T00:00:00.000Z',
+  },
+  {
+    id: 13,
+    name: 'Exit Node',
+    node_type: 'Exit',
+    label: 'Exit',
+    description: 'Exits the current block with break, continue, or return. Use inside loops or functions to control flow.',
+    type: 'basic',
+    category: 'rule_builder',
+    color: '#E91E63',
+    handles: {
+      source: false,
+      target: true,
+    },
+    inputs: [
+      {
+        key: 'exitType',
+        label: 'Exit Type',
+        type: 'dropdown',
+        options: ['break', 'continue', 'return'],
+        defaultValue: 'break',
+        required: true,
+        placeholder: 'Select exit type',
+      },
+      {
+        key: 'returnValue',
+        label: 'Return Value',
+        type: 'text',
+        defaultValue: '',
+        required: false,
+        placeholder: 'Value to return (only for return type)',
+      },
+    ],
+    code_template: "${params.exitType || 'break'};",
+    default_data: {
+      exitType: 'break',
+      returnValue: '',
+    },
+    tenant_id: 'cbe',
+    created_at: '2026-01-12T00:00:00.000Z',
+    updated_at: '2026-01-12T00:00:00.000Z',
+  },
 ];
+
+/**
+ * EXIT NODE DOCUMENTATION
+ * 
+ * The Exit node provides early exit functionality for control flow blocks.
+ * It should be placed inside loops, conditionals, or functions to exit early.
+ * 
+ * NODE CONFIGURATION:
+ * - Node Type: 'Exit'
+ * - Color: Pink (#E91E63)
+ * - Handles: Target only (no source - it terminates flow)
+ * 
+ * USAGE SCENARIOS:
+ * 
+ * 1. BREAK - Exit current loop immediately
+ *    - exitType: 'break'
+ *    - Generated code: break;
+ *    - Use case: Stop iterating when target item is found
+ *    - Example: Inside a loop, when condition is met:
+ *              Loop → If (item.id === targetId) → Exit (break)
+ *              Generated: if (item.id === targetId) { break; }
+ * 
+ * 2. CONTINUE - Skip to next iteration of loop
+ *    - exitType: 'continue'
+ *    - Generated code: continue;
+ *    - Use case: Skip processing current item and move to next
+ *    - Example: Inside a loop, skip inactive items:
+ *              Loop → If (item.status === 'inactive') → Exit (continue)
+ *              Generated: if (item.status === 'inactive') { continue; }
+ * 
+ * 3. RETURN - Return from current function with optional value
+ *    - exitType: 'return'
+ *    - returnValue: (optional) value to return
+ *    - Generated code without value: return;
+ *    - Generated code with value: return {{ value }};
+ *    - Use case: Exit function early if validation fails
+ *    - Example: Early validation return:
+ *              If (item.amount > limit) → Exit (return, 'Amount exceeds limit')
+ *              Generated: if (item.amount > limit) { return 'Amount exceeds limit'; }
+ * 
+ * FIELD VISIBILITY:
+ * - exitType dropdown is always visible
+ * - returnValue field only shows when exitType is set to 'return'
+ * 
+ * CODE GENERATION:
+ * - Break: Works in for, while, forEach loops
+ * - Continue: Works in for, while, forEach loops  
+ * - Return: Works at any nesting level (exits the function)
+ * - Variables {{ }} indicators are stripped from returnValue during generation
+ * 
+ * VISUAL FLOW:
+ * The Exit node has no source handle, making it clear visually that it
+ * terminates the current execution path. This provides better visual
+ * clarity than parameter-based early exit configuration.
+ * 
+ * EXAMPLES:
+ * 
+ * Example 1: Skip invalid transactions
+ * Flow: Loop (forEach) → If (transaction.amount <= 0) → Exit (continue)
+ * Generated:
+ *   items.forEach((item) => {
+ *     if (transaction.amount <= 0) {
+ *       continue;
+ *     }
+ *     // Process valid transaction
+ *   });
+ * 
+ * Example 2: Validate and return early  
+ * Flow: If (user.role !== 'admin') → Exit (return, 'Unauthorized')
+ * Generated:
+ *   if (user.role !== 'admin') {
+ *     return 'Unauthorized';
+ *   }
+ * 
+ * Example 3: Find and exit loop
+ * Flow: Loop (for) → If (item.id === searchId) → Exit (break)
+ * Generated:
+ *   for (let i = 0; i < items.length; i++) {
+ *     if (items[i].id === searchId) {
+ *       break;
+ *     }
+ *   }
+ */
