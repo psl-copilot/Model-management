@@ -51,7 +51,7 @@ export class AuthService {
             response.data?.jwt ??
             response.data?.user?.token);
 
-      const claimsToCheck = ['editor', 'approver', 'publisher', 'exporter'];
+      const claimsToCheck = ['editor', 'approver', 'publisher'];
       const claimResult = validateTokenAndClaims(token, claimsToCheck);
 
       
