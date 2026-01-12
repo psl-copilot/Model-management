@@ -5,11 +5,12 @@ import type { DropdownOption } from "../../../components/DropDown";
 import { useModal } from "../../../contexts/ModalContext";
 import { useGetTypesQuery, useLazyGetTxtpVersionsQuery } from "../../../redux/Api/Config";
 import { useCreateRuleMutation } from "../../../redux/Api/Rules";
-import { extractData } from "../../../utils/Common/storage";
+import { extractData, insertData } from "../../../utils/Common/storage";
 import { ruleTypes, Tabs } from "../../../utils/Constants/data";
 import RuleConfig from "../Modals/RuleConfig";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
 import { toDropdown } from "../../../utils/Common/helpers";
+import { LocalStorage } from "../../../utils/Common/enums";
 
 interface RuleFormValues {
     rule_name: string;
@@ -61,6 +62,7 @@ const useOverviewController = (props: IOverviewProps) => {
         }
         submit(payload).then((res) => {
             if (res) {
+                insertData(res?.data, 'trs_rule', LocalStorage, true)
                 toast.success('Rule Successfully Created')
                 setSelected(Tabs[1].value)
             }

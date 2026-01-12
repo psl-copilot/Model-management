@@ -1,6 +1,6 @@
 export const CookieStorage = 'cookie';
-export const SessionStorage = 'session';
-export const LocalStorage = 'local';
+export const SessionStorage = 'SessionStorage';
+export const LocalStorage = 'LocalStorage';
 
 export type StorageType =
   | typeof CookieStorage
