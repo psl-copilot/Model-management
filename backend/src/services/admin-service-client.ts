@@ -203,7 +203,7 @@ export class AdminServiceClient {
   ): Promise<Rules[]> {
     return this.executeHttpRequest<Rules[]>(
       'POST',
-      `${BASE_URL}${RULES_WITH_FILTERS}/${offset}/${limit}`,
+      `${RULES_WITH_FILTERS}/${offset}/${limit}`,
       token,
       filters,
     );
