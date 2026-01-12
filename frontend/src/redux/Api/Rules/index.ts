@@ -13,14 +13,14 @@ export const rulesApi = createApi({
             return headers
         }
     }),
-
+    tagTypes: ['rule'],
     endpoints: (builder) => ({
         getRules: builder.mutation({
             query: ({ body, params }) => ({
                 url: `all`,
                 method: "POST",
                 body: { ...body },
-                params
+                params,
             }),
         }),
         createRule: builder.mutation({
@@ -29,11 +29,13 @@ export const rulesApi = createApi({
                 method: "POST",
                 body: { ...body },
             }),
+            invalidatesTags: ['rule']
         }),
         getRuleById: builder.query({
             query: ({ id }) => ({
                 url: `${id}`,
                 method: "GET",
+                providesTags: ['rule']
             }),
         }),
         getRuleConfigsIds: builder.query({

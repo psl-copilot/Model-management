@@ -43,6 +43,7 @@ const Overview = (props: IOverviewProps) => {
                                     disabled
                                     label="Rule Name"
                                     {...field}
+                                    placeholder="tenant-rule_config_id"
                                     error={values.errors.rule_name?.message}
                                 />
                             )}
@@ -144,7 +145,7 @@ const Overview = (props: IOverviewProps) => {
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller
                             control={values.control}
-                            name="rule_config"
+                            name="rule_config_id"
                             rules={{ required: "Rule Config is required" }}
                             render={({ field }) => (
                                 <DropDown
@@ -153,7 +154,7 @@ const Overview = (props: IOverviewProps) => {
                                     {...field}
                                     onClick={functions.handleRuleConfig}
                                     placeholder="Select Rule Config"
-                                    error={!values?.rule_config_id ? values.errors.rule_config?.message : ''}
+                                    error={!values?.rule_config_id ? values.errors.rule_config_id?.message : ''}
                                 />
                             )}
                         />
@@ -169,7 +170,7 @@ const Overview = (props: IOverviewProps) => {
                 </Grid>
             </Section>
             <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
-                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={() => { }} />
+                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
             </Box>
 
         </Grid>

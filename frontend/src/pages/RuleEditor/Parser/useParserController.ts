@@ -3,6 +3,8 @@ import { useParsePayloadMutation } from "../../../redux/Api/Parse";
 import { useLazyGetSamplePayloadQuery } from "../../../redux/Api/Config";
 import { useEffect, useState } from "react";
 import type { IResult } from "../../../utils/Common/types";
+import { extractData } from "../../../utils/Common/storage";
+import { LocalStorage } from "../../../utils/Common/enums";
 
 
 export interface IParseProps {
@@ -12,7 +14,7 @@ export interface IParseProps {
 
 const useParserController = (props: IParseProps) => {
 
-    const { data } = props
+    const data = extractData('trs_rule', LocalStorage, true)
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
     const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
@@ -37,8 +39,8 @@ const useParserController = (props: IParseProps) => {
     }, [isSuccess, parseBody])
 
 
-    const handleSimulation = () => {
-        getPayload({ type: 'pain.001.001.11' }).unwrap().then((res) => {
+    const fetchJson = () => {
+        getPayload({ type: data?.txtp }).unwrap().then((res) => {
             if (res) {
                 setValue('payload', JSON.stringify(res, null, 4))
             }
@@ -55,7 +57,7 @@ const useParserController = (props: IParseProps) => {
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
-            handleSimulation
+            fetchJson
         }
     }
 }

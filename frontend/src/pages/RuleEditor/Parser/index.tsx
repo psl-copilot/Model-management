@@ -36,7 +36,7 @@ const Parser = (props: IParseProps) => {
                         text="Fetch Json"
                         loading={values?.sampleLoader}
                         Icon={FileUploadIcon}
-                        onClick={functions.handleSimulation}
+                        onClick={functions.fetchJson}
                     />
                 </Grid>
                 <Grid container size={12} spacing={2} alignItems={'flex-start'}>

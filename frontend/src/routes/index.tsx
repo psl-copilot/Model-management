@@ -40,6 +40,12 @@ export const ROUTES = [
         layout: true,
     },
     {
+        path: "/editor/:id",
+        element: <RuleEditor />,
+        private: true,
+        layout: true,
+    },
+    {
         path: '/rule-builder/:id',
         element: <RuleBuilder />,
         private: true,

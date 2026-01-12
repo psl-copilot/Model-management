@@ -80,8 +80,8 @@ const useHomeController = () => {
         };
     }, [offset, limit, total, setOffset])
 
-    const handleCreateNew = () => {
-        navigate("/editor");
+    const handleCreateEdit = (row?: Record<string, unknown>) => {
+        navigate(row ? `/editor/${row?.id}` : "/editor");
     };
 
     const onView = (data: Record<string, string>) => {
@@ -98,11 +98,11 @@ const useHomeController = () => {
         {
             label: 'Actions',
             key: 'actions',
-            render: (row: unknown) => (
+            render: (row: Record<string, unknown>) => (
                 <TableActions
                     onView={() => onView(row as Record<string, string>)}
                     {...(isEditor && {
-                        onEdit: () => onView(row as Record<string, string>),
+                        onEdit: () => handleCreateEdit(row as Record<string, string>),
                         onClone: () => onView(row as Record<string, string>)
                     })}
                 />
@@ -121,12 +121,24 @@ const useHomeController = () => {
             user,
             publishing,
             statusLoad,
-            statusOptions: [{ label: 'All', value: '' }, ...(statuses?.map((item: string) => ({ label: item, value: item })) || [])],
-            ruleTypes: [{ label: 'All', value: null }, ...ruleTypes.map(({ display, value }) => { return { label: display, value } })],
-            publishingOptions: [{ label: 'All', value: null }, ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value } })],
+            statusOptions: [
+                { label: 'All', value: '' },
+                ...(statuses && statuses.length > 0
+                    ? statuses.map((item: string) => ({
+                        label: item,
+                        value: item,
+                    }))
+                    : []),
+            ],
+            ruleTypes: [
+                { label: 'All', value: null },
+                ...ruleTypes.map(({ display, value }) => { return { label: display, value } })],
+            publishingOptions: [
+                { label: 'All', value: null },
+                ...Object.entries(publishingStatus).map(([, value]) => { return { label: value, value: value } })],
         },
         functions: {
-            handleCreateNew,
+            handleCreateEdit,
             setSearchTerm,
             setStatus,
             setRuleType,
