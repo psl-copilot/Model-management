@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { useGetRuleByIdQuery } from "../../redux/Api/Rules"
+import { LocalStorage } from "../../utils/Common/enums"
+import { removeData } from "../../utils/Common/storage"
 import { Tabs } from "../../utils/Constants/data"
 import Overview from "./Overview"
 import Parser from "./Parser"
@@ -24,6 +26,10 @@ const useRuleEditorController = () => {
     useEffect(() => {
         setSelected(tab)
     }, [tab])
+
+    useEffect(() => {
+        return () => removeData('trs_rule', LocalStorage)
+    }, [])
 
     const renderComponent = useCallback(() => {
         switch (selected) {

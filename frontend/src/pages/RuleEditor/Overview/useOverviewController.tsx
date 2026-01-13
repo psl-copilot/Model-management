@@ -30,7 +30,8 @@ export interface IOverviewProps {
 
 const useOverviewController = (props: IOverviewProps) => {
 
-    const { data, setSelected, mode } = props
+    const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
+    const { setSelected, mode } = props
     const [versions, setVersions] = useState<string[]>([])
 
     const { data: types, isLoading } = useGetTypesQuery({})

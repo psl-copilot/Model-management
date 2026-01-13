@@ -6,8 +6,8 @@ import Cookies from 'js-cookie';
 const insertData = (
     data: unknown,
     key: string,
-    type: StorageType = CookieStorage,
-    encrypted = false,
+    type: StorageType = SessionStorage,
+    encrypted = true,
     cookieOptions?: Cookies.CookieAttributes
 ) => {
     const value: string = encrypted ? encrypt(data) : JSON.stringify(data);
@@ -32,8 +32,8 @@ const insertData = (
 
 const extractData = (
     key: string,
-    type: StorageType = CookieStorage,
-    encrypted = false
+    type: StorageType = SessionStorage,
+    encrypted = true
 ) => {
     let data: string | null | undefined;
 
@@ -63,6 +63,29 @@ const extractData = (
     return JSON.parse(data);
 };
 
+const removeData = (
+    key: string,
+    type: StorageType = SessionStorage,
+    cookieOptions?: Cookies.CookieAttributes
+) => {
+    switch (type) {
+        case CookieStorage:
+            Cookies.remove(key, {
+                ...cookieOptions,
+            });
+            break;
+
+        case SessionStorage:
+            sessionStorage.removeItem(key);
+            break;
+
+        case LocalStorage:
+            localStorage.removeItem(key);
+            break;
+    }
+};
+
+
 
 const getAuthToken = () => {
     return extractData("access_token");
@@ -80,5 +103,6 @@ export {
     extractData,
     insertData,
     resetData,
-    getAuthToken
+    getAuthToken,
+    removeData
 };
