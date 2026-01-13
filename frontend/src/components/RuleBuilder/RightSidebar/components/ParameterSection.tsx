@@ -8,6 +8,7 @@ interface ParameterSectionProps {
   inputs: NodeInput[];
   currentParams: Record<string, string>;
   onParamChange: (paramKey: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onParamBlur?: () => void;
   onDrop: (paramKey: string) => (event: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | HTMLTextAreaElement>>;
@@ -23,6 +24,7 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
   inputs,
   currentParams,
   onParamChange,
+  onParamBlur,
   onDrop,
   onDragOver,
   inputRefs: inputRefsRef,
@@ -191,6 +193,7 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
                 }
                 value={currentValue}
                 onChange={onParamChange(input.key)}
+                onBlur={onParamBlur}
                 size="small"
                 variant="outlined"
                 multiline={isMultiline}

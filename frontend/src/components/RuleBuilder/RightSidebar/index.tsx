@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -54,6 +54,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
   const [editingParams, setEditingParams] = useState<Record<string, string> | null>(null);
   const inputRefs = React.useRef<Record<string, HTMLInputElement | HTMLTextAreaElement>>({});
+  const updateTimeoutRef = React.useRef<number | null>(null);
+  const validationTimeoutRef = React.useRef<number | null>(null);
+  const currentParamsRef = React.useRef<Record<string, string>>({});
 
   const nodeData = selectedNode?.data as NodeData | undefined;
   const template = nodeData?.nodeType ? getNodeTemplate(nodeData.nodeType) || null : null;
@@ -75,19 +78,31 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     () => editingParams !== null ? editingParams : (nodeData?.params || {}),
     [editingParams, nodeData?.params]
   );
+  
+  // Keep ref in sync with currentParams
+  React.useEffect(() => {
+    currentParamsRef.current = currentParams;
+  }, [currentParams]);
 
   // Reset on node change
   React.useEffect(() => {
+    // Clear any pending updates and validations
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
+    }
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+      validationTimeoutRef.current = null;
+    }
     setEditingLabel(null);
     setEditingParams(null);
-  }, [selectedNode?.id]);
-
-  // Validate params whenever they change
-  useEffect(() => {
-    if (selectedNode && nodeData?.nodeType) {
-      validate(currentParams);
+    // Validate new node immediately
+    if (selectedNode && nodeData?.nodeType && nodeData?.params) {
+      validate(nodeData.params);
     }
-  }, [currentParams, selectedNode, nodeData?.nodeType, validate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNode?.id]);
 
   // Get If conditions
   const conditions: IfCondition[] = useMemo(() => {
@@ -115,17 +130,51 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const handleLabelBlur = useCallback(() => {
     setEditingLabel(null);
   }, []);
+  
+  const handleParamBlur = useCallback(() => {
+    // Immediately apply pending updates when field loses focus
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
+    }
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+      validationTimeoutRef.current = null;
+    }
+    if (selectedNode && editingParams) {
+      onUpdateNode(selectedNode.id, { params: editingParams });
+      // Validate immediately on blur
+      validate(editingParams);
+    }
+  }, [selectedNode, editingParams, onUpdateNode, validate]);
 
   const handleParamChange = useCallback(
     (paramKey: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const newValue = event.target.value;
-      const updatedParams = { ...currentParams, [paramKey]: newValue };
+      const updatedParams = { ...currentParamsRef.current, [paramKey]: newValue };
       setEditingParams(updatedParams);
+      
+      // Debounce node updates - only update after 300ms of no typing
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      
+      // Debounce validation - run after 500ms of no typing
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+      
       if (selectedNode) {
-        onUpdateNode(selectedNode.id, { params: updatedParams });
+        updateTimeoutRef.current = setTimeout(() => {
+          onUpdateNode(selectedNode.id, { params: updatedParams });
+        }, 300);
+        
+        validationTimeoutRef.current = setTimeout(() => {
+          validate(updatedParams);
+        }, 500);
       }
     },
-    [currentParams, selectedNode, onUpdateNode]
+    [selectedNode, onUpdateNode, validate]
   );
 
   const handleDrop = useCallback(
@@ -137,7 +186,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         variablePath = variablePath.replace(/\{\{\s*/g, '').replace(/\s*\}\}/g, '').trim();
         
         const inputElement = inputRefs.current[paramKey];
-        const currentValue = currentParams[paramKey] ?? '';
+        const currentValue = currentParamsRef.current[paramKey] ?? '';
         let newValue: string;
 
         if (inputElement) {
@@ -158,12 +207,12 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
           newValue = currentValue ? `${currentValue} ${wrappedVariable}` : wrappedVariable;
         }
 
-        const updatedParams = { ...currentParams, [paramKey]: newValue };
+        const updatedParams = { ...currentParamsRef.current, [paramKey]: newValue };
         setEditingParams(updatedParams);
         onUpdateNode(selectedNode.id, { params: updatedParams });
       }
     },
-    [currentParams, selectedNode, onUpdateNode]
+    [selectedNode, onUpdateNode]
   );
 
   const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -176,13 +225,30 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     (index: number, newCondition: string) => {
       const newConditions = [...conditions];
       newConditions[index].condition = newCondition;
-      const updatedParams = { ...currentParams, conditions: JSON.stringify(newConditions) };
+      const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
       setEditingParams(updatedParams);
+      
+      // Debounce the update
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      
+      // Debounce validation
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+      
       if (selectedNode) {
-        onUpdateNode(selectedNode.id, { params: updatedParams });
+        updateTimeoutRef.current = setTimeout(() => {
+          onUpdateNode(selectedNode.id, { params: updatedParams });
+        }, 300);
+        
+        validationTimeoutRef.current = setTimeout(() => {
+          validate(updatedParams);
+        }, 500);
       }
     },
-    [conditions, currentParams, selectedNode, onUpdateNode]
+    [conditions, selectedNode, onUpdateNode, validate]
   );
 
   const handleAddElseIf = useCallback(() => {
@@ -194,39 +260,90 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     } else {
       newConditions.push({ type: 'elseif', condition: 'y > 10' });
     }
-    const updatedParams = { ...currentParams, conditions: JSON.stringify(newConditions) };
+    const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
     setEditingParams(updatedParams);
-    if (selectedNode) {
-      onUpdateNode(selectedNode.id, { params: updatedParams });
+    
+    // Debounce the update
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
     }
-  }, [conditions, currentParams, selectedNode, onUpdateNode]);
+    
+    // Debounce validation
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+    
+    if (selectedNode) {
+      updateTimeoutRef.current = setTimeout(() => {
+        onUpdateNode(selectedNode.id, { params: updatedParams });
+      }, 300);
+      
+      validationTimeoutRef.current = setTimeout(() => {
+        validate(updatedParams);
+      }, 500);
+    }
+  }, [conditions, selectedNode, onUpdateNode, validate]);
 
   const handleAddElse = useCallback(() => {
     const newConditions = [...conditions];
     const hasElse = newConditions.some((c) => c.type === 'else');
     if (!hasElse) {
       newConditions.push({ type: 'else' });
-      const updatedParams = { ...currentParams, conditions: JSON.stringify(newConditions) };
+      const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
       setEditingParams(updatedParams);
+      
+      // Debounce the update
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      
+      // Debounce validation
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+      
       if (selectedNode) {
-        onUpdateNode(selectedNode.id, { params: updatedParams });
+        updateTimeoutRef.current = setTimeout(() => {
+          onUpdateNode(selectedNode.id, { params: updatedParams });
+        }, 300);
+        
+        validationTimeoutRef.current = setTimeout(() => {
+          validate(updatedParams);
+        }, 500);
       }
     }
-  }, [conditions, currentParams, selectedNode, onUpdateNode]);
+  }, [conditions, selectedNode, onUpdateNode, validate]);
 
   const handleRemoveCondition = useCallback(
     (index: number) => {
       const newConditions = [...conditions];
       if (newConditions.length > 1) {
         newConditions.splice(index, 1);
-        const updatedParams = { ...currentParams, conditions: JSON.stringify(newConditions) };
+        const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
         setEditingParams(updatedParams);
+        
+        // Debounce the update
+        if (updateTimeoutRef.current) {
+          clearTimeout(updateTimeoutRef.current);
+        }
+        
+        // Debounce validation
+        if (validationTimeoutRef.current) {
+          clearTimeout(validationTimeoutRef.current);
+        }
+        
         if (selectedNode) {
-          onUpdateNode(selectedNode.id, { params: updatedParams });
+          updateTimeoutRef.current = setTimeout(() => {
+            onUpdateNode(selectedNode.id, { params: updatedParams });
+          }, 300);
+          
+          validationTimeoutRef.current = setTimeout(() => {
+            validate(updatedParams);
+          }, 500);
         }
       }
     },
-    [conditions, currentParams, selectedNode, onUpdateNode]
+    [conditions, selectedNode, onUpdateNode, validate]
   );
 
   // ===== RENDER =====
@@ -284,12 +401,14 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         <FetchDBSection
           currentParams={currentParams}
           onParamChange={handleParamChange}
+          onParamBlur={handleParamBlur}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           inputRefs={inputRefs}
           isReadOnly={isReadOnly}
           viewOnly={viewOnly}
           allNodes={allNodes}
+          getFieldError={getFieldError}
         />
       )}
 
@@ -316,6 +435,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
             }))}
             currentParams={currentParams}
             onParamChange={handleParamChange}
+            onParamBlur={handleParamBlur}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             inputRefs={inputRefs}

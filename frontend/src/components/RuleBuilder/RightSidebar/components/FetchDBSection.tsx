@@ -6,22 +6,26 @@ import { PropertyRow, SectionContainer, SectionTitle } from '../styles';
 interface FetchDBSectionProps {
   currentParams: Record<string, string>;
   onParamChange: (paramKey: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onParamBlur?: () => void;
   onDrop: (paramKey: string) => (event: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   inputRefs: React.MutableRefObject<Record<string, HTMLInputElement | HTMLTextAreaElement>>;
   isReadOnly: boolean;
   viewOnly: boolean;
   allNodes?: Node[];
+  getFieldError?: (fieldName: string) => string | undefined;
 }
 
 const FetchDBSection: React.FC<FetchDBSectionProps> = ({
   currentParams,
   onParamChange,
+  onParamBlur,
   onDrop,
   onDragOver,
   inputRefs: inputRefsRef,
   isReadOnly,
   viewOnly,
+  getFieldError,
 }) => {
   return (
     <>
@@ -43,8 +47,11 @@ const FetchDBSection: React.FC<FetchDBSectionProps> = ({
             rows={12}
             value={currentParams.query ?? ''}
             onChange={onParamChange('query')}
+            onBlur={onParamBlur}
             disabled={isReadOnly || viewOnly}
             placeholder="Enter SQL query..."
+            error={!!getFieldError?.('query')}
+            helperText={getFieldError?.('query') || '💡 Drag global variables into the query'}
             onDrop={onDrop('query')}
             onDragOver={onDragOver}
             inputRef={(el: HTMLInputElement | null) => {
@@ -75,9 +82,6 @@ const FetchDBSection: React.FC<FetchDBSectionProps> = ({
               },
             }}
           />
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-            💡 Drag global variables into the query
-          </Typography>
         </PropertyRow>
 
         {/* Result Variable */}
@@ -92,8 +96,11 @@ const FetchDBSection: React.FC<FetchDBSectionProps> = ({
             fullWidth
             value={currentParams.resultVar ?? currentParams.variable ?? ''}
             onChange={onParamChange('resultVar')}
+            onBlur={onParamBlur}
             disabled={isReadOnly || viewOnly}
             placeholder="Variable name (e.g., dbResult)"
+            error={!!getFieldError?.('resultVar')}
+            helperText={getFieldError?.('resultVar') || '💡 Variable name to store query results'}
             sx={{
               '& .MuiOutlinedInput-root': {
                 fontFamily: 'monospace',
@@ -101,9 +108,6 @@ const FetchDBSection: React.FC<FetchDBSectionProps> = ({
               },
             }}
           />
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-            💡 Variable name to store query results
-          </Typography>
         </PropertyRow>
       </SectionContainer>
     </>

@@ -20,11 +20,9 @@ interface RuleBuilderProps {
 }
 
 const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
-  // Custom hooks for state and animation management
   const flowState = useFlowState();
   const nestedCanvasManager = useNestedCanvasManager();
   
-  // Validation state
   const [showErrorModal, setShowErrorModal] = useState(false);
 
   useEffect(() => {
@@ -41,27 +39,28 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
     };
   }, []);
   
-  // Animation hook
+  const handleSetIsPlaying = useCallback((playing: boolean) => {
+    if (!playing) {
+      flowState.setDebugLogs([]);
+      flowState.setDebugVariables({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowState.setDebugLogs, flowState.setDebugVariables]);
+  
   const {
     playFlowAnimation,
     stopAnimation,
     updateFlowState,
     animationTimeoutRef,
   } = useFlowAnimation({
-    isPlaying: flowState.debugVariables ? true : false,
-    setIsPlaying: (playing) => {
-      if (!playing) {
-        flowState.setDebugLogs([]);
-        flowState.setDebugVariables({});
-      }
-    },
+    isPlaying: Boolean(flowState.currentAnimationNode),
+    setIsPlaying: handleSetIsPlaying,
     nestedCanvasData: nestedCanvasManager.nestedCanvasData,
     setDebugVariables: flowState.setDebugVariables,
     setDebugLogs: flowState.setDebugLogs,
     setCurrentAnimationNode: flowState.setCurrentAnimationNode,
   });
 
-  // Use ref to store the node update handler from Canvas
   const nodeUpdateHandlerRef = useRef<((nodeId: string, updates: Record<string, unknown>) => void) | null>(null);
 
   const handlePlayClick = () => {
@@ -122,12 +121,18 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
     setEdges: (edges: Edge[] | ((prevEdges: Edge[]) => Edge[])) => void
   ) => {
     updateFlowState(nodes, edges, setNodes, setEdges);
-    // Sync edges and nodes to parent state for variable scoping
     flowState.setAllNodes(nodes);
     flowState.setEdges(edges);
-  }, [updateFlowState, flowState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateFlowState, flowState.setAllNodes, flowState.setEdges]);
+  
+  const handleNestedCanvasSave = useCallback((nodes: Node[], edges: Edge[]) => {
+    if (nestedCanvasManager.activeNestedCanvas) {
+      nestedCanvasManager.handleNestedCanvasSave(nestedCanvasManager.activeNestedCanvas, nodes, edges);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nestedCanvasManager.activeNestedCanvas, nestedCanvasManager.handleNestedCanvasSave]);
 
-  // Cleanup on unmount
   useEffect(() => {
     const timeoutRef = animationTimeoutRef.current;
     return () => {
@@ -182,7 +187,6 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
           viewOnly={viewOnly}
         />
 
-        {/* Nested Canvas Overlay */}
         {nestedCanvasManager.activeNestedCanvas && (
           <NestedCanvas
             nodeId={nestedCanvasManager.activeNestedCanvas}
@@ -190,13 +194,12 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
             initialNodes={nestedCanvasManager.nestedCanvasData[nestedCanvasManager.activeNestedCanvas]?.nodes}
             initialEdges={nestedCanvasManager.nestedCanvasData[nestedCanvasManager.activeNestedCanvas]?.edges}
             onBack={nestedCanvasManager.handleNestedCanvasBack}
-            onSave={(nodes, edges) => nestedCanvasManager.handleNestedCanvasSave(nestedCanvasManager.activeNestedCanvas!, nodes, edges)}
+            onSave={handleNestedCanvasSave}
             viewOnly={viewOnly}
           />
         )}
       </Box>
 
-      {/* JSON Output Modal */}
       <OutputModal
         open={flowState.jsonModalOpen}
         onClose={() => flowState.setJsonModalOpen(false)}
@@ -206,7 +209,6 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         language="json"
       />
 
-      {/* TypeScript Code Modal */}
       <OutputModal
         open={flowState.codeModalOpen}
         onClose={() => flowState.setCodeModalOpen(false)}
@@ -217,7 +219,6 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         language="typescript"
       />
 
-      {/* Validation Error Modal */}
       <ValidationErrorModal
         open={showErrorModal}
         onClose={() => setShowErrorModal(false)}
@@ -226,7 +227,6 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
   );
 };
 
-// Wrap with ValidationProvider
 const RuleBuilderWithValidation: React.FC<RuleBuilderProps> = (props) => {
   return (
     <ValidationProvider>

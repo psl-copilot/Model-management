@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import { simulateNodeExecution } from '../../utils/Flow/FlowExecutor';
 import type { DebugLog } from '../../components/RuleBuilder/DebuggerPanel';
@@ -25,6 +25,12 @@ export const useFlowAnimation = ({
   const edgesRef = useRef<Edge[]>([]);
   const setNodesRef = useRef<((nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void) | null>(null);
   const setEdgesRef = useRef<((edges: Edge[] | ((prevEdges: Edge[]) => Edge[])) => void) | null>(null);
+  const nestedCanvasDataRef = useRef(nestedCanvasData);
+  
+  // Update ref when nestedCanvasData changes, but don't trigger re-renders
+  useEffect(() => {
+    nestedCanvasDataRef.current = nestedCanvasData;
+  }, [nestedCanvasData]);
 
   const stopAnimation = useCallback(() => {
     
@@ -286,10 +292,10 @@ export const useFlowAnimation = ({
         };
 
         const isHandleTransaction = node.data.nodeType === 'HandleTransaction';
-        const hasNestedFlow = isHandleTransaction && nestedCanvasData[nodeId];
+        const hasNestedFlow = isHandleTransaction && nestedCanvasDataRef.current[nodeId];
         
         if (hasNestedFlow) {
-          const nestedData = nestedCanvasData[nodeId];
+          const nestedData = nestedCanvasDataRef.current[nodeId];
           executeNestedFlow(nestedData, nodeId, () => {
             const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
             setDebugLogs((prevLogs) => [
@@ -333,7 +339,7 @@ export const useFlowAnimation = ({
         }
       });
     },
-    [setIsPlaying, setCurrentAnimationNode, setDebugVariables, setDebugLogs, nestedCanvasData, executeNestedFlow]
+    [setIsPlaying, setCurrentAnimationNode, setDebugVariables, setDebugLogs, executeNestedFlow]
   );
 
   const updateFlowState = useCallback(

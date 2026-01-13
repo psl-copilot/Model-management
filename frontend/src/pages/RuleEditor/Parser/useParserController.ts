@@ -12,7 +12,7 @@ export interface IParseProps {
     data?: Record<string, unknown> | undefined
 }
 
-const useParserController = (props: IParseProps) => {
+const useParserController = () => {
 
     const data = extractData('trs_rule', LocalStorage, true)
 

@@ -10,10 +10,15 @@ interface NestedCanvasData {
 export const useNestedCanvasManager = () => {
   const [activeNestedCanvas, setActiveNestedCanvas] = useState<string | null>(null);
   const [activeNestedCanvasLabel, setActiveNestedCanvasLabel] = useState<string>('Handle Transaction');
-  const [nestedCanvasData, setNestedCanvasData] = useState<Record<string, NestedCanvasData>>(() => {
+  const [nestedCanvasData, _setNestedCanvasData] = useState<Record<string, NestedCanvasData>>(() => {
     const defaultFlow = getDefaultFlow();
     return defaultFlow.nestedCanvasData as Record<string, NestedCanvasData>;
   });
+  
+  // Memoized setter to provide stable reference
+  const setNestedCanvasData = useCallback((updater: Record<string, NestedCanvasData> | ((prev: Record<string, NestedCanvasData>) => Record<string, NestedCanvasData>)) => {
+    _setNestedCanvasData(updater);
+  }, []);
 
   const handleNestedCanvasBack = useCallback(() => {
     setActiveNestedCanvas(null);
@@ -26,7 +31,7 @@ export const useNestedCanvasManager = () => {
         [nodeId]: { nodes, edges },
       }));
     },
-    []
+    [setNestedCanvasData]
   );
 
   const openNestedCanvas = useCallback((nodeId: string, label: string) => {

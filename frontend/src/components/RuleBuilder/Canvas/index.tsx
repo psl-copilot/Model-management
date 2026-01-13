@@ -178,8 +178,9 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       onFlowStateUpdate(nodes, edges, setNodes, setEdges);
     }
     // setNodes and setEdges are stable references from useNodesState/useEdgesState
+    // onFlowStateUpdate intentionally excluded from deps to prevent infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodes, edges, onFlowStateUpdate]);
+  }, [nodes, edges]);
 
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
