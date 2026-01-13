@@ -10,16 +10,37 @@ export const useFlowState = () => {
   const [codeOutput, setCodeOutput] = useState<string>('');
   
   // Animation and debugging state
-  const [debugVariables, setDebugVariables] = useState<Record<string, unknown>>({});
-  const [debugLogs, setDebugLogs] = useState<DebugLog[]>([]);
-  const [currentAnimationNode, setCurrentAnimationNode] = useState<string | undefined>();
+  const [debugVariables, _setDebugVariables] = useState<Record<string, unknown>>({});
+  const [debugLogs, _setDebugLogs] = useState<DebugLog[]>([]);
+  const [currentAnimationNode, _setCurrentAnimationNode] = useState<string | undefined>();
   
   // UI state
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [generatedCode, setGeneratedCode] = useState<string>('');
-  const [allNodes, setAllNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<import('@xyflow/react').Edge[]>([]);
+  const [allNodes, _setAllNodes] = useState<Node[]>([]);
+  const [edges, _setEdges] = useState<import('@xyflow/react').Edge[]>([]);
+
+  // Memoize setters to prevent unnecessary re-renders
+  const setDebugVariables = useCallback((vars: Record<string, unknown>) => {
+    _setDebugVariables(vars);
+  }, []);
+
+  const setDebugLogs = useCallback((logs: DebugLog[] | ((prev: DebugLog[]) => DebugLog[])) => {
+    _setDebugLogs(logs);
+  }, []);
+
+  const setCurrentAnimationNode = useCallback((nodeId: string | undefined) => {
+    _setCurrentAnimationNode(nodeId);
+  }, []);
+
+  const setAllNodes = useCallback((nodes: Node[]) => {
+    _setAllNodes(nodes);
+  }, []);
+
+  const setEdges = useCallback((edges: import('@xyflow/react').Edge[]) => {
+    _setEdges(edges);
+  }, []);
 
   const handleToggleSidebar = useCallback(() => {
     setSidebarCollapsed(prev => !prev);

@@ -73,7 +73,11 @@ export const useNodeValidation = (nodeId: string, nodeType: string, nodeName: st
     [nodeType]
   );
 
-  const currentError = getNodeError(nodeId);
+  // Reactively get current error when errorsMap changes
+  const currentError = useMemo(
+    () => getNodeError(nodeId),
+    [nodeId, getNodeError]
+  );
   
   const hasError = useMemo(
     () => !!currentError && Object.keys(currentError.errors).length > 0,
@@ -87,22 +91,25 @@ export const useNodeValidation = (nodeId: string, nodeType: string, nodeName: st
 
   const getFieldError = useCallback(
     (fieldName: string): string | undefined => {
-      return currentError?.errors[fieldName];
+      const latestError = getNodeError(nodeId);
+      return latestError?.errors[fieldName];
     },
-    [currentError]
+    [nodeId, getNodeError]
   );
 
   const hasFieldError = useCallback(
     (fieldName: string): boolean => {
-      return !!currentError?.errors[fieldName];
+      const latestError = getNodeError(nodeId);
+      return !!latestError?.errors[fieldName];
     },
-    [currentError]
+    [nodeId, getNodeError]
   );
 
   const getErrorMessages = useCallback((): string[] => {
-    if (!currentError) return [];
-    return Object.values(currentError.errors);
-  }, [currentError]);
+    const latestError = getNodeError(nodeId);
+    if (!latestError) return [];
+    return Object.values(latestError.errors);
+  }, [nodeId, getNodeError]);
 
   return {
     validate,

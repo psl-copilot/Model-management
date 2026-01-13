@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -23,7 +23,7 @@ import {
   VariableTree,
 } from './components';
 import { getAllNodeTemplates } from '../../../utils/Flow/nodeTemplateService';
-import { useGetNodesQuery } from '../../../redux/Api/Rule-builder';
+// import { useGetNodesQuery } from '../../../redux/Api/Rule-builder';
 
 interface LeftSidebarProps {
   mode?: 'main' | 'modal';
@@ -49,26 +49,12 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   // State
   const [activeTab, setActiveTab] = useState<number>(0);
 
-  // API call for nodes (just for logging, not using the data yet)
-  const { data: nodesData, error, isLoading } = useGetNodesQuery({});
+  //commented for now until we have API to fetch nodes  
+  // const { data: nodesData, error, isLoading } = useGetNodesQuery({});
 
   // Use mock data for now
   const nodeTemplates = getAllNodeTemplates();
 
-  // Log API response for debugging
-  useEffect(() => {
-    if (nodesData) {
-      console.log('Nodes API Response (for reference only):', nodesData);
-    }
-    if (error) {
-      console.error('Nodes API Error:', error);
-    }
-    if (isLoading) {
-      console.log('Loading nodes from API...');
-    }
-  }, [nodesData, error, isLoading]);
-
-  // Handlers
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
     setActiveTab(newValue);
   };

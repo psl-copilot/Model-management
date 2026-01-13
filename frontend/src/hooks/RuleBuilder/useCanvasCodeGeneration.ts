@@ -23,7 +23,6 @@ export const useCanvasCodeGeneration = ({
   nestedCanvasData,
   onJsonGenerate,
   onCodeGenerate,
-  reactFlowInstance,
 }: UseCanvasCodeGenerationProps) => {
   // Generate JSON output
   const generateJson = useCallback(() => {
@@ -93,11 +92,15 @@ export const useCanvasCodeGeneration = ({
 
   // Expose methods to parent via window object
   useEffect(() => {
-    if (reactFlowInstance) {
-      window.generateFlowJson = generateJson;
-      window.generateFlowCode = generateCode;
-    }
-  }, [reactFlowInstance, generateJson, generateCode]);
+    window.generateFlowJson = generateJson;
+    window.generateFlowCode = generateCode;
+    
+    return () => {
+      // Cleanup on unmount
+      window.generateFlowJson = undefined;
+      window.generateFlowCode = undefined;
+    };
+  }, [generateJson, generateCode]);
 
   return {
     generateJson,

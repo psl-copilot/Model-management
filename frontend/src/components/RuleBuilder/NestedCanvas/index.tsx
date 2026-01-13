@@ -103,12 +103,55 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
   const { clearNodeErrors } = useValidationContext();
-
+  
+  // Use refs to track current state without triggering re-renders
+  const nodesRef = useRef(nodes);
+  const edgesRef = useRef(edges);
+  const saveTimeoutRef = useRef<number | null>(null);
+  const onSaveRef = useRef(onSave);
+  
+  // Update onSave ref when it changes
   useEffect(() => {
-    if (nodes.length > 0) {
-      onSave(nodes, edges);
+    onSaveRef.current = onSave;
+  }, [onSave]);
+  
+  // Update refs when nodes/edges change
+  useEffect(() => {
+    nodesRef.current = nodes;
+    edgesRef.current = edges;
+  }, [nodes, edges]);
+  
+  // Debounced auto-save: save 1 second after last change
+  useEffect(() => {
+    // Clear previous timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  }, [nodes, edges, onSave]);
+    
+    // Set new timeout to save after 1 second
+    saveTimeoutRef.current = setTimeout(() => {
+      onSaveRef.current(nodes, edges);
+    }, 1000);
+    
+    // Cleanup on unmount or before next effect
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [nodes, edges]);
+
+  // Immediate save on unmount to catch any unsaved changes
+  useEffect(() => {
+    return () => {
+      // Clear any pending saves
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      // Save immediately on unmount
+      onSaveRef.current(nodesRef.current, edgesRef.current);
+    };
+  }, []);
 
   // Node operations (inline implementation)
   const updateNode = useCallback(
@@ -335,10 +378,11 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   };
 
   // Handle back button - save state before returning
-  const handleBack = () => {
-    onSave(nodes, edges);
+  const handleBack = useCallback(() => {
+    // Use refs to get the latest state
+    onSave(nodesRef.current, edgesRef.current);
     onBack();
-  };
+  }, [onSave, onBack]);
 
   return (
     <Box
