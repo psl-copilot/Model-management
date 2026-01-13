@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { useGetRuleByIdQuery } from "../../redux/Api/Rules"
-import { Tabs } from "../../utils/Constants/data"
+import { metaData, Tabs } from "../../utils/Constants/data"
 import Overview from "./Overview"
 import Parser from "./Parser"
 import RuleBuilder from "./RuleBuilder"
 
 const useRuleEditorController = () => {
 
-    const [selected, setSelected] = useState(Tabs[0].value)
+    const [selected, setSelected] = useState<string>()
 
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
-    const tab = searchParams.get('tab') ?? 'overview';
+    const tab = searchParams.get('tab') ?? Tabs[metaData.step].value;
     const mode = searchParams.get('mode') ?? null
 
     const { data, isLoading } = useGetRuleByIdQuery({ id }, { skip: !id, refetchOnMountOrArgChange: true })

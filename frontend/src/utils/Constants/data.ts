@@ -56,10 +56,6 @@ export const Tabs = [
         value: 'rule_builder'
     },
     {
-        label: 'Validation',
-        value: 'validation'
-    },
-    {
         label: 'Generate Test Cases',
         value: 'test_cases'
     },
@@ -119,4 +115,8 @@ export const ruleTypes = [
         value: 'FRAUD/AML'
     },
 ]
+
+export const metaData = {
+    step: 3
+}
 
