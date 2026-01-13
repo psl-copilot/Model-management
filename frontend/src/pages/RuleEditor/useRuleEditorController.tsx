@@ -13,6 +13,7 @@ const useRuleEditorController = () => {
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
     const tab = searchParams.get('tab') ?? 'overview';
+    const mode = searchParams.get('mode') ?? null
 
     const { data, isLoading } = useGetRuleByIdQuery({ id }, { skip: !id, refetchOnMountOrArgChange: true })
 
@@ -27,9 +28,9 @@ const useRuleEditorController = () => {
     const renderComponent = useCallback(() => {
         switch (selected) {
             case 'overview':
-                return <Overview data={data} setSelected={setSelected} />
+                return <Overview mode={mode} data={data?.rules} setSelected={setSelected} />
             case 'parser':
-                return <Parser data={data} setSelected={setSelected} />
+                return <Parser data={data?.rules} setSelected={setSelected} />
             case 'rule_builder':
                 return <RuleBuilder />
             default:

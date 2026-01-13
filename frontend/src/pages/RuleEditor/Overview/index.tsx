@@ -58,6 +58,7 @@ const Overview = (props: IOverviewProps) => {
                                 <Input
                                     maxWidth={'100%'}
                                     required
+                                    disabled={values?.isEdit}
                                     label="Rule Version"
                                     {...field}
                                     error={error?.message}
@@ -76,6 +77,7 @@ const Overview = (props: IOverviewProps) => {
                                 <DropDown
                                     required
                                     label="Rule Type"
+                                    disabled={values?.isEdit}
                                     options={values.ruleTypes}
                                     {...field}
                                     placeholder="Select Rule type"
@@ -93,6 +95,7 @@ const Overview = (props: IOverviewProps) => {
                         <Input
                             maxWidth={'100%'}
                             required
+                            disabled={values?.isEdit}
                             type='textarea'
                             label="Description"
                             {...field}
@@ -110,6 +113,7 @@ const Overview = (props: IOverviewProps) => {
                                 <DropDown
                                     required
                                     label="Transaction Type"
+                                    disabled={values?.isEdit}
                                     options={values.transactions}
                                     {...field}
                                     onChange={(val) => functions.handleTxTp(val as DropdownOption)}
@@ -128,6 +132,7 @@ const Overview = (props: IOverviewProps) => {
                                 <DropDown
                                     required
                                     label="Transaction Type Versions"
+                                    disabled={values?.isEdit}
                                     options={values.txtpVersions}
                                     {...field}
                                     placeholder="Select Version"
@@ -151,6 +156,7 @@ const Overview = (props: IOverviewProps) => {
                                 <DropDown
                                     required
                                     label="Rule Config"
+                                    disabled={values?.isEdit}
                                     {...field}
                                     onClick={functions.handleRuleConfig}
                                     placeholder="Select Rule Config"
@@ -169,9 +175,11 @@ const Overview = (props: IOverviewProps) => {
                     </Grid>
                 </Grid>
             </Section>
-            <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
-                <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
-            </Box>
+            {!values?.isEdit ?
+                <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
+                    <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
+                </Box>
+                : null}
 
         </Grid>
     )

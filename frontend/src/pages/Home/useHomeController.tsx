@@ -1,4 +1,4 @@
-import {  useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DropdownOption } from "../../components/DropDown";
 import type { TableColumn } from "../../components/Table";
@@ -81,7 +81,7 @@ const useHomeController = () => {
     }, [offset, limit, total, setOffset])
 
     const handleCreateEdit = (row?: Record<string, unknown>) => {
-        navigate(row ? `/editor/${row?.id}` : "/editor");
+        navigate(row ? `/editor/${row?.id}?mode=edit` : "/editor");
     };
 
     const onView = (data: Record<string, string>) => {

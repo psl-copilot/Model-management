@@ -27,18 +27,20 @@ const Parser = (props: IParseProps) => {
             </Grid>
 
             <Section header={'Payload Schema Definition'} subHeader={'Define the transaction payload structure to extract variables for rule building'}>
-                <Grid size={12} display={'flex'} justifyContent={'flex-end'} width={'100%'}>
-                    <Button
-                        height="30px"
-                        width="170px"
-                        type="secondary"
-                        size="md"
-                        text="Fetch Json"
-                        loading={values?.sampleLoader}
-                        Icon={FileUploadIcon}
-                        onClick={functions.fetchJson}
-                    />
-                </Grid>
+                {values?.txtp ?
+                    <Grid size={12} display={'flex'} justifyContent={'flex-end'} width={'100%'}>
+                        <Button
+                            height="30px"
+                            width="170px"
+                            type="secondary"
+                            size="md"
+                            text="Fetch Json"
+                            loading={values?.sampleLoader}
+                            Icon={FileUploadIcon}
+                            onClick={functions.fetchJson}
+                        />
+                    </Grid>
+                    : null}
                 <Grid container size={12} spacing={2} alignItems={'flex-start'}>
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Controller

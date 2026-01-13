@@ -23,13 +23,14 @@ interface RuleFormValues {
 }
 
 export interface IOverviewProps {
-    data?: Record<string, unknown> | undefined
+    data?: Record<string, unknown> | undefined,
+    mode: string | null,
     setSelected: (selected: string) => void,
 }
 
 const useOverviewController = (props: IOverviewProps) => {
 
-    const { data, setSelected } = props
+    const { data, setSelected, mode } = props
     const [versions, setVersions] = useState<string[]>([])
 
     const { data: types, isLoading } = useGetTypesQuery({})
@@ -97,6 +98,7 @@ const useOverviewController = (props: IOverviewProps) => {
     return {
         values: {
             control,
+            isEdit: mode === 'edit',
             errors,
             isLoading,
             rule_config_id,
