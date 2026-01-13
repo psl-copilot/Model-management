@@ -1,10 +1,10 @@
 import { Grid } from "@mui/material"
 import Button from "../../../components/Button"
-import useRuleBuilderController from "./useRuleBuilderController"
+import useRuleBuilderController, { type IRuleBuilder } from "./useRuleBuilderController"
 
-const RuleBuilder = () => {
+const RuleBuilder = (props: IRuleBuilder) => {
 
-    const { functions } = useRuleBuilderController();
+    const { functions } = useRuleBuilderController(props);
 
     return (
         <Grid

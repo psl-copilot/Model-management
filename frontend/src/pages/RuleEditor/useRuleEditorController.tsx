@@ -32,7 +32,7 @@ const useRuleEditorController = () => {
             case 'parser':
                 return <Parser data={data?.rules} setSelected={setSelected} />
             case 'rule_builder':
-                return <RuleBuilder />
+                return <RuleBuilder data={data?.rules} setSelected={setSelected} />
             default:
                 return null;
         }

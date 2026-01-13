@@ -38,9 +38,6 @@ const useParserController = (props: IParseProps) => {
         }
     }, [isSuccess, parseBody])
 
-    console.log("DATAAA", data)
-
-
     const fetchJson = () => {
         getPayload({ type: data?.txtp }).unwrap().then((res) => {
             if (res) {
