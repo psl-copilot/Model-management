@@ -117,6 +117,6 @@ export const ruleTypes = [
 ]
 
 export const metaData = {
-    step: 3
+    step: 2
 }
 

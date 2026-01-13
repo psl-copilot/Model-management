@@ -8,7 +8,7 @@ import RuleBuilder from "./RuleBuilder"
 
 const useRuleEditorController = () => {
 
-    const [selected, setSelected] = useState<string>()
+    const [selected, setSelected] = useState<string>(Tabs[metaData.step].value)
 
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
