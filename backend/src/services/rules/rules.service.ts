@@ -187,4 +187,14 @@ export class RulesService {
       throw error;
     }
   }
+
+  async updateRuleStatus(ruleId: string, status: string, token: string): Promise<Rules> {
+    try {
+      return await this.adminServiceClient.updateRuleStatus(ruleId, status, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error updating status for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
 }

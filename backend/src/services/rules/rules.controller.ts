@@ -218,5 +218,20 @@ export class RulesController {
     );
   }
 
+  // update the status of a rule based on rule ID
+  @Put('/api/:ruleId/status')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async updateRuleStatus(
+    @Param('ruleId') ruleId: string,
+    @Body('status') status: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<Rules> {
+    return await this.rulesService.updateRuleStatus(
+      ruleId,
+      status,
+      user.token.tokenString,
+    );
+  }
+
   
 }
