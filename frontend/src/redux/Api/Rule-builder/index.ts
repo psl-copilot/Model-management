@@ -20,9 +20,24 @@ export const ruleBuilderApi = createApi({
                 method: "GET",
             }),
         }),
+        getFlow: builder.query({
+            query: (ruleId: string | number) => ({
+                url: `rules/api/${ruleId}/flow`,
+                method: "GET",
+            }),
+        }),
+        saveFlow: builder.mutation({
+            query: ({ ruleId, flowData }: { ruleId: string | number; flowData: unknown }) => ({
+                url: `rules/api/${ruleId}/flow`,
+                method: "PUT",
+                body: flowData,
+            }),
+        }),
     }),
 })
 
 export const {
     useGetNodesQuery,
+    useGetFlowQuery,
+    useSaveFlowMutation,
 } = ruleBuilderApi

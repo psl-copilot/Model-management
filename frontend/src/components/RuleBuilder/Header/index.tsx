@@ -15,6 +15,7 @@ import DataObjectIcon from '@mui/icons-material/DataObject';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SaveIcon from '@mui/icons-material/Save';
 import { useNavigate } from 'react-router-dom';
 import { StyledToolbar, ButtonGroup, ActionButton } from './styles';
 import { useValidationContext } from '../../../validation/context';
@@ -26,6 +27,8 @@ interface HeaderProps {
   onDisplayJson: () => void;
   onGenerateCode: () => void;
   onViewErrors?: () => void;
+  onSave?: () => void;
+  isSaving?: boolean;
   disabled?: boolean;
   viewOnly?: boolean;
 }
@@ -37,6 +40,8 @@ const Header: React.FC<HeaderProps> = ({
   onDisplayJson,
   onGenerateCode,
   onViewErrors,
+  onSave,
+  isSaving = false,
   disabled = false,
   viewOnly = false,
 }) => {
@@ -105,6 +110,25 @@ const Header: React.FC<HeaderProps> = ({
           )}
 
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+
+          {!viewOnly && onSave && (
+            <>
+              <Tooltip title={hasErrors ? 'Fix validation errors before saving' : 'Save flow changes'}>
+                <span>
+                  <ActionButton
+                    variant="contained"
+                    color="success"
+                    startIcon={<SaveIcon />}
+                    onClick={onSave}
+                    disabled={isDisabled || isPlaying || isSaving}
+                  >
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </ActionButton>
+                </span>
+              </Tooltip>
+              <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+            </>
+          )}
 
           <Tooltip title={hasErrors ? 'Fix validation errors before viewing JSON' : 'View flow structure as JSON'}>
             <span>

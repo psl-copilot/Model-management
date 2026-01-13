@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import type { DragEvent } from 'react';
 import {
   ReactFlow,
@@ -51,6 +51,8 @@ interface CanvasProps {
     setEdges: (edges: Edge[] | ((prevEdges: Edge[]) => Edge[])) => void
   ) => void;
   viewOnly?: boolean;
+  initialNodes?: Node[];
+  initialEdges?: Edge[];
 }
 
 
@@ -67,18 +69,35 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   currentNodeId,
   onFlowStateUpdate,
   viewOnly = false,
+  initialNodes,
+  initialEdges,
 }) => {
-  // Generate initial nodes and edges once using lazy initialization
-  const [initialNodesEdges] = useState(() => {
+  const getInitialFlow = useCallback(() => {
+    if (initialNodes && initialEdges) {
+      return {
+        nodes: initialNodes as Node[],
+        edges: initialEdges as Edge[],
+      };
+    }
     const defaultFlow = getDefaultFlow();
     return {
       nodes: defaultFlow.mainCanvas.nodes as Node[],
       edges: defaultFlow.mainCanvas.edges as Edge[],
     };
-  });
+  }, [initialNodes, initialEdges]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(getInitialFlow().nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialFlow().edges);
   
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodesEdges.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialNodesEdges.edges);
+  const hasInitializedRef = useRef(false);
+
+  useEffect(() => {
+    if (initialNodes && initialEdges && !hasInitializedRef.current) {
+      setNodes(initialNodes as Node[]);
+      setEdges(initialEdges as Edge[]);
+      hasInitializedRef.current = true;
+    }
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);

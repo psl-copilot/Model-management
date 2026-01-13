@@ -79,6 +79,7 @@ export const useCanvasCodeGeneration = ({
     if (onJsonGenerate) {
       onJsonGenerate(json);
     }
+    return json;
   }, [nodes, edges, nestedCanvasData, onJsonGenerate]);
 
   // Generate TypeScript code

@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { Box } from '@mui/material';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import { Box, Typography } from '@mui/material';
+import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import type { Node, Edge } from '@xyflow/react';
 import LeftSidebar from '../../components/RuleBuilder/LeftSidebar';
 import Header from '../../components/RuleBuilder/Header';
@@ -9,6 +11,8 @@ import NestedCanvas from '../../components/RuleBuilder/NestedCanvas';
 import OutputModal from '../../components/RuleBuilder/OutputModal';
 import { ValidationProvider } from '../../validation/context';
 import { ValidationErrorModal } from '../../components/RuleBuilder/ValidationErrorModal';
+import { useGetFlowQuery, useSaveFlowMutation } from '../../redux/Api/Rule-builder';
+import { transformApiFlowData, type ApiNode, type ApiEdge } from '../../utils/Flow/FlowTransformers';
 import {
   useFlowAnimation,
   useFlowState,
@@ -20,10 +24,38 @@ interface RuleBuilderProps {
 }
 
 const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
+  const { id: ruleId } = useParams<{ id: string }>();
+  const { data: flowData, isLoading: isLoadingFlow } = useGetFlowQuery(ruleId || '', {
+    skip: !ruleId,
+  });
+  
+  const [saveFlow, { isLoading: isSaving }] = useSaveFlowMutation();
+  
   const flowState = useFlowState();
   const nestedCanvasManager = useNestedCanvasManager();
   
-  const [showErrorModal, setShowErrorModal] = useState(false);
+  const transformedFlowData = useMemo(() => {
+    if (!flowData?.flow) return null;
+    
+    return transformApiFlowData(
+      flowData.flow.nodes as ApiNode[] || [],
+      flowData.flow.edges as ApiEdge[] || []
+    );
+  }, [flowData]);
+
+  useEffect(() => {
+    if (transformedFlowData?.nestedFlows) {
+      Object.entries(transformedFlowData.nestedFlows).forEach(([nodeId, nestedFlow]) => {
+        nestedCanvasManager.setNestedCanvasData(prev => ({
+          ...prev,
+          [nodeId]: nestedFlow,
+        }));
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transformedFlowData]);
+
+  const [showErrorModal, setShowErrorModal] = React.useState(false);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -39,13 +71,12 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
     };
   }, []);
   
-  const handleSetIsPlaying = useCallback((playing: boolean) => {
+  const handleSetIsPlaying = (playing: boolean) => {
     if (!playing) {
       flowState.setDebugLogs([]);
       flowState.setDebugVariables({});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flowState.setDebugLogs, flowState.setDebugVariables]);
+  };
   
   const {
     playFlowAnimation,
@@ -67,9 +98,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
     if (nestedCanvasManager.activeNestedCanvas) {
       nestedCanvasManager.setActiveNestedCanvas(null);
       flowState.setSelectedNode(null);
-      setTimeout(() => {
-        playFlowAnimation();
-      }, 100);
+      setTimeout(playFlowAnimation, 100);
     } else {
       playFlowAnimation();
     }
@@ -80,41 +109,58 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
   };
 
   const handleDisplayJson = () => {
-    if (window.generateFlowJson) {
-      window.generateFlowJson();
-    }
+    window.generateFlowJson?.();
   };
 
   const handleGenerateCode = () => {
-    if (window.generateFlowCode) {
-      window.generateFlowCode();
-    }
+    window.generateFlowCode?.();
   };
 
-  const handleNodeSelect = (node: Node | null) => {
-    if (node) {
-      if (node.data.nodeType === 'HandleTransaction') {
-        nestedCanvasManager.openNestedCanvas(node.id, String(node.data.label || 'Handle Transaction'));
-        flowState.setSelectedNode(null);
-      } else {
-        flowState.setSelectedNode(node);
-        nestedCanvasManager.setActiveNestedCanvas(null);
+  const handleSave = async () => {
+    if (!ruleId) {
+      toast.error('Rule ID not found');
+      return;
+    }
+
+    try {
+      const flowJson = window.generateFlowJson?.();
+      if (!flowJson) {
+        toast.error('Failed to generate flow data');
+        return;
       }
+
+      const response = await saveFlow({
+        ruleId,
+        flowData: JSON.parse(flowJson),
+      }).unwrap();
+
+      toast.success(response.message || 'Flow saved successfully');
+    } catch (error: unknown) {
+      const errorMessage = (error as { data?: { message?: string } })?.data?.message || 'Failed to save flow';
+      toast.error(errorMessage);
     }
   };
 
-  const handleNodeUpdate = (nodeId: string, updates: Record<string, unknown>) => {
+  const handleNodeSelect = useCallback((node: Node | null) => {
+    if (node?.data.nodeType === 'HandleTransaction') {
+      nestedCanvasManager.openNestedCanvas(node.id, String(node.data.label || 'Handle Transaction'));
+      flowState.setSelectedNode(null);
+    } else {
+      flowState.setSelectedNode(node);
+      nestedCanvasManager.setActiveNestedCanvas(null);
+    }
+  }, [nestedCanvasManager, flowState]);
+
+  const handleNodeUpdate = useCallback((nodeId: string, updates: Record<string, unknown>) => {
     if (nodeId === '_handler') {
       nodeUpdateHandlerRef.current = updates as unknown as (nodeId: string, updates: Record<string, unknown>) => void;
       return;
     }
     
-    if (nodeUpdateHandlerRef.current) {
-      nodeUpdateHandlerRef.current(nodeId, updates);
-    }
-  };
+    nodeUpdateHandlerRef.current?.(nodeId, updates);
+  }, []);
 
-  const handleFlowStateUpdate = useCallback((
+  const handleFlowStateUpdate = ((
     nodes: Node[], 
     edges: Edge[], 
     setNodes: (nodes: Node[] | ((prevNodes: Node[]) => Node[])) => void, 
@@ -123,15 +169,13 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
     updateFlowState(nodes, edges, setNodes, setEdges);
     flowState.setAllNodes(nodes);
     flowState.setEdges(edges);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updateFlowState, flowState.setAllNodes, flowState.setEdges]);
+  });
   
-  const handleNestedCanvasSave = useCallback((nodes: Node[], edges: Edge[]) => {
+  const handleNestedCanvasSave = ((nodes: Node[], edges: Edge[]) => {
     if (nestedCanvasManager.activeNestedCanvas) {
       nestedCanvasManager.handleNestedCanvasSave(nestedCanvasManager.activeNestedCanvas, nodes, edges);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nestedCanvasManager.activeNestedCanvas, nestedCanvasManager.handleNestedCanvasSave]);
+  });
 
   useEffect(() => {
     const timeoutRef = animationTimeoutRef.current;
@@ -151,9 +195,16 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         onDisplayJson={handleDisplayJson}
         onGenerateCode={handleGenerateCode}
         onViewErrors={() => setShowErrorModal(true)}
+        onSave={handleSave}
+        isSaving={isSaving}
         viewOnly={viewOnly}
       />
-      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+      {isLoadingFlow ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+          <Typography>Loading flow...</Typography>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         {!viewOnly && (
           <LeftSidebar 
             mode="main" 
@@ -177,6 +228,8 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
           nestedCanvasData={nestedCanvasManager.nestedCanvasData}
           viewOnly={viewOnly}
           onFlowStateUpdate={handleFlowStateUpdate}
+          initialNodes={transformedFlowData?.nodes}
+          initialEdges={transformedFlowData?.edges}
         />
         <RightSidebar
           key={flowState.selectedNode?.id || 'no-selection'}
@@ -199,6 +252,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
           />
         )}
       </Box>
+      )}
 
       <OutputModal
         open={flowState.jsonModalOpen}
