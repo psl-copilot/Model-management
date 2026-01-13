@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { extractData } from "../../../utils/Common/storage";
+import { LocalStorage } from "../../../utils/Common/enums";
 
 export interface IRuleBuilder {
     setSelected: (selected: string) => void,
@@ -7,7 +9,7 @@ export interface IRuleBuilder {
 
 const useRuleBuilderController = (props: IRuleBuilder) => {
 
-    const { data } = props
+    const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
 
     const navigate = useNavigate()
 

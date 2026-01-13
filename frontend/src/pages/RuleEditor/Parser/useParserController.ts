@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { IResult } from "../../../utils/Common/types";
 import { extractData } from "../../../utils/Common/storage";
 import { LocalStorage } from "../../../utils/Common/enums";
+import { Tabs } from "../../../utils/Constants/data";
 
 
 export interface IParseProps {
@@ -15,6 +16,7 @@ export interface IParseProps {
 const useParserController = (props: IParseProps) => {
 
     const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
+    const { setSelected } = props
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
     const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
@@ -30,6 +32,10 @@ const useParserController = (props: IParseProps) => {
 
     const onSubmit = () => {
         submit(JSON.parse(json)).unwrap()
+    }
+
+    const handleNext = () => {
+        setSelected(Tabs[2].value)
     }
 
     useEffect(() => {
@@ -57,7 +63,8 @@ const useParserController = (props: IParseProps) => {
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),
-            fetchJson
+            fetchJson,
+            handleNext
         }
     }
 }
