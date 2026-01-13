@@ -561,6 +561,34 @@ export class AdminServiceClient {
     }
   }
 
+  async deleteNodeByNodeId(nodeId: string, token: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.delete(
+          `${this.adminServiceUrl}/v1/admin/nodes/${nodeId}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data) {
+        this.logger.error(`No response data after deleting node ${nodeId}`);
+        throw new HttpException(
+          `Failed to delete node ${nodeId}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      return response.data;
+    } catch(err) {
+      return this.handleError(err, 'deleteNodeByNodeId');
+    }
+  }
+
   async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
     try {
       const response = await firstValueFrom(

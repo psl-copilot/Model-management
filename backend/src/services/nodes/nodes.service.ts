@@ -30,4 +30,14 @@ export class NodesService {
             throw error;
         }
     }
+
+    async deleteNodeById(nodeId: string, token: string): Promise<{ success: boolean; message: string }> {
+        try {
+            return await this.adminServiceClient.deleteNodeByNodeId(nodeId, token);
+        } catch (error) {
+            const err = error as Error;
+            this.logger.error(`Error deleting node with ID ${nodeId}: ${err.message}`);
+            throw error;
+        }
+    }
 }

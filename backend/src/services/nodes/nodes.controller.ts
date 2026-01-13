@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards, Delete } from "@nestjs/common";
 import { TazamaAuthGuard } from "../../guards/tazama-auth.guard";
 import { NodesService } from "./nodes.service";
 import { CreateNodeDto, ResponseNodeDto } from "./dto";
@@ -35,6 +35,20 @@ export class NodesController {
     async getAllNodes(@Query() query: GetNodesQuery, @User() user: AuthenticatedUser): Promise<ResponseNodeDto[]> {
         try {
             return await this.nodesService.getAllNodes(user.token.tokenString, query);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    @Delete(':nodeId')
+    @RequireAnyClaims(
+        TazamaClaims.EDITOR,
+        TazamaClaims.APPROVER,
+        TazamaClaims.PUBLISHER,
+    )
+    async deleteNodeById(@Query('nodeId') nodeId: string, @User() user: AuthenticatedUser): Promise<{ success: boolean; message: string }> {
+        try {
+            return await this.nodesService.deleteNodeById(nodeId, user.token.tokenString);
         } catch (error) {
             throw error;
         }
