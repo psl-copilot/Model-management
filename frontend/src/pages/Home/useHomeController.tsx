@@ -1,4 +1,4 @@
-import {  useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { DropdownOption } from "../../components/DropDown";
 import type { TableColumn } from "../../components/Table";
@@ -7,7 +7,7 @@ import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation, useGetStatusQuery } from "../../redux/Api/Rules";
 import { extractData } from "../../utils/Common/storage";
-import { claims, publishingStatus, ruleTypes } from "../../utils/Constants/data";
+import { claims, publishingStatus, ruleTypes, Status } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
 
 const useHomeController = () => {
@@ -81,7 +81,7 @@ const useHomeController = () => {
     }, [offset, limit, total, setOffset])
 
     const handleCreateEdit = (row?: Record<string, unknown>) => {
-        navigate(row ? `/editor/${row?.id}` : "/editor");
+        navigate(row ? `/editor/${row?.id}?mode=edit` : "/editor");
     };
 
     const onView = (data: Record<string, string>) => {
@@ -102,7 +102,7 @@ const useHomeController = () => {
                 <TableActions
                     onView={() => onView(row as Record<string, string>)}
                     {...(isEditor && {
-                        onEdit: () => handleCreateEdit(row as Record<string, string>),
+                        ...(row?.status === Status.INPROGRESS ? { onEdit: () => handleCreateEdit(row as Record<string, string>) } : {}),
                         onClone: () => onView(row as Record<string, string>)
                     })}
                 />

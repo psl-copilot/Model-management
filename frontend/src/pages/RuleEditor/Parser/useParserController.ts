@@ -14,7 +14,7 @@ export interface IParseProps {
 
 const useParserController = () => {
 
-    const data = extractData('trs_rule', LocalStorage, true)
+    const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
     const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
@@ -38,7 +38,6 @@ const useParserController = () => {
         }
     }, [isSuccess, parseBody])
 
-
     const fetchJson = () => {
         getPayload({ type: data?.txtp }).unwrap().then((res) => {
             if (res) {
@@ -53,7 +52,8 @@ const useParserController = () => {
             json,
             result,
             isLoading,
-            sampleLoader
+            sampleLoader,
+            txtp: data?.txtp
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

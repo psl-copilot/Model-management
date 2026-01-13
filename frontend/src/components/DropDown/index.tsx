@@ -79,11 +79,11 @@ const Dropdown = ({
             const current = Array.isArray(value) ? value : [];
             const exists = current.some(v => v.value === opt.value);
             if (onChange) {
-              onChange(
-                exists
-                    ? current.filter(v => v.value !== opt.value)
-                    : [...current, opt]
-            );
+                onChange(
+                    exists
+                        ? current.filter(v => v.value !== opt.value)
+                        : [...current, opt]
+                );
             }
         } else {
             if (onChange) onChange(opt);
@@ -134,7 +134,7 @@ const Dropdown = ({
                         readOnly
                         value=""
                         sx={(theme) => ({ height: heightMap[height], display: 'flex', justifyContent: 'space-between', border: 1, borderColor: theme.palette.static.grey })}
-                        onClick={() => onClick ? onClick() : !disabled && setOpen(p => !p)}
+                        onClick={() => !disabled && onClick ? onClick() : !disabled && setOpen(p => !p)}
                         endAdornment={
                             <>
                                 {cancelable &&
