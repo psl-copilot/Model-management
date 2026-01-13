@@ -116,7 +116,3 @@ export const ruleTypes = [
     },
 ]
 
-export const metaData = {
-    step: 2
-}
-

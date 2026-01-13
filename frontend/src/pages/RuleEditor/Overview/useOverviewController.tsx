@@ -30,7 +30,8 @@ export interface IOverviewProps {
 
 const useOverviewController = (props: IOverviewProps) => {
 
-    const { data, setSelected, mode } = props
+    const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
+    const { setSelected, mode } = props
     const [versions, setVersions] = useState<string[]>([])
 
     const { data: types, isLoading } = useGetTypesQuery({})
@@ -44,7 +45,7 @@ const useOverviewController = (props: IOverviewProps) => {
         rule_name: (data?.rule_name as string) ?? '',
         description: (data?.description as string) ?? '',
         txtp: toDropdown(data?.txtp as string),
-        txtpVersion: toDropdown(data?.txtpVersion as string),
+        txtpVersion: toDropdown(data?.txtp_version as string),
         version: (data?.version as string) ?? '',
         rule_config_id: toDropdown(data?.rule_config_id as string),
         rule_type: toDropdown(data?.rule_type as string),
@@ -73,7 +74,7 @@ const useOverviewController = (props: IOverviewProps) => {
     const handleRuleValue = (val: DropdownOption) => {
         setValue('rule_config_id', val)
         const rule_no = val?.value?.toString().split('@')
-        setValue('rule_name', `${user.tenantId}-${rule_no?.[0]}`)
+        setValue('rule_name', `${user.tenantId}-rule-${rule_no?.[0]}`)
     }
 
     const handleTxTp = (val: DropdownOption) => {

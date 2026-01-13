@@ -87,7 +87,7 @@ const Parser = (props: IParseProps) => {
             </Grid>
             {values?.result?.success ?
                 <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
-                    <Button height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
+                    <Button height="40px" type="secondary" size="md" text="Next" onClick={functions.handleNext} />
                 </Box>
                 : null}
         </Grid >
