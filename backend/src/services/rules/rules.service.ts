@@ -191,9 +191,9 @@ export class RulesService {
     }
   }
 
-  async updateRuleStatus(ruleId: string, status: string, token: string): Promise<Rules> {
+  async updateRuleStatus(ruleId: string, status: string, reason: string, token: string): Promise<Rules> {
     try {
-      return await this.adminServiceClient.updateRuleStatus(ruleId, status, token);
+      return await this.adminServiceClient.updateRuleStatus(ruleId, status, reason, token);
     } catch (error) {
       const err = error as Error;
       this.logger.error(`Error updating status for rule ${ruleId}: ${err.message}`);

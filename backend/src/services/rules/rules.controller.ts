@@ -223,12 +223,13 @@ export class RulesController {
   @RequireAnyClaims(TazamaClaims.EDITOR)
   async updateRuleStatus(
     @Param('ruleId') ruleId: string,
-    @Body('status') status: string,
+    @Body() body: { status: string; reason: string },
     @User() user: AuthenticatedUser,
   ): Promise<Rules> {
     return await this.rulesService.updateRuleStatus(
       ruleId,
-      status,
+      body.status,
+      body.reason,
       user.token.tokenString,
     );
   }

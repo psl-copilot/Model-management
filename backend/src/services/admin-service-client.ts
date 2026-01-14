@@ -698,12 +698,12 @@ async getGlobalVariables(
   );
 }
 
-async updateRuleStatus(ruleId: string, status: string, token: string): Promise<Rules> {
+async updateRuleStatus(ruleId: string, status: string, reason: string, token: string): Promise<Rules> {
     try {
       const response = await firstValueFrom(
         this.httpService.put(
           `${this.adminServiceUrl}/v1/admin/trs/rule/updateStatus/${ruleId}`,
-          { status },
+          { status, reason },
           {
             headers: {
               Authorization: token.startsWith('Bearer ')
