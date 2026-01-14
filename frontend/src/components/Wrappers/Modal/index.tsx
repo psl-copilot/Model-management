@@ -41,7 +41,7 @@ const Modal = ({ open, title, children, footer, onClose, maxWidth = "lg" }: Moda
                     <motion.div
                         style={{
                             width: "100%",
-                            maxWidth: maxWidth === "sm" ? 400 :
+                            maxWidth: maxWidth === "sm" ? 550 :
                                 maxWidth === "md" ? 650 :
                                     maxWidth === "lg" ? 900 :
                                         maxWidth === "xl" ? 1200 : maxWidth,
@@ -53,12 +53,10 @@ const Modal = ({ open, title, children, footer, onClose, maxWidth = "lg" }: Moda
                             maxHeight: "90vh",
                             overflow: "hidden",
                         }}
-                        // variants={slide_from_top}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
                     >
-                        {/* Header */}
                         <Box
                             sx={{
                                 position: "sticky",
@@ -81,7 +79,7 @@ const Modal = ({ open, title, children, footer, onClose, maxWidth = "lg" }: Moda
                                 sx={{
                                     position: "absolute",
                                     right: 16,
-                                    top: 8,
+                                    top: 13,
                                     color: "grey.500",
                                     "&:hover": { color: "grey.700" },
                                 }}
@@ -90,12 +88,10 @@ const Modal = ({ open, title, children, footer, onClose, maxWidth = "lg" }: Moda
                             </IconButton>
                         </Box>
 
-                        {/* Body */}
                         <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>
                             {children}
                         </Box>
 
-                        {/* Footer */}
                         {footer && (
                             <Box
                                 sx={{
