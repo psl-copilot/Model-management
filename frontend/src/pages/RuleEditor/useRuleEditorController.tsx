@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { useGetRuleByIdQuery } from "../../redux/Api/Rules"
-import { LocalStorage } from "../../utils/Common/enums"
-import { removeData } from "../../utils/Common/storage"
 import { Tabs } from "../../utils/Constants/data"
 import Overview from "./Overview"
 import Parser from "./Parser"
 import RuleBuilder from "./RuleBuilder"
+import Simulation from "./Simulation"
 
 const useRuleEditorController = () => {
 
@@ -27,10 +26,6 @@ const useRuleEditorController = () => {
         setSelected(tab)
     }, [tab])
 
-    useEffect(() => {
-        return () => removeData('trs_rule', LocalStorage)
-    }, [])
-
     const renderComponent = useCallback(() => {
         switch (selected) {
             case 'overview':
@@ -39,6 +34,8 @@ const useRuleEditorController = () => {
                 return <Parser data={data?.rules} setSelected={setSelected} />
             case 'rule_builder':
                 return <RuleBuilder data={data?.rules} setSelected={setSelected} />
+            case 'simulation':
+                return <Simulation data={data?.rules} setSelected={setSelected} />
             default:
                 return null;
         }
