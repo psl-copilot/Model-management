@@ -6,6 +6,8 @@ import Overview from "./Overview"
 import Parser from "./Parser"
 import RuleBuilder from "./RuleBuilder"
 import Simulation from "./Simulation"
+import { insertData } from "../../utils/Common/storage"
+import { LocalStorage } from "../../utils/Common/enums"
 
 const useRuleEditorController = () => {
 
@@ -16,11 +18,17 @@ const useRuleEditorController = () => {
     const tab = searchParams.get('tab') ?? Tabs[0].value;
     const mode = searchParams.get('mode') ?? null
 
-    const { data, isLoading } = useGetRuleByIdQuery({ id }, { skip: !id, refetchOnMountOrArgChange: true })
+    const { data, isLoading, isSuccess } = useGetRuleByIdQuery({ id }, { skip: !id, refetchOnMountOrArgChange: true })
 
     const handleSubmit = () => {
 
     }
+
+    useEffect(() => {
+        if (isSuccess && data?.rules) {
+            insertData(data.rules, 'trs_rule', LocalStorage, true)
+        }
+    }, [isSuccess])
 
     useEffect(() => {
         setSelected(tab)
