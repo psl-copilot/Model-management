@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { CreateNodeDto, ResponseNodeDto } from "./dto";
+import { CreateNodeDto, ResponseNodesDto } from "./dto";
 import { AdminServiceClient } from "../admin-service-client";
 import { GetNodesQuery } from "./interfaces/node.interface";
 
@@ -10,7 +10,7 @@ export class NodesService {
         private readonly adminServiceClient: AdminServiceClient,
     ) { }
 
-    async createNode(token: string, createNodeDto: CreateNodeDto[]): Promise<ResponseNodeDto> {
+    async createNode(token: string, createNodeDto: Record<string, unknown>[]): Promise<ResponseNodesDto[]> {
         try {
             return await this.adminServiceClient.createNode(token, createNodeDto);
         } catch (error) {
@@ -21,7 +21,7 @@ export class NodesService {
         }
     }
 
-    async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodeDto[]> {
+    async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodesDto[]> {
         try {
             return await this.adminServiceClient.getAllNodes(token, query);
         } catch (error) {

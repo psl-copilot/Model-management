@@ -29,30 +29,14 @@ CREATE INDEX idx_trs_rules_tenant_status ON trs_rules (tenant_id, status);
 
 CREATE TABLE nodes (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    type VARCHAR(100) NOT NULL,
-    color VARCHAR(50),
-    label VARCHAR(255) NOT NULL,
-    category VARCHAR(100) NOT NULL,
-    updated_at DATE,
-    created_at DATE,
-    code_template TEXT,
-    default_data JSONB,
+    node_json JSONB NOT NULL,
     tenant_id VARCHAR(255) NOT NULL DEFAULT 'DEFAULT',
     created_by VARCHAR(255),
     created_at DATE,
     updated_at DATE
 );
 
--- Index on tenant_id for faster retrieval of nodes by tenant
 CREATE INDEX idx_nodes_tenant_id ON nodes (tenant_id);
-
--- Index on type for faster filtering based on node type
-CREATE INDEX idx_nodes_type ON nodes (type);
-
--- Composite index if you frequently query by tenant_id and type together
-CREATE INDEX idx_nodes_tenant_type ON nodes (tenant_id, type);
 
 CREATE TABLE trs_rule_flow (
     id SERIAL PRIMARY KEY,

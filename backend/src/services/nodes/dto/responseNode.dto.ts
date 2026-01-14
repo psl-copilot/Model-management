@@ -1,33 +1,18 @@
-import { IsString, IsNotEmpty, IsOptional, IsJSON } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsJSON, IsDate } from 'class-validator';
 
-export class ResponseNodeDto {
+export class ResponseNodesDto {
   @IsString()
-  @IsNotEmpty()
-  label: string;
-
-  @IsString()
-  type: string;
+  tenant_id: string;
 
   @IsString()
-  name: string;
-
-  @IsString()
-  @IsOptional()
-  desc?: string;
-
-  @IsString()
-  @IsOptional()
-  color?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  category: string;
-
-  @IsString()
-  @IsOptional()
-  code_template?: string;
+  created_by: string;
 
   @IsJSON()
-  @IsOptional()
-  default_data?: any;
+  node_json: any;
+
+  @IsDate()
+  created_at: Date;
+
+  @IsDate()
+  updated_at: Date;
 }

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
-import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
+import { ResponseNodesDto } from './nodes/dto';
 import { GetNodesQuery } from './nodes/interfaces/node.interface';
 
 @Injectable()
@@ -504,7 +504,7 @@ export class AdminServiceClient {
    * @param createNodeDto list of nodes
    * @returns return a list of created nodes
    */
-  async createNode(token: string, createNodeDto: CreateNodeDto[]): Promise<ResponseNodeDto> {
+  async createNode(token: string, createNodeDto: Record<string, unknown>[]): Promise<ResponseNodesDto[]> {
     try {
       return await this.forwardRequest(
         'POST',
@@ -513,7 +513,7 @@ export class AdminServiceClient {
         {
           Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
         },
-      ) as ResponseNodeDto;
+      ) as ResponseNodesDto[];
     } catch (error) {
       return this.handleError(error, 'createNode');
     }
@@ -525,7 +525,7 @@ export class AdminServiceClient {
    * @param query query parameters for filtering nodes (tenantId, type, category)
    * @returns return a list of nodes
    */
-  async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodeDto[]> {
+  async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodesDto[]> {
     try {
       const queryParams = new URLSearchParams();
       if (query.tenantId) {
@@ -536,6 +536,12 @@ export class AdminServiceClient {
       }
       if (query.category) {
         queryParams.append('category', query.category);
+      }
+      if (query.sortBy) {
+        queryParams.append('sortBy', query.sortBy);
+      }
+      if (query.sortOrder) {
+        queryParams.append('sortOrder', query.sortOrder);
       }
       const path = `/v1/admin/nodes?${queryParams.toString()}`;
       const response = await firstValueFrom(
