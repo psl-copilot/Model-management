@@ -21,9 +21,9 @@ function App() {
 
   const privateWithoutLayoutRoutes = ROUTES.filter(route => route.private === true && route.layout === false);
   return (
-    <ThemeProvider theme={themeMode}>
-      <ModalProvider>
-        <BrowserRouter>
+    <BrowserRouter>
+      <ThemeProvider theme={themeMode}>
+        <ModalProvider>
           <Toaster position="top-right" reverseOrder={false} />
           <Routes>
             <Route element={<ProtectedRoute />}>
@@ -51,12 +51,12 @@ function App() {
                 }
               </Route>
             </Route>
-            
+
 
           </Routes>
-        </BrowserRouter>
-      </ModalProvider>
-    </ThemeProvider>
+        </ModalProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   )
 }
 
