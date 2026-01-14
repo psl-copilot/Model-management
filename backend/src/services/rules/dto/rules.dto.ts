@@ -11,6 +11,10 @@ import {
 import { Type } from 'class-transformer';
 
 export class Rules {
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @IsString()
   @IsNotEmpty()
   rule_name: string;
