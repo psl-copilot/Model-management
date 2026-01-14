@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AdminServiceClient } from '../admin-service-client';
-import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from './dto/rules.dto';
+import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules, GlobalVariableDto } from './dto/rules.dto';
 import * as jwt from 'jsonwebtoken';
 
 @Injectable()
@@ -167,7 +167,7 @@ export class RulesService {
     }
   }
 
-  async getGlobalVariables(ruleId: string, tenantId: string, token: string): Promise<any> {
+  async getGlobalVariables(ruleId: string, tenantId: string, token: string): Promise<GlobalVariableDto> {
     try {
       const ruleData = await this.adminServiceClient.getGlobalVariables(ruleId, tenantId, token);
       return ruleData;

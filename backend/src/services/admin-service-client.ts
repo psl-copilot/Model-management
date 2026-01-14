@@ -6,11 +6,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from '../services/rules/dto/rules.dto';
+import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules, GlobalVariableDto } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
 import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
 import { GetNodesQuery } from './nodes/interfaces/node.interface';
-import { BASE_URL,GLOBAL_VARIABLES,RULE_FLOW,RULES_WITH_FILTERS, RULES_WITH_ID } from 'src/constants/constant';
+import { BASE_URL, GLOBAL_VARIABLES, RULE_FLOW, RULES_WITH_FILTERS, RULES_WITH_ID } from '../constants/constant';
 
 @Injectable()
 export class AdminServiceClient {
@@ -656,8 +656,8 @@ async getGlobalVariables(
   ruleId: string,
   tenantId: string,
   token: string,
-): Promise<any> {
-  return this.executeHttpRequest<any>(
+): Promise<GlobalVariableDto> {
+  return this.executeHttpRequest<GlobalVariableDto>(
     'GET',
     `${GLOBAL_VARIABLES}/${ruleId}/${tenantId}`,
     token,

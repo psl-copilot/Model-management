@@ -15,7 +15,7 @@ import { User } from '../../decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { TazamaClaims, RequireAnyClaims } from '../../decorators/auth.decorator';
 import { RulesService } from './rules.service';
-import { Rules, CreateRuleFlowDto, ResponseRuleFlowDto } from './dto/rules.dto';
+import { Rules, CreateRuleFlowDto, ResponseRuleFlowDto, GlobalVariableDto } from './dto/rules.dto';
 
 @Controller('rules')
 @UseGuards(TazamaAuthGuard)
@@ -195,7 +195,7 @@ export class RulesController {
   async getGlobalVariables(
     @Param('ruleId') ruleId: string,
     @User() user: AuthenticatedUser,
-  ): Promise<any> {
+  ): Promise<GlobalVariableDto> {
     return await this.rulesService.getGlobalVariables(
       ruleId,
       user.tenantId,

@@ -9,6 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import type {RuleConfig,RuleRequest, RuleResult} from '@tazama-lf/frms-coe-lib/lib/interfaces';
 
 export class Rules {
   @IsString()
@@ -257,4 +258,18 @@ export class FlowNodeDto {
   @Type(() => FlowDto)
   @IsOptional()
   nestedFlow?: FlowDto;
+}
+
+export class GlobalVariableDto {
+  @IsNotEmpty()
+  @IsObject()
+  RuleRequest: RuleRequest;
+
+  @IsNotEmpty()
+  @IsObject()
+  RuleConfig: RuleConfig;
+
+  @IsNotEmpty()
+  @IsObject()
+  RuleResult: RuleResult;
 }
