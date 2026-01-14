@@ -8,19 +8,11 @@ interface NestedCanvasData {
   edges: Edge[];
 }
 
-/**
- * Strips {{ }} wrapping from variable indicators (UI-only syntax)
- * Example: "{{ x }}" -> "x", "The value is {{ x }}" -> "The value is x"
- */
 const stripVariableIndicators = (text: string): string => {
   if (!text || typeof text !== 'string') return text;
   return text.replace(/\{\{\s*(.+?)\s*\}\}/g, '$1');
 };
 
-/**
- * Template engine: processes code_template with dynamic parameters
- * Supports ${params.key}, ${indent}, and ${variable} syntax
- */
 const processCodeTemplate = (
   template: string,
   params: Record<string, string>,
@@ -57,16 +49,13 @@ const processCodeTemplate = (
   return processedCode;
 };
 
-/**
- * Generates TypeScript code for a single node
- */
 const generateNodeCode = (node: Node, indent: string = ''): string => {
   const nodeData = node.data as EditableNodeData;
   const params = nodeData.params || {};
   const nodeType = nodeData.nodeType;
 
   // Find node definition from mock/API data
-  const nodeDefinition = mockRuleBuilderNodes.find((n) => n.node_type === nodeType);
+  const nodeDefinition = mockRuleBuilderNodes.find((n) => n.node_json.node_type === nodeType);
 
   // Special handling for nodes with complex logic that can't be templated
   if (nodeType === 'If') {
@@ -98,17 +87,14 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
   }
 
   // For all other nodes, use the code_template from API/mock data
-  if (nodeDefinition?.code_template) {
-    return processCodeTemplate(nodeDefinition.code_template, params, indent);
+  if (nodeDefinition?.node_json?.code_template) {
+    return processCodeTemplate(nodeDefinition.node_json.code_template, params, indent);
   }
 
   // Fallback for unknown nodes
   return `${indent}// ${nodeType} - ${nodeData.label}`;
 };
 
-/**
- * Generates code for SetVariable node with type handling
- */
 const generateSetVariableCode = (params: Record<string, string>, indent: string): string => {
   const varName = params.name || params.variableName || 'variable';
   const declarationType = params.declarationType || 'var';
@@ -146,9 +132,6 @@ const generateSetVariableCode = (params: Record<string, string>, indent: string)
   return `${indent}${declarationType} ${varName} = ${valueStr};`;
 };
 
-/**
- * Generates code for Log node with variable handling
- */
 const generateLogCode = (params: Record<string, string>, indent: string): string => {
   let message = params.text || params.message || '';
   const hasVariables = /\{\{\s*.+?\s*\}\}/.test(message);
@@ -173,9 +156,6 @@ const generateLogCode = (params: Record<string, string>, indent: string): string
   return `${indent}loggerService.log(${messageStr}, context, msgId);`;
 };
 
-/**
- * Generates code for ThrowError node
- */
 const generateThrowErrorCode = (params: Record<string, string>, indent: string): string => {
   let message = params.text || params.message || 'Error occurred';
   const hasVariables = /\{\{\s*.+?\s*\}\}/.test(message);
@@ -200,9 +180,7 @@ const generateThrowErrorCode = (params: Record<string, string>, indent: string):
   return `${indent}throw new Error(${messageStr});`;
 };
 
-/**
- * Generates code for Exit node (break, continue, return)
- */
+
 const generateExitCode = (params: Record<string, string>, indent: string): string => {
   const exitType = params.exitType || 'break';
   
@@ -221,10 +199,6 @@ const generateExitCode = (params: Record<string, string>, indent: string): strin
   }
 };
 
-
-/**
- * Generates code for FetchDB node with parameterized queries
- */
 const generateFetchDBCode = (params: Record<string, string>, indent: string): string => {
   const resultVar = params.resultVar || params.variable || 'dbResult';
   const query = params.query || 'SELECT * FROM table';
@@ -268,9 +242,6 @@ const generateFetchDBCode = (params: Record<string, string>, indent: string): st
   return lines.join('\n');
 };
 
-/**
- * Generates code for If node (cannot be templated due to branching logic)
- */
 const generateIfNodeCode = (node: Node, indent: string): string => {
   const nodeData = node.data as EditableNodeData;
   const params = nodeData.params || {};
@@ -301,9 +272,6 @@ const generateIfNodeCode = (node: Node, indent: string): string => {
   }
 };
 
-/**
- * Generates code for Loop node with multiple loop types
- */
 const generateLoopCode = (params: Record<string, string>, indent: string): string => {
   const loopType = params.loopType || 'forEach';
   const arrayVariable = stripVariableIndicators(params.arrayVariable || 'items');
@@ -373,9 +341,6 @@ const generateLoopCode = (params: Record<string, string>, indent: string): strin
   return lines.join('\n');
 };
 
-/**
- * Generates TypeScript code for nested flow with proper If node branch handling
- */
 const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '  '): string => {
   const codeLines: string[] = [];
   const processedNodes = new Set<string>();
@@ -573,9 +538,6 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
   return codeLines.join('\n');
 };
 
-/**
- * Generates complete TypeScript code including HandleTransaction wrapper
- */
 export const generateTypeScriptCode = (
   nodes: Node[],
   _edges: Edge[],

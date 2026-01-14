@@ -1,6 +1,7 @@
 import React from 'react';
-import { CardContent, Box, Typography } from '@mui/material';
+import { CardContent, Box, Typography, Chip } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import LockIcon from '@mui/icons-material/Lock';
 import { NodeCard } from '../styles';
 import type { NodeTemplate } from '../../../../hooks/RuleBuilder/useNodePalette';
 
@@ -10,27 +11,55 @@ interface NodePaletteProps {
 }
 
 const NodePalette: React.FC<NodePaletteProps> = ({ nodes, onDragStart }) => {
+  // Check if node is a Start or End node (already present in canvas)
+  const isNonDraggable = (nodeType: string): boolean => {
+    return nodeType === 'Start' || nodeType === 'End';
+  };
+
   return (
     <>
-      {nodes.map((node) => (
+      {nodes.map((node) => {
+        const nonDraggable = isNonDraggable(node.type || '');
+        return (
         <NodeCard
           key={node.type}
           elevation={1}
-          nodecolor={node.color}
-          draggable
-          onDragStart={(e) => onDragStart(e, node.type)}
+          nodecolor={node.color || '#gray'}
+          draggable={!nonDraggable}
+          onDragStart={(e) => onDragStart(e, node.type || '')}
+          sx={{
+            opacity: nonDraggable ? 0.6 : 1,
+            cursor: nonDraggable ? 'not-allowed' : 'grab',
+            '&:hover': {
+              transform: nonDraggable ? 'none' : 'translateY(-2px)',
+            },
+          }}
         >
           <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 }, boxSizing: 'border-box' }}>
             <Box display="flex" alignItems="flex-start" justifyContent="space-between" gap={0.5}>
               <Box flex={1} minWidth={0} sx={{ overflow: 'hidden' }}>
-                <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ wordBreak: 'break-word', pr: 0.5 }}>
-                  {node.label}
-                </Typography>
+                <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                  <Typography variant="body2" fontWeight={500} color="text.primary" sx={{ wordBreak: 'break-word' }}>
+                    {node.label}
+                  </Typography>
+                  {nonDraggable && (
+                    <Chip
+                      label="Already present"
+                      size="small"
+                      icon={<LockIcon />}
+                      sx={{
+                        height: 18,
+                        fontSize: '0.65rem',
+                        '& .MuiChip-label': { px: 0.75 },
+                        '& .MuiChip-icon': { fontSize: 12 },
+                      }}
+                    />
+                  )}
+                </Box>
                 <Typography
                   variant="caption"
                   color="text.secondary"
                   sx={{
-                    mt: 0.5,
                     display: 'block',
                     wordBreak: 'break-word',
                     lineHeight: 1.3,
@@ -42,14 +71,26 @@ const NodePalette: React.FC<NodePaletteProps> = ({ nodes, onDragStart }) => {
               </Box>
             </Box>
             <Box display="flex" alignItems="center" mt={1}>
-              <DragIndicatorIcon sx={{ fontSize: 14, color: 'text.disabled', mr: 0.5 }} />
-              <Typography variant="caption" color="text.disabled">
-                Drag to canvas
-              </Typography>
+              {nonDraggable ? (
+                <>
+                  <LockIcon sx={{ fontSize: 14, color: 'text.disabled', mr: 0.5 }} />
+                  <Typography variant="caption" color="text.disabled">
+                    Already in canvas
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <DragIndicatorIcon sx={{ fontSize: 14, color: 'text.disabled', mr: 0.5 }} />
+                  <Typography variant="caption" color="text.disabled">
+                    Drag to canvas
+                  </Typography>
+                </>
+              )}
             </Box>
           </CardContent>
         </NodeCard>
-      ))}
+        );
+      })}
     </>
   );
 };

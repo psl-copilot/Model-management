@@ -12,21 +12,24 @@ interface ApiNodeInput {
 
 interface ApiNode {
   id: number;
-  name: string;
-  node_type: string;
-  label: string;
-  description: string | null;
-  type: string;
-  category: string;
-  color: string;
-  handles: {
-    source: boolean;
-    target: boolean;
+  node_json: {
+    name: string;
+    node_type: string;
+    label: string;
+    description: string | null;
+    type: string;
+    category: string;
+    color: string;
+    handles: {
+      source: boolean;
+      target: boolean;
+    };
+    inputs: ApiNodeInput[];
+    code_template: string;
+    default_data: Record<string, unknown>;
   };
-  inputs: ApiNodeInput[];
-  code_template: string;
-  default_data: Record<string, unknown>;
   tenant_id: string;
+  created_by: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,15 +38,16 @@ interface ApiNode {
  * Maps API node response to NodeTemplate format used by the frontend
  */
 export const mapApiNodeToTemplate = (apiNode: ApiNode): NodeTemplate => {
+  const { node_json } = apiNode;
   return {
-    type: apiNode.node_type,
-    displayName: apiNode.label,
-    description: apiNode.description || '',
-    label: apiNode.label,
-    color: apiNode.color,
-    bgColor: getBgColorFromHex(apiNode.color),
-    isFunction: apiNode.type === 'function', // Set isFunction based on type field
-    inputs: apiNode.inputs?.map((input) => ({
+    type: node_json.node_type,
+    displayName: node_json.label,
+    description: node_json.description || '',
+    label: node_json.label,
+    color: node_json.color,
+    bgColor: getBgColorFromHex(node_json.color),
+    isFunction: node_json.type === 'function',
+    inputs: node_json.inputs?.map((input) => ({
       key: input.key,
       label: input.label,
       defaultValue: String(input.defaultValue || ''),
@@ -53,8 +57,8 @@ export const mapApiNodeToTemplate = (apiNode: ApiNode): NodeTemplate => {
       options: input.options,
     })) || [],
     handles: {
-      source: apiNode.handles?.source || false,
-      target: apiNode.handles?.target || false,
+      source: node_json.handles?.source || false,
+      target: node_json.handles?.target || false,
     },
   };
 };
@@ -90,9 +94,10 @@ export const mapApiNodesToTemplates = (
   const uniqueNodes = Array.from(
     apiNodes
       .reduce((map, node) => {
-        const existing = map.get(node.node_type);
+        const nodeType = node.node_json.node_type;
+        const existing = map.get(nodeType);
         if (!existing || new Date(node.updated_at) > new Date(existing.updated_at)) {
-          map.set(node.node_type, node);
+          map.set(nodeType, node);
         }
         return map;
       }, new Map<string, ApiNode>())
@@ -102,7 +107,7 @@ export const mapApiNodesToTemplates = (
   // Convert to template map
   return uniqueNodes.reduce(
     (acc, node) => {
-      acc[node.node_type] = mapApiNodeToTemplate(node);
+      acc[node.node_json.node_type] = mapApiNodeToTemplate(node);
       return acc;
     },
     {} as Record<string, NodeTemplate>
@@ -117,9 +122,10 @@ export const mapApiNodesToArray = (apiNodes: ApiNode[]): NodeTemplate[] => {
   const uniqueNodes = Array.from(
     apiNodes
       .reduce((map, node) => {
-        const existing = map.get(node.node_type);
+        const nodeType = node.node_json.node_type;
+        const existing = map.get(nodeType);
         if (!existing || new Date(node.updated_at) > new Date(existing.updated_at)) {
-          map.set(node.node_type, node);
+          map.set(nodeType, node);
         }
         return map;
       }, new Map<string, ApiNode>())

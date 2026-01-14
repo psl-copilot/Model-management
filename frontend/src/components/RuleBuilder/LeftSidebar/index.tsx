@@ -78,6 +78,11 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   // Handlers
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string): void => {
+    // Prevent dragging Start and End nodes as they are already present in canvas
+    if (nodeType === 'Start' || nodeType === 'End') {
+      event.preventDefault();
+      return;
+    }
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };

@@ -7,7 +7,7 @@ import type { NodeTemplate } from '../../hooks/RuleBuilder/useNodePalette';
  * Currently uses mock data, will switch to real API when backend is ready
  */
 export const getNodeTemplate = (nodeType: string): NodeTemplate | undefined => {
-  const apiNode = mockRuleBuilderNodes.find((node) => node.node_type === nodeType);
+  const apiNode = mockRuleBuilderNodes.find((node) => node.node_json.node_type === nodeType);
   if (!apiNode) return undefined;
   return mapApiNodeToTemplate(apiNode);
 };
@@ -25,7 +25,7 @@ export const getAllNodeTemplates = (): NodeTemplate[] => {
 export const getNodeTemplatesMap = (): Record<string, NodeTemplate> => {
   return mockRuleBuilderNodes.reduce(
     (acc, node) => {
-      acc[node.node_type] = mapApiNodeToTemplate(node);
+      acc[node.node_json.node_type] = mapApiNodeToTemplate(node);
       return acc;
     },
     {} as Record<string, NodeTemplate>
