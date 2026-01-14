@@ -12,6 +12,10 @@ import { Type } from 'class-transformer';
 import type {RuleConfig,RuleRequest, RuleResult} from '@tazama-lf/frms-coe-lib/lib/interfaces';
 
 export class Rules {
+  @IsOptional()
+  @IsString()
+  id?: string;
+
   @IsString()
   @IsNotEmpty()
   rule_name: string;

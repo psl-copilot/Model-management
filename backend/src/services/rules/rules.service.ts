@@ -49,9 +49,12 @@ export class RulesService {
     token: string,
   ): Promise<Rules> {
     try {
-      console.log("starting create Rule in rules service");
-      console.log("rule data at rules service:", ruleData);
-      return await this.adminServiceClient.createRule(ruleData, token);
+      const rule = await this.adminServiceClient.createRule(ruleData, token);
+      if (rule.id) {
+        const ruleFlow21 = await this.adminServiceClient.getRuleFlow('21', token);
+        await this.adminServiceClient.createRuleFlow(rule.id, ruleFlow21.flow, token); 
+      }
+      return rule;
     } catch (error) {
       const err = error as Error;
       this.logger.error(`Error creating rule: ${err.message}`);
