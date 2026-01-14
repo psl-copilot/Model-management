@@ -30,7 +30,7 @@ const MuiButton = ({
 }: ButtonProps) => {
   const colors = {
     primary: {
-      main: "#51be99",
+      main: "#33ad74",
       contrastText: "#fff",
     },
     secondary: {
@@ -50,7 +50,7 @@ const MuiButton = ({
       contrastText: "#fff",
     },
     success: {
-      main: "#2e7d32",
+      main: "#66c1bb",
       contrastText: "#fff",
     },
     default: {
