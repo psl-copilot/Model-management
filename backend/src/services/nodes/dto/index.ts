@@ -1,4 +1,4 @@
 import { CreateNodeDto } from './createNode.dto';
-import { ResponseNodeDto } from './responseNode.dto';
+import { ResponseNodesDto } from './responseNode.dto';
 
-export { CreateNodeDto, ResponseNodeDto };
+export { CreateNodeDto, ResponseNodesDto };

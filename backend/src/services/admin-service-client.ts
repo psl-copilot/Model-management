@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules, GlobalVariableDto } from '../services/rules/dto/rules.dto';
 import { firstValueFrom } from 'rxjs';
-import { CreateNodeDto, ResponseNodeDto } from './nodes/dto';
+import { ResponseNodesDto } from './nodes/dto';
 import { GetNodesQuery } from './nodes/interfaces/node.interface';
 import { BASE_URL, GLOBAL_VARIABLES, RULE_FLOW, RULES_WITH_FILTERS, RULES_WITH_ID } from '../constants/constant';
 
@@ -544,7 +544,7 @@ export class AdminServiceClient {
    * @param createNodeDto list of nodes
    * @returns return a list of created nodes
    */
-  async createNode(token: string, createNodeDto: CreateNodeDto[]): Promise<ResponseNodeDto> {
+  async createNode(token: string, createNodeDto: Record<string, unknown>[]): Promise<ResponseNodesDto[]> {
     try {
       return await this.forwardRequest(
         'POST',
@@ -553,7 +553,7 @@ export class AdminServiceClient {
         {
           Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`,
         },
-      ) as ResponseNodeDto;
+      ) as ResponseNodesDto[];
     } catch (error) {
       return this.handleError(error, 'createNode');
     }
@@ -565,7 +565,7 @@ export class AdminServiceClient {
    * @param query query parameters for filtering nodes (tenantId, type, category)
    * @returns return a list of nodes
    */
-  async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodeDto[]> {
+  async getAllNodes(token: string, query: GetNodesQuery): Promise<ResponseNodesDto[]> {
     try {
       const queryParams = new URLSearchParams();
       if (query.tenantId) {
@@ -576,6 +576,12 @@ export class AdminServiceClient {
       }
       if (query.category) {
         queryParams.append('category', query.category);
+      }
+      if (query.sortBy) {
+        queryParams.append('sortBy', query.sortBy);
+      }
+      if (query.sortOrder) {
+        queryParams.append('sortOrder', query.sortOrder);
       }
       const path = `/v1/admin/nodes?${queryParams.toString()}`;
       const response = await firstValueFrom(
@@ -598,6 +604,34 @@ export class AdminServiceClient {
       return response.data.nodes;
     } catch (error) {
       return this.handleError(error, 'getAllNodes');
+    }
+  }
+
+  async deleteNodeByNodeId(nodeId: string, token: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.delete(
+          `${this.adminServiceUrl}/v1/admin/nodes/${nodeId}`,
+          {
+            headers: {
+              Authorization: token.startsWith('Bearer ')
+                ? token
+                : `Bearer ${token}`,
+            },
+          },
+        ),
+      );
+
+      if (!response.data) {
+        this.logger.error(`No response data after deleting node ${nodeId}`);
+        throw new HttpException(
+          `Failed to delete node ${nodeId}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      return response.data;
+    } catch(err) {
+      return this.handleError(err, 'deleteNodeByNodeId');
     }
   }
 

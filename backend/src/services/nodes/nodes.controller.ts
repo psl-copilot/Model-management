@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards, Delete } from "@nestjs/common";
 import { TazamaAuthGuard } from "../../guards/tazama-auth.guard";
 import { NodesService } from "./nodes.service";
-import { CreateNodeDto, ResponseNodeDto } from "./dto";
+import { ResponseNodesDto } from "./dto";
 import { RequireAnyClaims, TazamaClaims } from "../../decorators/auth.decorator";
 import type { AuthenticatedUser } from "../auth/auth.types";
 import { User } from "../../decorators/user.decorator";
@@ -18,7 +18,7 @@ export class NodesController {
     TazamaClaims.APPROVER,
     TazamaClaims.PUBLISHER,
   )
-    async createNode(@Body() createNodeDto: CreateNodeDto[], @User() user: AuthenticatedUser): Promise<ResponseNodeDto> {
+    async createNode(@Body() createNodeDto: Record<string, unknown>[], @User() user: AuthenticatedUser): Promise<ResponseNodesDto[]> {
         try {
             return await this.nodesService.createNode(user.token.tokenString, createNodeDto);
         } catch (error) {
@@ -32,9 +32,23 @@ export class NodesController {
         TazamaClaims.APPROVER,
         TazamaClaims.PUBLISHER,
     )
-    async getAllNodes(@Query() query: GetNodesQuery, @User() user: AuthenticatedUser): Promise<ResponseNodeDto[]> {
+    async getAllNodes(@Query() query: GetNodesQuery, @User() user: AuthenticatedUser): Promise<ResponseNodesDto[]> {
         try {
             return await this.nodesService.getAllNodes(user.token.tokenString, query);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    @Delete(':nodeId')
+    @RequireAnyClaims(
+        TazamaClaims.EDITOR,
+        TazamaClaims.APPROVER,
+        TazamaClaims.PUBLISHER,
+    )
+    async deleteNodeById(@Query('nodeId') nodeId: string, @User() user: AuthenticatedUser): Promise<{ success: boolean; message: string }> {
+        try {
+            return await this.nodesService.deleteNodeById(nodeId, user.token.tokenString);
         } catch (error) {
             throw error;
         }
