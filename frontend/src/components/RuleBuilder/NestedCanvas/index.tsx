@@ -36,6 +36,7 @@ interface NestedCanvasProps {
   onBack: () => void;
   onSave: (nodes: Node[], edges: Edge[]) => void;
   viewOnly?: boolean;
+  ruleConfigId?: string;
 }
 
 const NestedCanvas: React.FC<NestedCanvasProps> = ({
@@ -46,6 +47,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   onBack,
   onSave,
   viewOnly = false,
+  ruleConfigId,
 }) => {
   // Generate initial nodes and edges once using lazy initialization
   const [initialNodesEdges] = useState(() => {
@@ -430,7 +432,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       {/* Main Content with Sidebar and Canvas */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar with Global Variables */}
-        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} />}
+        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} ruleConfigId={ruleConfigId} />}
 
         {/* Canvas */}
         <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>

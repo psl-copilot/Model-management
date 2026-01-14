@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { SidebarContainer, ScrollableList, ToggleButton } from './styles';
 import { globalVariables } from '../../../utils/Flow/GlobalVariables';
+import { useGetGlobalVariablesQuery } from '../../../redux/Api/Rule-builder';
 import {
   useVariableTree,
   useLocalVariables,
@@ -34,6 +35,7 @@ interface LeftSidebarProps {
   allNodes?: Node[];
   edges?: import('@xyflow/react').Edge[];
   selectedNodeId?: string | null;
+  ruleConfigId?: string;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
@@ -45,9 +47,28 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   allNodes = [],
   edges = [],
   selectedNodeId = null,
+  ruleConfigId,
 }) => {
   // State
   const [activeTab, setActiveTab] = useState<number>(0);
+
+  // Fetch global variables from API (use hardcoded ruleConfigId for now)
+  const { data: globalVarsData } = useGetGlobalVariablesQuery(
+    ruleConfigId || '0060@1.0.0',
+    { skip: !showGlobalVariables }
+  );
+
+  // Use API data if available, otherwise fallback to static data
+  const currentGlobalVariables = useMemo(() => {
+    if (globalVarsData) {
+      return {
+        RuleRequest: globalVarsData.RuleRequest || {},
+        RuleConfig: globalVarsData.RuleConfig || {},
+        RuleResult: globalVarsData.RuleResult || {},
+      };
+    }
+    return globalVariables;
+  }, [globalVarsData]);
 
   //commented for now until we have API to fetch nodes  
   // const { data: nodesData, error, isLoading } = useGetNodesQuery({});
@@ -70,8 +91,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   // Build variable trees
   const localVarsTree = useVariableTree({ obj: localVars, parentPath: '' });
   const loopVarsTree = useVariableTree({ obj: loopVars, parentPath: '' });
-  const ruleRequestTree = useVariableTree({ obj: globalVariables.RuleRequest, parentPath: 'RuleRequest' });
-  const ruleConfigTree = useVariableTree({ obj: globalVariables.RuleConfig, parentPath: 'RuleConfig' });
+  const ruleRequestTree = useVariableTree({ obj: currentGlobalVariables.RuleRequest, parentPath: 'RuleRequest' });
+  const ruleConfigTree = useVariableTree({ obj: currentGlobalVariables.RuleConfig, parentPath: 'RuleConfig' });
+  const ruleResultTree = useVariableTree({ obj: currentGlobalVariables.RuleResult || {}, parentPath: 'RuleResult' });
 
   // Get nodes to display based on active tab
   const nodesToShow = getNodesToShow(activeTab);
@@ -186,6 +208,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   loopContext={loopContext}
                   ruleRequestTree={ruleRequestTree}
                   ruleConfigTree={ruleConfigTree}
+                  ruleResultTree={ruleResultTree}
                 />
               ) : (
                 <NodePalette

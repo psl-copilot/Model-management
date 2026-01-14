@@ -1,3 +1,12 @@
+// TypeScript types for Global Variables API response
+export interface GlobalVariablesResponse {
+  success: boolean;
+  RuleRequest: Record<string, unknown>;
+  RuleConfig: Record<string, unknown>;
+  RuleResult?: Record<string, unknown>;
+}
+
+// Static fallback data (used when API is not available or loading)
 export const globalVariables = {
   RuleRequest: {
     pain001: {
@@ -58,5 +67,12 @@ export const globalVariables = {
         { subRuleRef: '.02', lowerLimit: 5, upperLimit: Number.POSITIVE_INFINITY } // Amount >= $5 = Medium risk
       ]
     }
+  },
+  RuleResult: {
+    id: "0060@1.0.0",
+    cfg: "",
+    subRuleRef: ".err",
+    reason: "Unhandled rule result outcome",
+    prcgTm: -1
   }
 };

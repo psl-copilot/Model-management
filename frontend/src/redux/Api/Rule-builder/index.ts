@@ -33,6 +33,12 @@ export const ruleBuilderApi = createApi({
                 body: flowData,
             }),
         }),
+        getGlobalVariables: builder.query({
+            query: (ruleConfigId: string) => ({
+                url: `rules/api/global-variables/${ruleConfigId}`,
+                method: "GET",
+            }),
+        }),
     }),
 })
 
@@ -40,4 +46,5 @@ export const {
     useGetNodesQuery,
     useGetFlowQuery,
     useSaveFlowMutation,
+    useGetGlobalVariablesQuery,
 } = ruleBuilderApi

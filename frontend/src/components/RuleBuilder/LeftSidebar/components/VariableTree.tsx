@@ -16,6 +16,7 @@ interface VariableTreeProps {
   };
   ruleRequestTree: VariableTreeNode[];
   ruleConfigTree: VariableTreeNode[];
+  ruleResultTree: VariableTreeNode[];
 }
 
 const VariableTree: React.FC<VariableTreeProps> = ({ 
@@ -23,7 +24,8 @@ const VariableTree: React.FC<VariableTreeProps> = ({
   loopVarsTree,
   loopContext,
   ruleRequestTree, 
-  ruleConfigTree 
+  ruleConfigTree,
+  ruleResultTree
 }) => {
   return (
     <Box sx={{ p: 1.5, overflowX: 'auto', minWidth: 0 }}>
@@ -81,6 +83,15 @@ const VariableTree: React.FC<VariableTreeProps> = ({
           icon={<CodeIcon sx={{ fontSize: 18 }} />}
           color="primary.main"
           nodes={ruleConfigTree}
+          showDivider={true}
+        />
+
+        {/* Global Variables - RuleResult */}
+        <VariableTreeSection
+          title="Global Variables (RuleResult)"
+          icon={<CodeIcon sx={{ fontSize: 18 }} />}
+          color="primary.main"
+          nodes={ruleResultTree}
           showDivider={false}
         />
       </Box>

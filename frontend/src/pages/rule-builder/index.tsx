@@ -214,6 +214,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
             allNodes={flowState.allNodes}
             edges={flowState.edges}
             selectedNodeId={flowState.selectedNode?.id || null}
+            ruleConfigId="0060@1.0.0"
           />
         )}
         <RuleBuilderCanvas
@@ -249,6 +250,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
             onBack={nestedCanvasManager.handleNestedCanvasBack}
             onSave={handleNestedCanvasSave}
             viewOnly={viewOnly}
+            ruleConfigId="0060@1.0.0"
           />
         )}
       </Box>
