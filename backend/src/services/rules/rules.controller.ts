@@ -160,7 +160,7 @@ export class RulesController {
     TazamaClaims.APPROVER,
     TazamaClaims.PUBLISHER,
   )
-  async createRuleFlow(@Param('ruleId') ruleId: string, @Body() flowData: CreateRuleFlowDto, @User() user: AuthenticatedUser): Promise<ResponseRuleFlowDto> {
+  async createRuleFlow(@Param('ruleId') ruleId: string, @Body() flowData: JSON, @User() user: AuthenticatedUser): Promise<ResponseRuleFlowDto> {
     return await this.rulesService.createRuleFlow(ruleId, flowData, user.token.tokenString);
   }
 
@@ -179,7 +179,7 @@ export class RulesController {
   @RequireAnyClaims(TazamaClaims.EDITOR)
   async updateRuleFlow(
     @Param('ruleId') ruleId: string,
-    @Body() flowData: CreateRuleFlowDto,
+    @Body() flowData: JSON,
     @User() user: AuthenticatedUser,
   ): Promise<ResponseRuleFlowDto> {
     return await this.rulesService.updateRuleFlow(ruleId, flowData, user.token.tokenString);

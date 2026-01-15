@@ -635,7 +635,7 @@ export class AdminServiceClient {
     }
   }
 
-  async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+  async createRuleFlow(ruleId: string, flowData: JSON, token: string): Promise<ResponseRuleFlowDto> {
     try {
       const response = await firstValueFrom(
         this.httpService.post(
@@ -675,7 +675,7 @@ async getRuleFlow(
 
 async updateRuleFlow(
   ruleId: string,
-  flowData: CreateRuleFlowDto,
+  flowData: JSON,
   token: string,
 ): Promise<ResponseRuleFlowDto> {
   return this.executeHttpRequest<ResponseRuleFlowDto>(
