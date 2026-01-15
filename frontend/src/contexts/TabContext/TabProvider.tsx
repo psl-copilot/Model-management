@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Tabs } from "../../utils/Constants/data"
+import { extractData } from "../../utils/Common/storage"
+import { claims, Tabs } from "../../utils/Constants/data"
 import { TabContext } from "./TabContext"
 
 interface TabProviderProps {
@@ -8,12 +9,21 @@ interface TabProviderProps {
     mode?: string | null
 }
 
-export const TabProvider = ({ children, mode }: TabProviderProps) => {
+export const TabProvider = ({ children }: TabProviderProps) => {
     const [searchParams, setSearchParams] = useSearchParams()
     const tabFromUrl = searchParams.get('tab') ?? Tabs[0].value
+    const user = extractData('user')
 
     const [selectedTab, setSelectedTab] = useState<string>(tabFromUrl)
     const [enabledTabs, setEnabledTabs] = useState<string[]>([Tabs[0].value])
+
+
+    const filteredTabs = useMemo(() => {
+        if (user?.claims !== claims.editor) {
+            return Tabs.filter(tab => tab.value !== 'parser')
+        }
+        return Tabs
+    }, [user?.claims])
 
 
     const handleSetSelectedTab = useCallback((tab: string) => {
@@ -26,9 +36,9 @@ export const TabProvider = ({ children, mode }: TabProviderProps) => {
     }, [setSearchParams])
 
     const enableNextTab = useCallback(() => {
-        const currentIndex = Tabs.findIndex(t => t.value === selectedTab)
-        if (currentIndex >= 0 && currentIndex < Tabs.length - 1) {
-            const nextTab = Tabs[currentIndex + 1]
+        const currentIndex = filteredTabs.findIndex(t => t.value === selectedTab)
+        if (currentIndex >= 0 && currentIndex < filteredTabs.length - 1) {
+            const nextTab = filteredTabs[currentIndex + 1]
             setEnabledTabs(prev => {
                 if (!prev.includes(nextTab.value)) {
                     return [...prev, nextTab.value]
@@ -37,13 +47,13 @@ export const TabProvider = ({ children, mode }: TabProviderProps) => {
             })
             handleSetSelectedTab(nextTab.value)
         }
-    }, [selectedTab, handleSetSelectedTab])
+    }, [selectedTab, handleSetSelectedTab, filteredTabs])
 
     const enableAllTabs = useCallback(() => {
-        setEnabledTabs(Tabs.map(t => t.value))
-    }, [])
+        setEnabledTabs(filteredTabs.map(t => t.value))
+    }, [filteredTabs])
 
-    const tabsWithEnabled = Tabs.map(tab => ({
+    const tabsWithEnabled = filteredTabs.map(tab => ({
         ...tab,
         enabled: enabledTabs.includes(tab.value)
     }))
