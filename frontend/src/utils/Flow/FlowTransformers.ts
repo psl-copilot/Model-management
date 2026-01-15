@@ -1,4 +1,5 @@
 import type { Node, Edge } from '@xyflow/react';
+import { getLabelForHandle, getColorForHandle } from '../Common/helpers';
 
 export interface ApiNode {
   id: string;
@@ -13,6 +14,10 @@ export interface ApiEdge {
   id: string;
   source: string;
   target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+  label?: string;
+  style?: Record<string, unknown>;
   type?: string;
   animated?: boolean;
 }
@@ -34,13 +39,26 @@ export const transformApiNodeToCanvasNode = (node: ApiNode): Node => ({
   },
 });
 
-export const transformApiEdgeToCanvasEdge = (edge: ApiEdge): Edge => ({
-  id: edge.id,
-  source: edge.source,
-  target: edge.target,
-  type: edge.type || 'smoothstep',
-  animated: edge.animated || false,
-});
+export const transformApiEdgeToCanvasEdge = (edge: ApiEdge): Edge => {
+  // Reconstruct label and style from sourceHandle if not provided
+  const hasSourceHandle = edge.sourceHandle && edge.sourceHandle !== null;
+  const needsReconstruction = hasSourceHandle && (!edge.label || !edge.style);
+  
+  return {
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+    sourceHandle: edge.sourceHandle || undefined,
+    targetHandle: edge.targetHandle || undefined,
+    label: edge.label || (needsReconstruction ? getLabelForHandle(edge.sourceHandle!) : undefined),
+    style: edge.style || (needsReconstruction ? {
+      stroke: getColorForHandle(edge.sourceHandle!),
+      strokeWidth: 2,
+    } : undefined),
+    type: edge.type || 'smoothstep',
+    animated: edge.animated || false,
+  };
+};
 
 export const transformApiFlowData = (
   apiNodes: ApiNode[],

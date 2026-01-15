@@ -34,8 +34,8 @@ export const ruleBuilderApi = createApi({
             }),
         }),
         getGlobalVariables: builder.query({
-            query: (ruleConfigId: string) => ({
-                url: `rules/api/global-variables/${ruleConfigId}`,
+            query: (ruleId: string) => ({
+                url: `rules/api/global-variables/${ruleId}`,
                 method: "GET",
             }),
         }),

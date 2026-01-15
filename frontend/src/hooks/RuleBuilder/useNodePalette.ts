@@ -26,21 +26,28 @@ export interface NodeTemplate {
 interface UseNodePaletteProps {
   mode?: 'main' | 'modal';
   hideCustomFunctions?: boolean;
+  hideImportNode?: boolean;
   apiNodes?: NodeTemplate[];
 }
 
 export const useNodePalette = ({ 
   mode = 'main', 
   hideCustomFunctions = false,
+  hideImportNode = false,
   apiNodes = [],
 }: UseNodePaletteProps) => {
   // Use API nodes if available, otherwise fall back to predefined nodes
   const basicNodes: NodeTemplate[] = useMemo(
     () => {
       if (apiNodes && apiNodes.length > 0) {
-        return apiNodes.filter((node) => !node.isFunction);
+        let nodes = apiNodes.filter((node) => !node.isFunction);
+        // Filter out Import nodes if hideImportNode is true
+        if (hideImportNode) {
+          nodes = nodes.filter((node) => node.type !== 'Import');
+        }
+        return nodes;
       }
-      return [
+      const nodes = [
         { type: 'Import', label: 'Import', description: 'Import modules', color: '#8b5cf6' },
         { type: 'SetVariable', label: 'Set Variable', description: 'Assign value to variable', color: '#60a5fa' },
         { type: 'Log', label: 'Print Log', description: 'Output to console', color: '#fbbf24' },
@@ -49,8 +56,10 @@ export const useNodePalette = ({
         { type: 'FetchDB', label: 'Fetch from DB', description: 'Database query', color: '#fb923c' },
         { type: 'ThrowError', label: 'Throw Error', description: 'Raise an error', color: '#f87171' },
       ];
+      // Filter out Import nodes if hideImportNode is true
+      return hideImportNode ? nodes.filter((n) => n.type !== 'Import') : nodes;
     },
-    [apiNodes]
+    [apiNodes, hideImportNode]
   );
 
   const modalNodes: NodeTemplate[] = useMemo(

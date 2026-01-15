@@ -484,11 +484,11 @@ export const mockRuleBuilderNodes: ApiNode[] = [
         },
         {
           key: 'loopCondition',
-          label: 'Loop Condition (for loop)',
+          label: 'Loop Condition (for/while loop)',
           type: 'text',
           defaultValue: '',
           required: false,
-          placeholder: 'e.g., i < array.length, index <= 10',
+          placeholder: 'e.g., i < array.length, index <= 10, isValid === true',
         },
         {
           key: 'incrementOperation',

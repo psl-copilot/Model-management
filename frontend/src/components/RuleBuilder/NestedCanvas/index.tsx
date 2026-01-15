@@ -20,7 +20,7 @@ import EditableNode from '../EditableNode';
 import LeftSidebar from '../LeftSidebar';
 import RightSidebar from '../RightSidebar';
 import { getNodeTemplate } from '../../../utils/Flow/nodeTemplateService';
-import { generateNestedNodeId } from '../../../utils/Flow/FlowDefaults';
+import { generateNestedNodeId, setCounters } from '../../../utils/Flow/FlowDefaults';
 import { getLabelForHandle, getColorForHandle } from '../../../utils/Common/helpers';
 import { useValidationContext } from '../../../validation/context';
 
@@ -36,7 +36,7 @@ interface NestedCanvasProps {
   onBack: () => void;
   onSave: (nodes: Node[], edges: Edge[]) => void;
   viewOnly?: boolean;
-  ruleConfigId?: string;
+  ruleId?: string;
 }
 
 const NestedCanvas: React.FC<NestedCanvasProps> = ({
@@ -47,12 +47,27 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   onBack,
   onSave,
   viewOnly = false,
-  ruleConfigId,
+  ruleId,
 }) => {
   // Generate initial nodes and edges once using lazy initialization
   const [initialNodesEdges] = useState(() => {
     // Use provided nodes/edges if available, otherwise create defaults
     if (providedInitialNodes && providedInitialEdges) {
+      // Sync nested node counter with existing node IDs to prevent ID collisions
+      const maxNestedNodeId = providedInitialNodes.reduce((max, node) => {
+        const match = node.id.match(/^nested-node-(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          return Math.max(max, num);
+        }
+        return max;
+      }, 0);
+      
+      // Update the nested node counter if we found existing nested nodes
+      if (maxNestedNodeId > 0) {
+        setCounters(0, 0, maxNestedNodeId);
+      }
+      
       return { nodes: providedInitialNodes, edges: providedInitialEdges };
     }
 
@@ -432,7 +447,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       {/* Main Content with Sidebar and Canvas */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar with Global Variables */}
-        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} ruleConfigId={ruleConfigId} />}
+        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} hideImportNode={true} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} ruleId={ruleId} />}
 
         {/* Canvas */}
         <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>

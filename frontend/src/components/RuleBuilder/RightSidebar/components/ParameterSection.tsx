@@ -43,14 +43,24 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
         <SectionTitle>Parameters</SectionTitle> 
 
         {inputs.map((input) => {
-          // Skip for/while specific fields if loopType is not 'for'
+          // Skip for-specific fields if loopType is not 'for'
           const loopType = currentParams['loopType'];
-          if ((input.key === 'customIncrement' || input.key === 'incrementOperation' || input.key === 'loopCondition' || input.key === 'initialization') && loopType !== 'for') {
+          if ((input.key === 'customIncrement' || input.key === 'incrementOperation' || input.key === 'initialization') && loopType !== 'for') {
+            return null;
+          }
+          
+          // Show loopCondition for both 'for' and 'while' loops
+          if (input.key === 'loopCondition' && loopType !== 'for' && loopType !== 'while') {
             return null;
           }
           
           // Skip itemVariable for 'for' and 'while' loops (it's optional there)
           if (input.key === 'itemVariable' && (loopType === 'for' || loopType === 'while')) {
+            return null;
+          }
+          
+          // Skip indexVariable for 'while' loops (while loops typically use custom conditions)
+          if (input.key === 'indexVariable' && loopType === 'while') {
             return null;
           }
           

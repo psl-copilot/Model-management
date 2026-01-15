@@ -341,6 +341,72 @@ const generateLoopCode = (params: Record<string, string>, indent: string): strin
   return lines.join('\n');
 };
 
+/**
+ * Helper function to recursively generate code for a node, including traversing If node branches
+ * This is used specifically for nodes within loop bodies or other nested contexts
+ */
+const generateNodeCodeRecursive = (
+  node: Node,
+  nodes: Node[],
+  edges: Edge[],
+  indent: string,
+  processedNodes: Set<string>
+): string => {
+  const nodeData = node.data as EditableNodeData;
+  
+  // Handle If nodes with branch traversal
+  if (nodeData.nodeType === 'If') {
+    try {
+      const params = nodeData.params || {};
+      const conditionsStr = params.conditions || JSON.stringify([{ type: 'if', condition: 'true' }]);
+      const conditions = JSON.parse(conditionsStr);
+      
+      let ifCode = '';
+      
+      for (let i = 0; i < conditions.length; i++) {
+        const cond = conditions[i];
+        const handleId = cond.type === 'else' ? 'else' : cond.type === 'if' ? 'if' : `elseif-${i}`;
+        
+        // Get nodes in this branch
+        const branchNodes = getNodesInBranch(node.id, handleId, nodes, edges, new Set(processedNodes));
+        branchNodes.forEach((n) => processedNodes.add(n.id));
+        
+        // Recursively generate code for branch nodes
+        const branchCode = branchNodes
+          .map((n) => generateNodeCodeRecursive(n, nodes, edges, indent + '  ', processedNodes))
+          .filter(Boolean)
+          .join('\n');
+        
+        // Determine branch body
+        const branchBody = branchCode || `${indent}  // Add logic here`;
+        
+        if (cond.type === 'if') {
+          const cleanCondition = stripVariableIndicators(cond.condition || 'true');
+          ifCode += `${indent}if (${cleanCondition}) {\n`;
+          ifCode += branchBody + '\n';
+          ifCode += `${indent}}`;
+        } else if (cond.type === 'elseif') {
+          const cleanCondition = stripVariableIndicators(cond.condition || 'true');
+          ifCode += ` else if (${cleanCondition}) {\n`;
+          ifCode += branchBody + '\n';
+          ifCode += `${indent}}`;
+        } else if (cond.type === 'else') {
+          ifCode += ` else {\n`;
+          ifCode += branchBody + '\n';
+          ifCode += `${indent}}`;
+        }
+      }
+      
+      return ifCode;
+    } catch {
+      return `${indent}// Error parsing If node conditions`;
+    }
+  }
+  
+  // For all other nodes, use standard code generation
+  return generateNodeCode(node, indent);
+};
+
 const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '  '): string => {
   const codeLines: string[] = [];
   const processedNodes = new Set<string>();
@@ -375,8 +441,9 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
       const loopBodyNodes = getNodesInBranch(node.id, 'loopBody', nodes, edges, new Set(processedNodes));
       loopBodyNodes.forEach((n) => processedNodes.add(n.id));
       
+      // Use recursive generation to handle nested If nodes with branches
       const innerCode = loopBodyNodes
-        .map((n) => generateNodeCode(n, indent + '  '))
+        .map((n) => generateNodeCodeRecursive(n, nodes, edges, indent + '  ', processedNodes))
         .filter(Boolean)
         .join('\n');
       
@@ -554,10 +621,31 @@ export const generateTypeScriptCode = (
   const nestedData = nestedCanvasData[handleTransactionNode.id];
   const nestedCode = generateNestedFlowCode(nestedData.nodes, nestedData.edges, '  ');
   
-  // Generate the complete handleTransaction wrapper
-  const code = `import { aql, type DatabaseManagerInstance, type LoggerService, type ManagerConfig } from '@tazama-lf/frms-coe-lib';
+  // Helper function to extract import statement from a node
+  const extractImportStatement = (node: Node): string => {
+    const params = (node.data as EditableNodeData).params || {};
+    const rawImportStatement = params.importStatement || '';
+    return stripVariableIndicators(rawImportStatement).trim();
+  };
+  
+  // Extract and process Import nodes from main canvas
+  const importNodes = nodes.filter((node) => node.data.nodeType === 'Import');
+  const customImportStatements = importNodes
+    .map(extractImportStatement)
+    .filter(Boolean)
+    .join('\n');
+  
+  // Build complete imports section with base imports + custom imports
+  const baseImports = `import { aql, type DatabaseManagerInstance, type LoggerService, type ManagerConfig } from '@tazama-lf/frms-coe-lib';
 import type { OutcomeResult, RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';
+import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';`;
+  
+  const allImports = customImportStatements 
+    ? `${baseImports}\n${customImportStatements}` 
+    : baseImports;
+  
+  // Generate the complete handleTransaction wrapper
+  const code = `${allImports}
 
 export async function handleTransaction(
   req: RuleRequest,

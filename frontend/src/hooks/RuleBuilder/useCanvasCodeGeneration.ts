@@ -61,6 +61,10 @@ export const useCanvasCodeGeneration = ({
                 id: nestedEdge.id,
                 source: nestedEdge.source,
                 target: nestedEdge.target,
+                sourceHandle: nestedEdge.sourceHandle || null,
+                targetHandle: nestedEdge.targetHandle || null,
+                label: nestedEdge.label || undefined,
+                style: nestedEdge.style || undefined,
               })),
             },
           };
@@ -72,6 +76,10 @@ export const useCanvasCodeGeneration = ({
         id: edge.id,
         source: edge.source,
         target: edge.target,
+        sourceHandle: edge.sourceHandle || null,
+        targetHandle: edge.targetHandle || null,
+        label: edge.label || undefined,
+        style: edge.style || undefined,
       })),
     };
 

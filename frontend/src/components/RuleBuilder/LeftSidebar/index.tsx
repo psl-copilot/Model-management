@@ -31,11 +31,12 @@ interface LeftSidebarProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   hideCustomFunctions?: boolean;
+  hideImportNode?: boolean;
   showGlobalVariables?: boolean;
   allNodes?: Node[];
   edges?: import('@xyflow/react').Edge[];
   selectedNodeId?: string | null;
-  ruleConfigId?: string;
+  ruleId?: string;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
@@ -43,19 +44,20 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   collapsed = false,
   onToggleCollapse,
   hideCustomFunctions = false,
+  hideImportNode = false,
   showGlobalVariables = false,
   allNodes = [],
   edges = [],
   selectedNodeId = null,
-  ruleConfigId,
+  ruleId,
 }) => {
   // State
   const [activeTab, setActiveTab] = useState<number>(0);
 
-  // Fetch global variables from API (use hardcoded ruleConfigId for now)
+  // Fetch global variables from API
   const { data: globalVarsData } = useGetGlobalVariablesQuery(
-    ruleConfigId || '0060@1.0.0',
-    { skip: !showGlobalVariables }
+    ruleId || '',
+    { skip: !showGlobalVariables || !ruleId }
   );
 
   // Use API data if available, otherwise fallback to static data
@@ -81,7 +83,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   };
 
   // Custom hooks for data management
-  const { getNodesToShow } = useNodePalette({ mode, hideCustomFunctions, apiNodes: nodeTemplates });
+  const { getNodesToShow } = useNodePalette({ mode, hideCustomFunctions, hideImportNode, apiNodes: nodeTemplates });
   const { localVars, loopVars, loopContext } = useLocalVariables({ 
     allNodes, 
     edges, 
