@@ -1,24 +1,23 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { useGetRuleByIdQuery } from "../../redux/Api/Rules"
-import { Tabs } from "../../utils/Constants/data"
 import Overview from "./Overview"
 import Parser from "./Parser"
 import RuleBuilder from "./RuleBuilder"
 import Simulation from "./Simulation"
 import { insertData } from "../../utils/Common/storage"
 import { LocalStorage } from "../../utils/Common/enums"
+import { useTab } from "../../contexts/TabContext/useTab"
+import TestCases from "./TestCases"
 
 const useRuleEditorController = () => {
 
-    const [selected, setSelected] = useState<string>(Tabs[0].value)
-
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
-    const tab = searchParams.get('tab') ?? Tabs[0].value;
     const mode = searchParams.get('mode') ?? null
 
     const { data, isLoading, isSuccess } = useGetRuleByIdQuery({ id }, { skip: !id, refetchOnMountOrArgChange: true })
+    const { selectedTab } = useTab()
 
     const handleSubmit = () => {
 
@@ -28,35 +27,31 @@ const useRuleEditorController = () => {
         if (isSuccess && data?.rules) {
             insertData(data.rules, 'trs_rule', LocalStorage, true)
         }
-    }, [isSuccess])
-
-    useEffect(() => {
-        setSelected(tab)
-    }, [tab])
+    }, [isSuccess, data])
 
     const renderComponent = useCallback(() => {
-        switch (selected) {
+        switch (selectedTab) {
             case 'overview':
-                return <Overview mode={mode} data={data?.rules} setSelected={setSelected} />
+                return <Overview mode={mode} data={data?.rules} />
             case 'parser':
-                return <Parser data={data?.rules} setSelected={setSelected} />
+                return <Parser mode={mode} data={data?.rules} />
             case 'rule_builder':
-                return <RuleBuilder data={data?.rules} setSelected={setSelected} />
+                return <RuleBuilder data={data?.rules} />
             case 'simulation':
-                return <Simulation data={data?.rules} setSelected={setSelected} />
+                return <Simulation data={data?.rules} />
+            case 'test_cases':
+                return <TestCases />
             default:
                 return null;
         }
-    }, [selected, data])
+    }, [selectedTab, data, mode])
 
     return {
         values: {
-            tabs: Tabs,
-            selected,
-            isLoading
+            isLoading,
+            mode
         },
         functions: {
-            setSelected,
             handleSubmit,
             renderComponent
         }

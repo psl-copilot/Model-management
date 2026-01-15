@@ -4,12 +4,13 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import type { DropdownOption } from "../../../components/DropDown";
 import { useModal } from "../../../contexts/ModalContext";
+import { useTab } from "../../../contexts/TabContext/useTab";
 import { useGetTypesQuery, useLazyGetTxtpVersionsQuery } from "../../../redux/Api/Config";
 import { useCreateRuleMutation } from "../../../redux/Api/Rules";
 import { LocalStorage } from "../../../utils/Common/enums";
 import { toDropdown } from "../../../utils/Common/helpers";
 import { extractData, insertData } from "../../../utils/Common/storage";
-import { ruleTypes, Tabs } from "../../../utils/Constants/data";
+import { ruleTypes } from "../../../utils/Constants/data";
 import { createRuleSchema } from "../../../validation/schemas";
 import RuleConfig from "../Modals/RuleConfig";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
@@ -27,13 +28,13 @@ interface RuleFormValues {
 export interface IOverviewProps {
     data?: Record<string, unknown> | undefined,
     mode: string | null,
-    setSelected: (selected: string) => void,
 }
 
 const useOverviewController = (props: IOverviewProps) => {
 
     const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
-    const { setSelected, mode } = props
+    const { enableNextTab } = useTab()
+    const { mode } = props
     const [versions, setVersions] = useState<string[]>([])
 
     const { data: types, isLoading } = useGetTypesQuery({})
@@ -54,13 +55,18 @@ const useOverviewController = (props: IOverviewProps) => {
     };
 
 
+    const shouldValidate = mode === "clone" || mode === null
+
     const {
         handleSubmit,
         formState: { errors },
         control,
         setValue,
-        watch
-    } = useForm({ defaultValues: initial, resolver: yupResolver(createRuleSchema) })
+        watch,
+    } = useForm<RuleFormValues>({
+        defaultValues: initial,
+        resolver: shouldValidate ? yupResolver(createRuleSchema) : undefined,
+    })
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const rule_config_id = watch('rule_config_id')
@@ -77,9 +83,13 @@ const useOverviewController = (props: IOverviewProps) => {
             if (res) {
                 insertData(res?.data, 'trs_rule', LocalStorage, true)
                 toast.success('Rule Successfully Created')
-                setSelected(Tabs[1].value)
+                enableNextTab()
             }
         })
+    }
+
+    const handleNext = () => {
+        enableNextTab()
     }
 
     const handleRuleValue = (val: DropdownOption) => {
@@ -111,7 +121,7 @@ const useOverviewController = (props: IOverviewProps) => {
     return {
         values: {
             control,
-            isEdit: mode === 'edit',
+            isEdit: mode === 'edit' || mode === null || mode == 'view',
             errors,
             isLoading,
             rule_config_id,
@@ -124,7 +134,8 @@ const useOverviewController = (props: IOverviewProps) => {
             handleSubmit: handleSubmit(onSubmit),
             handleRuleConfig,
             handleNetworkMap,
-            handleTxTp
+            handleTxTp,
+            handleNext
         }
     }
 }

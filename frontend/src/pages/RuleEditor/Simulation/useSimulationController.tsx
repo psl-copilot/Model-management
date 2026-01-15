@@ -4,7 +4,6 @@ import { extractData } from "../../../utils/Common/storage";
 import Approval from "../Modals/Approval";
 
 export interface ISimulation {
-    setSelected: (selected: string) => void,
     data?: Record<string, unknown> | undefined
 }
 

@@ -10,6 +10,7 @@ import MainLayout from './layout/MainLayout';
 import { Toaster } from "react-hot-toast";
 import PrivateRoute from './routes/PrivateRoute';
 import { ModalProvider } from './contexts/ModalContext';
+import { TabProvider } from './contexts/TabContext/TabProvider';
 
 function App() {
 
@@ -24,6 +25,7 @@ function App() {
     <BrowserRouter>
       <ThemeProvider theme={themeMode}>
         <ModalProvider>
+
           <Toaster position="top-right" reverseOrder={false} />
           <Routes>
             <Route element={<ProtectedRoute />}>

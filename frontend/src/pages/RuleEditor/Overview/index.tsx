@@ -172,7 +172,11 @@ const Overview = (props: IOverviewProps) => {
                 <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
                     <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
                 </Box>
-                : null}
+                :
+                <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
+                    <Button height="40px" type="secondary" size="md" text="Next" onClick={functions.handleNext} />
+                </Box>
+            }
 
         </Grid>
     )

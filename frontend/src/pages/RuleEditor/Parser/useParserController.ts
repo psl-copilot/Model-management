@@ -5,18 +5,20 @@ import { useEffect, useState } from "react";
 import type { IResult } from "../../../utils/Common/types";
 import { extractData } from "../../../utils/Common/storage";
 import { LocalStorage } from "../../../utils/Common/enums";
-import { Tabs } from "../../../utils/Constants/data";
+import { useTab } from "../../../contexts/TabContext/useTab";
 
 
 export interface IParseProps {
-    setSelected: (selected: string) => void,
-    data?: Record<string, unknown> | undefined
+    data?: Record<string, unknown> | undefined,
+    mode: string | null
 }
 
 const useParserController = (props: IParseProps) => {
 
     const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
-    const { setSelected } = props
+    const { enableNextTab } = useTab()
+
+    const { mode } = props
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
     const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
@@ -35,7 +37,7 @@ const useParserController = (props: IParseProps) => {
     }
 
     const handleNext = () => {
-        setSelected(Tabs[2].value)
+        enableNextTab()
     }
 
     useEffect(() => {
@@ -59,7 +61,8 @@ const useParserController = (props: IParseProps) => {
             result,
             isLoading,
             sampleLoader,
-            txtp: data?.txtp
+            txtp: data?.txtp,
+            isEdit: mode === 'edit'
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

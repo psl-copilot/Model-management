@@ -12,6 +12,7 @@ const RuleBuilder = (props: IRuleBuilder) => {
             py={3}
             display={'flex'}
             justifyContent={'center'}
+            gap={2}
         >
             <Button
                 height="40px"
@@ -20,6 +21,14 @@ const RuleBuilder = (props: IRuleBuilder) => {
                 size="md"
                 text="Open Rule Builder"
                 onClick={functions.handleBuilder}
+            />
+            <Button
+                height="40px"
+                width="170px"
+                type="secondary"
+                size="md"
+                text="Next"
+                onClick={functions.handleNext}
             />
         </Grid>
     )

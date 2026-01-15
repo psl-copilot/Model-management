@@ -2,13 +2,16 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import CodeIcon from '@mui/icons-material/Code';
 import { Box } from "@mui/material";
 import Button from "../../components/Button";
+import SuspenseLoader from '../../components/SuspenseLoader';
+import Tabs from '../../components/Tabs';
 import { Text } from "../../components/Text";
 import BoxWrapper from "../../components/Wrappers/BoxWrapper";
+import { TabProvider } from '../../contexts/TabContext/TabProvider';
 import useRuleEditorController from './useRuleEditorController';
-import Tabs from '../../components/Tabs';
-import SuspenseLoader from '../../components/SuspenseLoader';
+import { useSearchParams } from 'react-router-dom';
 
-const RuleEditor = () => {
+
+const RuleEditorContent = () => {
 
     const { values, functions } = useRuleEditorController()
 
@@ -17,7 +20,7 @@ const RuleEditor = () => {
     }
 
     return (
-        <BoxWrapper>
+        <>
             <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'}>
                 <Box display={'flex'} alignItems={'center'} justifyContent={'space-between'} gap={1}>
                     <CodeIcon sx={{ color: '#4789f6', fontSize: '30px' }} />
@@ -26,11 +29,24 @@ const RuleEditor = () => {
                 <Button Icon={AccountTreeIcon} height="40px" type="secondary" size="md" text="Submit For Review" onClick={functions.handleSubmit} />
             </Box>
 
-            <Tabs tabs={values.tabs} selected={values.selected} setSelected={functions.setSelected} />
-
+            <Tabs />
 
             {functions.renderComponent()}
-        </BoxWrapper>
+        </>
+    )
+}
+
+const RuleEditor = () => {
+
+    const [searchParams] = useSearchParams();
+    const mode = searchParams.get('mode') ?? null
+
+    return (
+        <TabProvider mode={mode}>
+            <BoxWrapper>
+                <RuleEditorContent />
+            </BoxWrapper>
+        </TabProvider>
     )
 }
 

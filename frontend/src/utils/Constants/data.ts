@@ -45,31 +45,38 @@ export const publishingStatus = {
 export const Tabs = [
     {
         label: 'Overview',
-        value: 'overview'
+        value: 'overview',
+        enabled: false
     },
     {
         label: 'Parser',
-        value: 'parser'
+        value: 'parser',
+        enabled: false
     },
     {
         label: 'Rule Builder',
-        value: 'rule_builder'
+        value: 'rule_builder',
+        enabled: false
     },
     {
         label: 'Generate Test Cases',
-        value: 'test_cases'
+        value: 'test_cases',
+        enabled: false
     },
     {
         label: 'Simulation',
-        value: 'simulation'
+        value: 'simulation',
+        enabled: false
     },
     {
         label: 'Documentation',
-        value: 'documentation'
+        value: 'documentation',
+        enabled: false
     },
     {
         label: 'History',
-        value: 'History'
+        value: 'History',
+        enabled: false
     },
 ]
 

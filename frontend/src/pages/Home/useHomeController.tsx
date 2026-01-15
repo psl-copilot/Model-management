@@ -6,9 +6,10 @@ import TableActions from "../../components/TableActions";
 import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation, useGetStatusQuery } from "../../redux/Api/Rules";
-import { extractData } from "../../utils/Common/storage";
+import { extractData, removeData } from "../../utils/Common/storage";
 import { claims, publishingStatus, ruleTypes, Status } from "../../utils/Constants/data";
 import ViewRule from "./ViewRule";
+import { LocalStorage } from "../../utils/Common/enums";
 
 const useHomeController = () => {
     const navigate = useNavigate();
@@ -81,11 +82,14 @@ const useHomeController = () => {
     }, [offset, limit, total, setOffset])
 
     const handleCreateEdit = (row?: Record<string, unknown>) => {
+        if (!row) {
+            removeData('trs_rule', LocalStorage)
+        }
         navigate(row ? `/editor/${row?.id}?mode=edit` : "/editor");
     };
 
-    const onView = (data: Record<string, string>) => {
-        open('View Rule', <ViewRule data={data} />)
+    const onView = (row: Record<string, string>) => {
+        navigate(`/editor/${row?.id}?mode=view`);
     }
 
 

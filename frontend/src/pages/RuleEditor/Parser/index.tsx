@@ -85,7 +85,7 @@ const Parser = (props: IParseProps) => {
                         </Grid>
                         : null}
             </Grid>
-            {values?.result?.success ?
+            {values?.result?.success || values?.isEdit ?
                 <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
                     <Button height="40px" type="secondary" size="md" text="Next" onClick={functions.handleNext} />
                 </Box>
