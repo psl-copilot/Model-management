@@ -424,6 +424,80 @@
 						"description": "Retrieves the currently active network map for the authenticated tenant.\n\n### Overview\nThis endpoint fetches the network map configuration that defines how transactions are routed through typology processors and rules. Each tenant can have only **one** active network map at a time.\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
 					},
 					"response": []
+				},
+				{
+					"name": "Update Rule Status",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Validate rule ID is provided",
+									"const ruleId = pm.request.url.path[2]; // rules/api/:ruleId/status",
+									"if (!ruleId || ruleId === ':ruleId') {",
+									"    throw new Error('Rule ID is required in the URL path');",
+									"}",
+									"console.log('Updating status for rule: ' + ruleId);",
+									"",
+									"// Validate status is provided in request body",
+									"const body = JSON.parse(pm.request.body.raw);",
+									"if (!body.status) {",
+									"    throw new Error('Status is required in the request body');",
+									"}",
+									"console.log('New status: ' + body.status);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:ruleId/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":ruleId",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "RULE-001-PAYMENT-FRAUD"
+								}
+							]
+						},
+						"description": "Updates the status of a specific rule identified by its rule ID.\n\n### Overview\nThis endpoint allows you to change the status of a rule without modifying other rule properties. This is useful for quickly activating, deactivating, or changing the operational state of a rule.\n\n### Path Parameters\n- **ruleId**: The unique identifier of the rule to update (e.g., \"RULE-001-PAYMENT-FRAUD\")\n\n### Request Body (Required)\n- **status**: The new status value for the rule. Common values include:\n  - `ACTIVE`: Rule is active and will be evaluated\n  - `INACTIVE`: Rule is inactive and will not be evaluated\n  - `TESTING`: Rule is in testing mode\n  - `DRAFT`: Rule is in draft state\n\n### Auto-updated Fields\nThe following fields are automatically managed by the system:\n- **updated_by**: Extracted from JWT token (user ID or client ID)\n- **updated_at**: Set to current timestamp\n\n### Response\nReturns the updated rule object with all fields, including the new status.\n\n### Required Claims\n`editor` - Only users with editor privileges can update rule status\n\n### Use Cases\n- Quickly enable or disable rules without full update\n- Change rule operational state during maintenance\n- Activate rules after testing\n- Deactivate problematic rules immediately\n\n### Error Responses\n- **400**: Invalid request body or missing status field\n- **404**: Rule not found\n- **401**: Missing or invalid JWT token\n- **403**: Insufficient permissions (requires editor claim)"
+					},
+					"response": []
 				}
 			],
 			"description": "API endpoints for managing transaction rules (TRS - Transaction Rule Service) in Tazama."

@@ -15,7 +15,7 @@ import { User } from '../../decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { TazamaClaims, RequireAnyClaims } from '../../decorators/auth.decorator';
 import { RulesService } from './rules.service';
-import { Rules, CreateRuleFlowDto, ResponseRuleFlowDto } from './dto/rules.dto';
+import { Rules, CreateRuleFlowDto, ResponseRuleFlowDto, GlobalVariableDto } from './dto/rules.dto';
 
 @Controller('rules')
 @UseGuards(TazamaAuthGuard)
@@ -183,6 +183,55 @@ export class RulesController {
     @User() user: AuthenticatedUser,
   ): Promise<ResponseRuleFlowDto> {
     return await this.rulesService.updateRuleFlow(ruleId, flowData, user.token.tokenString);
+  }
+ 
+
+  @Get('/api/global-variables/:ruleId')
+  @RequireAnyClaims(
+    TazamaClaims.EDITOR,
+    TazamaClaims.APPROVER,
+    TazamaClaims.PUBLISHER,
+  )
+  async getGlobalVariables(
+    @Param('ruleId') ruleId: string,
+    @User() user: AuthenticatedUser,
+  ): Promise<GlobalVariableDto> {
+    return await this.rulesService.getGlobalVariables(
+      ruleId,
+      user.tenantId,
+      user.token.tokenString,
+    );
+  }
+
+  // Creating a new API for cloning an exising rule
+  @Post('/api/clone/:ruleId')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async cloneRule(
+    @Param('ruleId') ruleId: string,
+    @User() user: AuthenticatedUser, // ismei se i can take out tenantId
+  ): Promise<Rules> {
+    console.log('Cloning rule with ID:', ruleId);
+    console.log('User info:', user.validated);
+    return await this.rulesService.cloneRule(
+      ruleId,
+      user.token.tokenString,
+    );
+  }
+
+  // update the status of a rule based on rule ID
+  @Put('/api/:ruleId/status')
+  @RequireAnyClaims(TazamaClaims.EDITOR)
+  async updateRuleStatus(
+    @Param('ruleId') ruleId: string,
+    @Body() body: { status: string; reason: string },
+    @User() user: AuthenticatedUser,
+  ): Promise<Rules> {
+    return await this.rulesService.updateRuleStatus(
+      ruleId,
+      body.status,
+      body.reason,
+      user.token.tokenString,
+    );
   }
 
   

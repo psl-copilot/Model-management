@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AdminServiceClient } from '../admin-service-client';
-import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules } from './dto/rules.dto';
+import { CreateRuleFlowDto, ResponseRuleFlowDto, Rules, GlobalVariableDto } from './dto/rules.dto';
 import * as jwt from 'jsonwebtoken';
 
 @Injectable()
@@ -167,6 +167,37 @@ export class RulesService {
       const err = error as Error;
       this.logger.error(`Failed to decode JWT token: ${err.message}`);
       return [];
+    }
+  }
+
+  async getGlobalVariables(ruleId: string, tenantId: string, token: string): Promise<GlobalVariableDto> {
+    try {
+      const ruleData = await this.adminServiceClient.getGlobalVariables(ruleId, tenantId, token);
+      return ruleData;
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error fetching global variables for rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async cloneRule(ruleId: string, token: string): Promise<Rules> {
+    try {
+      return await this.adminServiceClient.cloneRule(ruleId, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error cloning rule ${ruleId}: ${err.message}`);
+      throw error;
+    }
+  }
+
+  async updateRuleStatus(ruleId: string, status: string, reason: string, token: string): Promise<Rules> {
+    try {
+      return await this.adminServiceClient.updateRuleStatus(ruleId, status, reason, token);
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Error updating status for rule ${ruleId}: ${err.message}`);
+      throw error;
     }
   }
 }
