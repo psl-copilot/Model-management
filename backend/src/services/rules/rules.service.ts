@@ -52,7 +52,7 @@ export class RulesService {
       const rule = await this.adminServiceClient.createRule(ruleData, token);
       if (rule.id) {
         const ruleFlow21 = await this.adminServiceClient.getRuleFlow('21', token);
-        await this.adminServiceClient.createRuleFlow(rule.id, ruleFlow21.flow, token); 
+        await this.adminServiceClient.createRuleFlow(rule.id, ruleFlow21.flow as unknown as JSON, token); 
       }
       return rule;
     } catch (error) {
@@ -116,7 +116,7 @@ export class RulesService {
     }
   }
 
-  async createRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+  async createRuleFlow(ruleId: string, flowData: JSON, token: string): Promise<ResponseRuleFlowDto> {
     try {
       return await this.adminServiceClient.createRuleFlow(ruleId, flowData, token);
     } catch (error) {
@@ -126,7 +126,7 @@ export class RulesService {
     }
   }
 
-  async updateRuleFlow(ruleId: string, flowData: CreateRuleFlowDto, token: string): Promise<ResponseRuleFlowDto> {
+  async updateRuleFlow(ruleId: string, flowData: JSON, token: string): Promise<ResponseRuleFlowDto> {
     try {
       return await this.adminServiceClient.updateRuleFlow(ruleId, flowData, token);
     } catch (error) {
