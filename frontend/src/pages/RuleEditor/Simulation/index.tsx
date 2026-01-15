@@ -3,10 +3,11 @@ import Button from "../../../components/Button"
 import useSimulationController, { type ISimulation } from "./useSimulationController";
 import CheckIcon from '@mui/icons-material/Check';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
+import { claims } from "../../../utils/Constants/data";
 
 const Simulation = (props: ISimulation) => {
 
-    const { functions } = useSimulationController(props);
+    const { values, functions } = useSimulationController(props);
 
     return (
         <Grid
@@ -15,24 +16,37 @@ const Simulation = (props: ISimulation) => {
             display={'flex'}
             justifyContent={'center'}
         >
+
             <Box mt={2} width={'100%'} gap={2} display={'flex'} justifyContent={'flex-end'}>
-                <Button
-                    height="40px"
-                    width="170px"
-                    size="md"
-                    type="danger"
-                    Icon={ClearRoundedIcon}
-                    onClick={() => functions.handleApproval('reject')}
-                    text="Reject"
-                />
-                <Button
-                    height="40px"
-                    width="170px"
-                    size="md"
-                    Icon={CheckIcon}
-                    onClick={() => functions.handleApproval('approve')}
-                    text="Approve"
-                />
+                {values?.claim === claims.approver ?
+                    <>
+                        <Button
+                            height="40px"
+                            width="170px"
+                            size="md"
+                            type="danger"
+                            Icon={ClearRoundedIcon}
+                            onClick={() => functions.handleApproval('reject')}
+                            text="Reject"
+                        />
+                        <Button
+                            height="40px"
+                            width="170px"
+                            size="md"
+                            Icon={CheckIcon}
+                            onClick={() => functions.handleApproval('approve')}
+                            text="Approve"
+                        />
+                    </>
+                    :
+                    <Button
+                        height="40px"
+                        size="md"
+                        type='secondary'
+                        onClick={() => functions.handleApproval('review')}
+                        text="Send For Approval"
+                    />
+                }
             </Box>
         </Grid>
     )

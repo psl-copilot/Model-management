@@ -18,7 +18,7 @@ const useHomeController = () => {
 
     const { open } = useModal()
     const user = extractData('user')
-    
+
     const isEditor = user.claims === claims.editor
 
     const {

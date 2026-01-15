@@ -7,9 +7,10 @@ type ModalFooterProps = {
     onSubmit: () => void;
     isSubmitting?: boolean;
     title?: string;
+    type?: "primary" | "secondary" | "muted" | "danger" | "success" | "default" | 'simple';
 };
 
-const ModalFooter = ({ onSubmit, isSubmitting = false, title = "Submit" }: ModalFooterProps) => {
+const ModalFooter = ({ onSubmit, isSubmitting = false, type = 'primary', title = "Submit" }: ModalFooterProps) => {
     const { close } = useModal();
 
     return (
@@ -21,8 +22,8 @@ const ModalFooter = ({ onSubmit, isSubmitting = false, title = "Submit" }: Modal
                 mt: 3,
             }}
         >
-            <Button text="Cancel" onClick={close} type="muted" />
-            <Button text={title} onClick={onSubmit} loading={isSubmitting} />
+            <Button height="35px" text="Cancel" size="sm" onClick={close} type="muted" />
+            <Button height="35px" type={type} text={title} onClick={onSubmit} size="md" loading={isSubmitting} />
         </Box>
     );
 };

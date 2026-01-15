@@ -1,6 +1,7 @@
-import Approval from "../../../components/Wrappers/Approval";
 import { useModal } from "../../../contexts/ModalContext";
-import { useUpdateStatusMutation } from "../../../redux/Api/Rules";
+import { LocalStorage } from "../../../utils/Common/enums";
+import { extractData } from "../../../utils/Common/storage";
+import Approval from "../Modals/Approval";
 
 export interface ISimulation {
     setSelected: (selected: string) => void,
@@ -9,16 +10,19 @@ export interface ISimulation {
 
 const useSimulationController = (props: ISimulation) => {
 
+    const data = extractData('trs_rule', LocalStorage, true) ?? props?.data
+    const user = extractData('user')
+
     const { open } = useModal()
 
-    const [updateStatus, { isLoading }] = useUpdateStatusMutation()
-
-    const handleApproval = (type: 'approve' | 'reject') => {
-        open(`${type === 'approve' ? 'Approval' : 'Rejection'} Confirmation Required!`, <Approval type={type} />, null, { maxWidth: 'sm' })
+    const handleApproval = (type: 'review' | 'approve' | 'reject') => {
+        open(`${type === 'reject' ? 'Rejection' : 'Approval'} Confirmation Required!`, <Approval id={data?.id} type={type} />, null, { maxWidth: 'sm' })
     }
 
     return {
-        values: {},
+        values: {
+            claim: user?.claim
+        },
         functions: {
             handleApproval
         }
