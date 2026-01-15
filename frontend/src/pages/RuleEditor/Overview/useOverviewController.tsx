@@ -1,3 +1,4 @@
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -5,21 +6,22 @@ import type { DropdownOption } from "../../../components/DropDown";
 import { useModal } from "../../../contexts/ModalContext";
 import { useGetTypesQuery, useLazyGetTxtpVersionsQuery } from "../../../redux/Api/Config";
 import { useCreateRuleMutation } from "../../../redux/Api/Rules";
+import { LocalStorage } from "../../../utils/Common/enums";
+import { toDropdown } from "../../../utils/Common/helpers";
 import { extractData, insertData } from "../../../utils/Common/storage";
 import { ruleTypes, Tabs } from "../../../utils/Constants/data";
+import { createRuleSchema } from "../../../validation/schemas";
 import RuleConfig from "../Modals/RuleConfig";
 import ViewNetworkMap from "../Modals/ViewNetworkMap";
-import { toDropdown } from "../../../utils/Common/helpers";
-import { LocalStorage } from "../../../utils/Common/enums";
 
 interface RuleFormValues {
     rule_name: string;
     description: string;
-    txtp: DropdownOption | null;
-    txtpVersion: DropdownOption | null;
+    txtp: { label: string, value: string } | null;
+    txtpVersion: { label: string, value: string } | null;
     version: string;
-    rule_config_id: DropdownOption | null;
-    rule_type: DropdownOption | null;
+    rule_config_id: { label: string, value: string } | null;
+    rule_type: { label: string, value: string } | null;
 }
 
 export interface IOverviewProps {
@@ -44,13 +46,22 @@ const useOverviewController = (props: IOverviewProps) => {
     const initial: RuleFormValues = {
         rule_name: (data?.rule_name as string) ?? '',
         description: (data?.description as string) ?? '',
-        txtp: toDropdown(data?.txtp as string),
-        txtpVersion: toDropdown(data?.txtp_version as string),
+        txtp: toDropdown(data?.txtp as string) as { label: string, value: string } | null,
+        txtpVersion: toDropdown(data?.txtp_version as string) as { label: string, value: string } | null,
         version: (data?.version as string) ?? '',
-        rule_config_id: toDropdown(data?.rule_config_id as string),
-        rule_type: toDropdown(data?.rule_type as string),
+        rule_config_id: toDropdown(data?.rule_config_id as string) as { label: string, value: string } | null,
+        rule_type: toDropdown(data?.rule_type as string) as { label: string, value: string } | null,
     };
-    const { handleSubmit, formState: { errors }, control, setValue, watch } = useForm({ defaultValues: initial })
+
+
+    const {
+        handleSubmit,
+        formState: { errors },
+        control,
+        setValue,
+        watch
+    } = useForm({ defaultValues: initial, resolver: yupResolver(createRuleSchema) })
+
     // eslint-disable-next-line react-hooks/incompatible-library
     const rule_config_id = watch('rule_config_id')
 
@@ -72,13 +83,13 @@ const useOverviewController = (props: IOverviewProps) => {
     }
 
     const handleRuleValue = (val: DropdownOption) => {
-        setValue('rule_config_id', val)
+        setValue('rule_config_id', val as { label: string, value: string })
         const rule_no = val?.value?.toString().split('@')
         setValue('rule_name', `${user.tenantId}-rule-${rule_no?.[0]}`)
     }
 
     const handleTxTp = (val: DropdownOption) => {
-        setValue('txtp', val)
+        setValue('txtp', val as { label: string, value: string })
         if (val?.value) {
             getVersions({ type: val.value }).unwrap().then((res) => {
                 if (res) {
@@ -95,6 +106,7 @@ const useOverviewController = (props: IOverviewProps) => {
     const handleNetworkMap = () => {
         open('View Network Map', <ViewNetworkMap />, null, { maxWidth: 'md' })
     }
+
 
     return {
         values: {

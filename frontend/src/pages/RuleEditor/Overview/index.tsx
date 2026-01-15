@@ -35,7 +35,6 @@ const Overview = (props: IOverviewProps) => {
                         <Controller
                             name="rule_name"
                             control={values.control}
-                            rules={{ required: "Rule Name is required" }}
                             render={({ field }) => (
                                 <Input
                                     maxWidth={'100%'}
@@ -44,7 +43,7 @@ const Overview = (props: IOverviewProps) => {
                                     label="Rule Name"
                                     {...field}
                                     placeholder="tenant-rule_config_id"
-                                    error={values.errors.rule_name?.message}
+                                    error={!field?.value ? values.errors.rule_name?.message : undefined}
                                 />
                             )}
                         />
@@ -53,7 +52,6 @@ const Overview = (props: IOverviewProps) => {
                         <Controller
                             name="version"
                             control={values.control}
-                            rules={{ required: "Version is required" }}
                             render={({ field, fieldState: { error } }) => (
                                 <Input
                                     maxWidth={'100%'}
@@ -72,7 +70,6 @@ const Overview = (props: IOverviewProps) => {
                         <Controller
                             control={values.control}
                             name="rule_type"
-                            rules={{ required: "Rule  is required" }}
                             render={({ field }) => (
                                 <DropDown
                                     required
@@ -90,7 +87,6 @@ const Overview = (props: IOverviewProps) => {
                 <Controller
                     name="description"
                     control={values.control}
-                    rules={{ required: "Description is required" }}
                     render={({ field }) => (
                         <Input
                             maxWidth={'100%'}
@@ -108,7 +104,6 @@ const Overview = (props: IOverviewProps) => {
                         <Controller
                             control={values.control}
                             name="txtp"
-                            rules={{ required: "Type is required" }}
                             render={({ field }) => (
                                 <DropDown
                                     required
@@ -118,7 +113,7 @@ const Overview = (props: IOverviewProps) => {
                                     {...field}
                                     onChange={(val) => functions.handleTxTp(val as DropdownOption)}
                                     placeholder="Select Transaction type"
-                                    error={values.errors.txtp?.message}
+                                    error={!field?.value ? values.errors.txtp?.message : undefined}
                                 />
                             )}
                         />
@@ -127,7 +122,6 @@ const Overview = (props: IOverviewProps) => {
                         <Controller
                             control={values.control}
                             name="txtpVersion"
-                            rules={{ required: "Transaction Type Version Type is required" }}
                             render={({ field }) => (
                                 <DropDown
                                     required
@@ -151,7 +145,6 @@ const Overview = (props: IOverviewProps) => {
                         <Controller
                             control={values.control}
                             name="rule_config_id"
-                            rules={{ required: "Rule Config is required" }}
                             render={({ field }) => (
                                 <DropDown
                                     required

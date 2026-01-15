@@ -5,6 +5,7 @@ import { ifSchema } from './ifSchema';
 import { fetchDBSchema } from './fetchDBSchema';
 import { codeSchema } from './codeSchema';
 import { customFunctionSchema } from './customFunctionSchema';
+import { createRuleSchema } from './rulesSchema';
 
 export const nodeSchemas: Record<string, ObjectSchema<Record<string, unknown>>> = {
   SetVariable: setVariableSchema,
@@ -16,6 +17,10 @@ export const nodeSchemas: Record<string, ObjectSchema<Record<string, unknown>>> 
   CustomFunction: customFunctionSchema,
 };
 
+export const ruleSchemas: Record<string, unknown> = {
+  createRule: createRuleSchema
+}
+
 export type ValidatableNodeType = keyof typeof nodeSchemas;
 
 export const hasValidation = (nodeType: string): boolean => {
@@ -26,9 +31,14 @@ export const getSchemaForNode = (nodeType: string): ObjectSchema<Record<string, 
   return nodeSchemas[nodeType] || null;
 };
 
+export const getSchemaForRules = (ruleType: string): unknown => {
+  return ruleSchemas[ruleType];
+};
+
 export * from './setVariableSchema';
 export * from './logSchema';
 export * from './ifSchema';
 export * from './fetchDBSchema';
 export * from './codeSchema';
 export * from './customFunctionSchema';
+export * from './rulesSchema';
