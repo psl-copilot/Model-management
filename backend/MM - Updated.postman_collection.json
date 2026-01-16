@@ -1,0 +1,927 @@
+{
+	"info": {
+		"_postman_id": "d5dc7eef-19a8-4abf-afcd-c71b5c465a7d",
+		"name": "Model-Mgmt API Collection",
+		"description": "Complete API collection for Tazama Model Management Backend organized by service modules.\n\n## Authentication\nAll requests require a Bearer token obtained from your authentication provider (Keycloak).\n\n## Required Claims\n- **GET operations**: `editor`, `approver`, or `publisher`\n- **POST/CREATE operations**: `editor`\n- **PUT/UPDATE operations**: `editor`\n\n## Base URL\nUpdate the `{{baseUrl}}` variable with your Model-management backend URL (default: `http://localhost:3000`)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46619338",
+		"_collection_link": "https://abdulrahim-4067081.postman.co/workspace/My-Workspace~1479dc13-28ec-45a1-86f1-f329a6196e4b/collection/46619338-d5dc7eef-19a8-4abf-afcd-c71b5c465a7d?action=share&source=collection_link&creator=46619338"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var response = pm.response.json();",
+									"    pm.environment.set('authToken', response.token);",
+									"    console.log('Token saved to environment:', response.token.substring(0, 20) + '...');",
+									"}",
+									"",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has token', function () {",
+									"    pm.expect(pm.response.json()).to.have.property('token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate user and obtain JWT token.\n\n### Request Body\n- **username**: User login name\n- **password**: User password\n\n### Response\n- **token**: JWT access token\n- **message**: Success message\n- **expiresIn**: Token expiration time (optional)\n\n### Use Case\nRequired for all subsequent API calls. Token is automatically saved to environment variable."
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for obtaining JWT tokens."
+		},
+		{
+			"name": "Configuration",
+			"item": [
+				{
+					"name": "Get Transaction Types",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/config/api/transaction-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"config",
+								"api",
+								"transaction-types"
+							]
+						},
+						"description": "Retrieves all available transaction types from the configuration service.\n\n### Response\nArray of transaction type strings (e.g., \"pain.001.001.11\", \"pacs.008.001.10\")\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Versions by Transaction Type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/config/api/versions/:transactionType",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"config",
+								"api",
+								"versions",
+								":transactionType"
+							],
+							"variable": [
+								{
+									"key": "transactionType",
+									"value": "pain.001.001.11",
+									"description": "Transaction type (e.g., pain.001.001.11)"
+								}
+							]
+						},
+						"description": "Retrieves all available versions for a specific transaction type.\n\n### Path Parameters\n- **transactionType**: The transaction type to get versions for\n\n### Response\nArray of version strings for the specified transaction type\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payload by Transaction Type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/config/api/payload/:transactionType",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"config",
+								"api",
+								"payload",
+								":transactionType"
+							],
+							"variable": [
+								{
+									"key": "transactionType",
+									"value": "pain.001.001.11",
+									"description": "Transaction type (e.g., pain.001.001.11)"
+								}
+							]
+						},
+						"description": "Retrieves the payload schema structure for a specific transaction type.\n\n### Path Parameters\n- **transactionType**: The transaction type to get payload schema for\n\n### Response\nPayload schema object with TxTp and TenantId populated\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				}
+			],
+			"description": "Configuration management endpoints for transaction types, versions, and payload schemas."
+		},
+		{
+			"name": "Nodes",
+			"item": [
+				{
+					"name": "Create Node",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"id\": \"node-001\",\n        \"type\": \"processor\",\n        \"name\": \"Transaction Validator\",\n        \"description\": \"Validates incoming transactions\",\n        \"config\": {\n            \"timeout\": 5000,\n            \"retries\": 3\n        }\n    }\n]"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/nodes/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"nodes",
+								"create"
+							]
+						},
+						"description": "Creates one or more new nodes in the system.\n\n### Request Body\nArray of node objects with required fields:\n- **id**: Unique node identifier\n- **type**: Node type classification\n- **name**: Human-readable node name\n- **description**: Node description\n- **config**: Node configuration object\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Nodes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/nodes?limit=10&offset=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"nodes"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of nodes to retrieve"
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Starting position for pagination"
+								}
+							]
+						},
+						"description": "Retrieves all nodes with optional query parameters for filtering.\n\n### Query Parameters\n- **limit**: Maximum number of nodes to return\n- **offset**: Starting position for pagination\n- Additional filtering parameters supported\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Node by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/nodes/:nodeId?nodeId=node-001",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"nodes",
+								":nodeId"
+							],
+							"query": [
+								{
+									"key": "nodeId",
+									"value": "node-001",
+									"description": "ID of the node to delete"
+								}
+							],
+							"variable": [
+								{
+									"key": "nodeId",
+									"value": "node-001",
+									"description": "Node ID to delete"
+								}
+							]
+						},
+						"description": "Deletes a specific node by its ID.\n\n### Path Parameters\n- **nodeId**: ID of the node to delete\n\n### Query Parameters\n- **nodeId**: Node ID (also required as query parameter)\n\n### Response\nSuccess/failure message with operation status\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				}
+			],
+			"description": "Node management endpoints for creating, retrieving, and deleting system nodes."
+		},
+		{
+			"name": "Parse & Extract",
+			"item": [
+				{
+					"name": "Validate Payload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"TxTp\": \"pain.001.001.11\",\n    \"FIToFICstmrCdtTrf\": {\n        \"GrpHdr\": {\n            \"MsgId\": \"MSG-001\",\n            \"CreDtTm\": \"2024-01-16T10:30:00Z\",\n            \"NbOfTxs\": \"1\",\n            \"InitgPty\": {\n                \"Nm\": \"Test Bank\",\n                \"Id\": {\n                    \"OrgId\": {\n                        \"Othr\": {\n                            \"Id\": \"TESTBANK001\"\n                        }\n                    }\n                }\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/parse/api/validatePayload",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"parse",
+								"api",
+								"validatePayload"
+							]
+						},
+						"description": "Validates and processes ISO 20022 transactional message payloads.\n\n### Request Body\n- **TxTp**: Transaction type (e.g., \"pain.001.001.11\")\n- **Message payload**: Complete ISO 20022 message structure\n\n### Response\nValidation result with parsed data and any validation errors\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Use Case\nValidates transaction message structure and extracts relevant data for processing."
+					},
+					"response": []
+				}
+			],
+			"description": "Parse and extract service for processing ISO 20022 transactional messages."
+		},
+		{
+			"name": "Rules Management",
+			"item": [
+				{
+					"name": "Get Rules Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"status"
+							]
+						},
+						"description": "Retrieves available rule statuses based on user role.\n\n### Response\nArray of status strings available to the user's role\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Rules (Paginated)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    pm.expect(pm.response.json()).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"ACTIVE\",\n    \"txtp\": \"pain.001.001.11\",\n    \"publishing_status\": \"PUBLISHED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/all?offset=0&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"all"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Starting position (0-based)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of records per page"
+								}
+							]
+						},
+						"description": "Retrieves paginated list of rules with optional filters.\n\n### Query Parameters\n- **offset**: Starting position (0-based index)\n- **limit**: Number of records per page\n\n### Request Body (Optional Filters)\n- **status**: Filter by rule status\n- **txtp**: Filter by transaction type\n- **publishing_status**: Filter by publishing status\n- **rule_id**: Search by rule ID\n- **rule_name**: Search by rule name\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rule IDs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/ids",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"ids"
+							]
+						},
+						"description": "Retrieves all available rule IDs.\n\n### Response\nArray of rule ID objects\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Rule",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Rule created successfully', function () {",
+									"    var response = pm.response.json();",
+									"    pm.expect(response).to.have.property('rule_id');",
+									"    pm.expect(response).to.have.property('rule_name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rule_id\": \"high-value-transfer-001\",\n    \"rule_name\": \"High Value Transfer Detection\",\n    \"description\": \"Detects payment transfers exceeding $10,000 for fraud prevention\",\n    \"txtp\": \"pain.001.001.11\",\n    \"version\": \"1.0.0\",\n    \"rule_type\": \"fraud_detection\",\n    \"rule_config_id\": \"CFG001\",\n    \"status\": \"ACTIVE\",\n    \"publishing_status\": \"DRAFT\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/create",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"create"
+							]
+						},
+						"description": "Creates a new transaction rule.\n\n### Required Fields\n- **rule_id**: Unique identifier (alphanumeric with hyphens)\n- **rule_name**: Human-readable name\n- **description**: Detailed description\n- **txtp**: Transaction type (e.g., \"pain.001.001.11\")\n- **version**: Semantic version (e.g., \"1.0.0\")\n- **rule_type**: Classification (fraud_detection, aml, security, compliance)\n\n### Optional Fields\n- **rule_config_id**: Configuration identifier (VARCHAR(10))\n- **status**: ACTIVE, INACTIVE, TESTING (default: ACTIVE)\n- **publishing_status**: DRAFT, SUBMITTED, APPROVED, PUBLISHED\n\n### Required Claims\n`editor`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rule Configuration",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/configuration/:ruleId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"configuration",
+								":ruleId"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to get configuration for"
+								}
+							]
+						},
+						"description": "Retrieves configuration for a specific rule.\n\n### Path Parameters\n- **ruleId**: Rule identifier\n\n### Response\nRule configuration object with all settings\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Rule",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"Updated: Detects payment transfers exceeding $15,000 for enhanced fraud prevention\",\n    \"version\": \"1.1.0\",\n    \"status\": \"TESTING\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:ruleId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":ruleId"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to update"
+								}
+							]
+						},
+						"description": "Updates an existing rule with partial data.\n\n### Path Parameters\n- **ruleId**: Rule identifier to update\n\n### Request Body\nPartial rule object with fields to update\n\n### Response\nUpdated rule object\n\n### Required Claims\n`editor`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rule by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Rule retrieved successfully', function () {",
+									"    var response = pm.response.json();",
+									"    pm.expect(response).to.have.property('rule_id');",
+									"    pm.expect(response).to.have.property('rule_name');",
+									"    pm.expect(response).to.have.property('status');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Numeric rule ID (integer)"
+								}
+							]
+						},
+						"description": "Retrieves a specific rule by its numeric ID.\n\n### Path Parameters\n- **id**: Numeric rule ID (integer)\n\n### Response\nComplete rule object with all fields\n\n### Required Claims\n`editor`, `approver`, or `publisher`\n\n### Error Responses\n- **400**: Invalid ID format (must be numeric)\n- **404**: Rule not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Network Map",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/network-map/active",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"network-map",
+								"active"
+							]
+						},
+						"description": "Retrieves the active network map configuration.\n\n### Response\nActive network map object showing rule relationships and flow\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Rule Flow",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nodes\": [\n        {\n            \"id\": \"start\",\n            \"type\": \"input\",\n            \"position\": { \"x\": 100, \"y\": 100 }\n        },\n        {\n            \"id\": \"process\",\n            \"type\": \"processor\",\n            \"position\": { \"x\": 300, \"y\": 100 }\n        }\n    ],\n    \"edges\": [\n        {\n            \"id\": \"e1\",\n            \"source\": \"start\",\n            \"target\": \"process\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:ruleId/flow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":ruleId",
+								"flow"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to create flow for"
+								}
+							]
+						},
+						"description": "Creates a new rule flow configuration.\n\n### Path Parameters\n- **ruleId**: Rule identifier\n\n### Request Body\nFlow configuration JSON with nodes and edges\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Rule Flow",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:ruleId/flow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":ruleId",
+								"flow"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to get flow for"
+								}
+							]
+						},
+						"description": "Retrieves the flow configuration for a specific rule.\n\n### Path Parameters\n- **ruleId**: Rule identifier\n\n### Response\nRule flow configuration object\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Rule Flow",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nodes\": [\n        {\n            \"id\": \"start\",\n            \"type\": \"input\",\n            \"position\": { \"x\": 100, \"y\": 100 }\n        },\n        {\n            \"id\": \"process\",\n            \"type\": \"processor\",\n            \"position\": { \"x\": 300, \"y\": 100 }\n        },\n        {\n            \"id\": \"end\",\n            \"type\": \"output\",\n            \"position\": { \"x\": 500, \"y\": 100 }\n        }\n    ],\n    \"edges\": [\n        {\n            \"id\": \"e1\",\n            \"source\": \"start\",\n            \"target\": \"process\"\n        },\n        {\n            \"id\": \"e2\",\n            \"source\": \"process\",\n            \"target\": \"end\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:ruleId/flow",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":ruleId",
+								"flow"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to update flow for"
+								}
+							]
+						},
+						"description": "Updates the flow configuration for a specific rule.\n\n### Path Parameters\n- **ruleId**: Rule identifier\n\n### Request Body\nUpdated flow configuration JSON\n\n### Required Claims\n`editor`"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Global Variables",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/global-variables/:ruleId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"global-variables",
+								":ruleId"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to get global variables for"
+								}
+							]
+						},
+						"description": "Retrieves global variables associated with a specific rule.\n\n### Path Parameters\n- **ruleId**: Rule identifier\n\n### Response\nGlobal variables object for the specified rule\n\n### Required Claims\n`editor`, `approver`, or `publisher`"
+					},
+					"response": []
+				},
+				{
+					"name": "Clone Rule",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/clone/:ruleId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								"clone",
+								":ruleId"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to clone"
+								}
+							]
+						},
+						"description": "Creates a copy of an existing rule with a new rule ID.\n\n### Path Parameters\n- **ruleId**: Rule identifier to clone\n\n### Response\nNew rule object created from the cloned rule\n\n### Required Claims\n`editor`\n\n### Use Case\nAllows creating variations of existing rules without starting from scratch."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Rule Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"APPROVED\",\n    \"reason\": \"Rule passed security review and testing phase\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rules/api/:ruleId/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rules",
+								"api",
+								":ruleId",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "ruleId",
+									"value": "high-value-transfer-001",
+									"description": "Rule ID to update status for"
+								}
+							]
+						},
+						"description": "Updates the publishing status of a rule with approval workflow.\n\n### Path Parameters\n- **ruleId**: Rule identifier\n\n### Request Body\n- **status**: New status (DRAFT, SUBMITTED, APPROVED, PUBLISHED)\n- **reason**: Justification for the status change\n\n### Required Claims\n`editor`, `approver`, or `publisher` (depending on status transition)\n\n### Use Case\nManages rule approval workflow from draft to published state."
+					},
+					"response": []
+				}
+			],
+			"description": "Transaction rules management endpoints for creating, updating, and managing business rules."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"exec": [
+					"// Pre-request script to check authentication",
+					"if (!pm.environment.get('authToken')) {",
+					"    console.log('No auth token found. Please run the login request first.');",
+					"}"
+				],
+				"type": "text/javascript"
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"exec": [
+					"// Global test script",
+					"if (pm.response.code === 401) {",
+					"    console.log('Authentication failed. Token may have expired.');",
+					"}"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "keycloakUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "realm",
+			"value": "tazama",
+			"type": "string"
+		},
+		{
+			"key": "keycloakClientId",
+			"value": "model-management-frontend",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": "your-username",
+			"type": "string"
+		},
+		{
+			"key": "password",
+			"value": "your-password",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
