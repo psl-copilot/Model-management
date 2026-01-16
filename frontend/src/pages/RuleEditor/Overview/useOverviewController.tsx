@@ -110,7 +110,7 @@ const useOverviewController = (props: IOverviewProps) => {
     }
 
     const handleRuleConfig = () => {
-        open('Select Rule Config', <RuleConfig handleRuleValue={handleRuleValue} />, null, { maxWidth: 'md' })
+        open(`${mode === 'view' ? 'View' : 'Select'} Rule Config`, <RuleConfig mode={mode} ruleConfigId={rule_config_id?.value} handleRuleValue={handleRuleValue} />, null, { maxWidth: 'md' })
     }
 
     const handleNetworkMap = () => {

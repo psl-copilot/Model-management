@@ -16,14 +16,16 @@ const RuleConfig = (props: RuleConfigProps) => {
     return (
         <Grid container spacing={2}>
             <Grid size={{ xs: 12 }} display={'flex'} flexDirection={'column'} gap={3}>
-                <DropDown
-                    label="Rule Configurations"
-                    value={values.ruleId}
-                    onChange={(val) => functions.handleRuleId(val as DropdownOption)}
-                    options={values.ruleConfigs}
-                    placeholder="Select Transaction type"
-                    searchable
-                />
+                {!values?.isView ?
+                    < DropDown
+                        label="Rule Configurations"
+                        value={values.ruleId}
+                        onChange={(val) => functions.handleRuleId(val as DropdownOption)}
+                        options={values.ruleConfigs}
+                        placeholder="Select Transaction type"
+                        searchable
+                    />
+                    : null}
                 <Box border={1} borderColor={'static.border'} p={2} borderRadius={1} minHeight={300}>
                     <FormattedJsonSection value={JSON.stringify(values?.json ?? {})} />
                 </Box>
