@@ -1,6 +1,5 @@
-import { type Theme } from "@mui/material/styles";
-import { Box, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Box } from "@mui/material";
+import { styled, type Theme } from "@mui/material/styles";
 
 export const getStatusStyles = (status: string, theme: Theme) => {
     switch (status) {
@@ -56,7 +55,7 @@ export const getStatusStyles = (status: string, theme: Theme) => {
 };
 
 
-export const BoxContainer = styled(Box)(({ theme }) => ({
+export const BoxContainer = styled(Box)(() => ({
     width: '7px',
     height: '7px',
     borderRadius: '7px',
