@@ -149,7 +149,6 @@ const Overview = (props: IOverviewProps) => {
                                 <DropDown
                                     required
                                     label="Rule Config"
-                                    disabled={values?.isEdit}
                                     {...field}
                                     onClick={functions.handleRuleConfig}
                                     placeholder="Select Rule Config"
