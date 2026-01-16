@@ -25,7 +25,7 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ 
     summary: 'User login', 
-    description: 'Authenticate user and return JWT token for API access' 
+    description: 'Authenticate user and return JWT token for API access. **Note: This endpoint is available at http://10.10.80.37:3005/auth/login**' 
   })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ 
