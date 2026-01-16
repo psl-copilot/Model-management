@@ -3,7 +3,7 @@ import Button from "../../../components/Button"
 import useSimulationController, { type ISimulation } from "./useSimulationController";
 import CheckIcon from '@mui/icons-material/Check';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
-import { claims } from "../../../utils/Constants/data";
+import { claims, Status } from "../../../utils/Constants/data";
 
 const Simulation = (props: ISimulation) => {
 
@@ -18,7 +18,7 @@ const Simulation = (props: ISimulation) => {
         >
 
             <Box mt={2} width={'100%'} gap={2} display={'flex'} justifyContent={'flex-end'}>
-                {values?.claim === claims.approver ?
+                {values?.claim === claims.approver && values?.status === Status.STATUS_03_UNDER_REVIEW ?
                     <>
                         <Button
                             height="40px"
@@ -39,13 +39,15 @@ const Simulation = (props: ISimulation) => {
                         />
                     </>
                     :
-                    <Button
-                        height="40px"
-                        size="md"
-                        type='secondary'
-                        onClick={() => functions.handleApproval('review')}
-                        text="Send For Approval"
-                    />
+                    Status.STATUS_01_IN_PROGRESS ?
+                        <Button
+                            height="40px"
+                            size="md"
+                            type='secondary'
+                            onClick={() => functions.handleApproval('review')}
+                            text="Send For Approval"
+                        />
+                        : null
                 }
             </Box>
         </Grid>

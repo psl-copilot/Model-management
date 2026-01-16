@@ -20,7 +20,8 @@ const useSimulationController = (props: ISimulation) => {
 
     return {
         values: {
-            claim: user?.claims
+            claim: user?.claims,
+            status: data?.status
         },
         functions: {
             handleApproval
