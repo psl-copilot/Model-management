@@ -49,7 +49,7 @@ const useApprovalController = (props: IApproval) => {
     const [submit, { isLoading }] = useUpdateStatusMutation()
 
     const onSubmit = (values: IValues) => {
-        const status = isApproved ? Status.APPROVED : isReviewed ? Status.REVIEW : Status.REJECTED
+        const status = isApproved ? Status.STATUS_04_APPROVED : isReviewed ? Status.STATUS_03_UNDER_REVIEW : Status.STATUS_05_REJECTED
         submit({ id, body: { ...values, status } })
             .then((res) => {
                 if (res) {

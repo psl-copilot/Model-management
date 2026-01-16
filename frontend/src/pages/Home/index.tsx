@@ -73,18 +73,6 @@ const Home = () => {
                     onChange={(val) => functions.setStatus(val)}
                     multiple={false}
                 />
-                <DropDown
-                    maxWidth={300}
-                    label="Publishing Status"
-                    height="sm"
-                    placeholder="Select Publishing status"
-                    options={values.publishingOptions}
-                    value={values.publishing ?? null}
-                    onChange={(val) => {
-                        if (!Array.isArray(val)) functions.setPublishing(val);
-                    }}
-                    multiple={false}
-                />
 
                 <DropDown
                     height="sm"

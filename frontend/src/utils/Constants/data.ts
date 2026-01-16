@@ -27,14 +27,14 @@ export const rules = [
 
 
 export const Status = {
-    INPROGRESS: 'STATUS_01_IN_PROGRESS',
-    ON_HOLD: 'STATUS_02_ON_HOLD',
-    REVIEW: 'STATUS_03_UNDER_REVIEW',
-    APPROVED: 'STATUS_04_APPROVED',
-    REJECTED: 'STATUS_05_REJECTED',
-    READY: 'STATUS_07_READY_FOR_DEPLOYMENT',
-    DEPLOYED: 'STATUS_08_DEPLOYED',
-    ARCHIVED: 'STATUS_09_ARCHIVED',
+    STATUS_01_IN_PROGRESS: 'STATUS_01_IN_PROGRESS',
+    STATUS_02_ON_HOLD: 'STATUS_02_ON_HOLD',
+    STATUS_03_UNDER_REVIEW: 'STATUS_03_UNDER_REVIEW',
+    STATUS_04_APPROVED: 'STATUS_04_APPROVED',
+    STATUS_05_REJECTED: 'STATUS_05_REJECTED',
+    STATUS_07_READY_FOR_DEPLOYMENT: 'STATUS_07_READY_FOR_DEPLOYMENT',
+    STATUS_08_DEPLOYED: 'STATUS_08_DEPLOYED',
+    STATUS_09_ARCHIVED: 'STATUS_09_ARCHIVED',
 }
 
 export const publishingStatus = {
@@ -90,13 +90,13 @@ export const claims = {
 export const RoleStatusMap: Record<string, string[]> = {
     editor: Object.values(Status),
     approver: [
-        Status.REVIEW,
-        Status.APPROVED,
-        Status.REJECTED,
+        Status.STATUS_03_UNDER_REVIEW,
+        Status.STATUS_04_APPROVED,
+        Status.STATUS_05_REJECTED,
     ],
     deployer: [
-        Status.READY,
-        Status.DEPLOYED,
+        Status.STATUS_07_READY_FOR_DEPLOYMENT,
+        Status.STATUS_08_DEPLOYED,
     ],
 };
 

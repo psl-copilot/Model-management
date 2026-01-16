@@ -3,21 +3,18 @@ import { useNavigate } from "react-router-dom";
 import type { DropdownOption } from "../../components/DropDown";
 import type { TableColumn } from "../../components/Table";
 import TableActions from "../../components/TableActions";
-import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation, useGetStatusQuery } from "../../redux/Api/Rules";
+import { LocalStorage } from "../../utils/Common/enums";
 import { extractData, removeData } from "../../utils/Common/storage";
 import { claims, publishingStatus, ruleTypes, Status } from "../../utils/Constants/data";
-import ViewRule from "./ViewRule";
-import { LocalStorage } from "../../utils/Common/enums";
+import StatusCard from "../../components/Cards/StatusCard";
 
 const useHomeController = () => {
     const navigate = useNavigate();
     const [ruleType, setRuleType] = useState<DropdownOption | DropdownOption[] | null>(null)
     const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
-    const [publishing, setPublishing] = useState<DropdownOption | null>(null)
 
-    const { open } = useModal()
     const user = extractData('user')
 
     const isEditor = user.claims === claims.editor
@@ -38,7 +35,6 @@ const useHomeController = () => {
     const resetFilter = () => {
         setRuleType(null)
         setStatus(null)
-        setPublishing(null)
         setSearchTerm('')
     }
 
@@ -52,8 +48,7 @@ const useHomeController = () => {
                 }
                 const statusValue = status && !Array.isArray(status) ? status.value : undefined;
                 const ruleValue = ruleType && !Array.isArray(ruleType) ? ruleType.value : undefined;
-                const publishingStatus = publishing ? publishing.value : undefined;
-                const body = { ruleName: searchTerm.length > 0 ? searchTerm : undefined, status: statusValue, ruleType: ruleValue, publishingStatus };
+                const body = { ruleName: searchTerm.length > 0 ? searchTerm : undefined, status: statusValue, ruleType: ruleValue };
                 const response = await getRules({
                     params, body
                 }).unwrap();
@@ -66,7 +61,7 @@ const useHomeController = () => {
         };
 
         fetchRules();
-    }, [getRules, offset, limit, searchTerm, status, ruleType, publishing]);
+    }, [getRules, offset, limit, searchTerm, status, ruleType]);
 
     useEffect(() => {
         setOffset(0);
@@ -96,7 +91,13 @@ const useHomeController = () => {
     const columns: TableColumn[] = [
         { label: "Rule Name", key: "rule_name" },
         { label: "Rule ID", key: "id" },
-        { label: "Status", key: "status" },
+        {
+            label: "Status",
+            key: "status",
+            render: (row: Record<string, unknown>) => (
+                <StatusCard status={row.status as string} />
+            )
+        },
         { label: "Created At", key: "created_at", type: 'date' as const },
         { label: "Version", key: "version" },
         {
@@ -106,7 +107,7 @@ const useHomeController = () => {
                 <TableActions
                     onView={() => onView(row as Record<string, string>)}
                     {...(isEditor && {
-                        ...(row?.status === Status.INPROGRESS ? { onEdit: () => handleCreateEdit(row as Record<string, string>) } : {}),
+                        ...(row?.status === Status.STATUS_01_IN_PROGRESS ? { onEdit: () => handleCreateEdit(row as Record<string, string>) } : {}),
                         onClone: () => onView(row as Record<string, string>)
                     })}
                 />
@@ -123,7 +124,6 @@ const useHomeController = () => {
             status,
             ruleType,
             user,
-            publishing,
             statusLoad,
             statusOptions: [
                 { label: 'All', value: '' },
@@ -146,7 +146,6 @@ const useHomeController = () => {
             setSearchTerm,
             setStatus,
             setRuleType,
-            setPublishing,
             resetFilter
         },
     };
