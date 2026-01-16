@@ -21,7 +21,7 @@ const useParserController = (props: IParseProps) => {
     const { mode } = props
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
-    const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
+    const [getPayload, { isFetching: sampleLoader }] = useLazyGetSamplePayloadQuery()
     const [result, setResult] = useState<IResult | null>(null)
 
     const initial = {
@@ -46,12 +46,22 @@ const useParserController = (props: IParseProps) => {
         }
     }, [isSuccess, parseBody])
 
-    const fetchJson = () => {
+    const getData = () => {
         getPayload({ type: data?.txtp }).unwrap().then((res) => {
             if (res) {
                 setValue('payload', JSON.stringify(res, null, 4))
             }
         })
+    }
+
+    useEffect(() => {
+        if (mode === 'view') {
+            getData()
+        }
+    }, [mode])
+
+    const fetchJson = () => {
+        getData()
     }
 
     return {
@@ -62,7 +72,8 @@ const useParserController = (props: IParseProps) => {
             isLoading,
             sampleLoader,
             txtp: data?.txtp,
-            isEdit: mode === 'edit'
+            isEdit: mode === 'edit',
+            isView: mode === 'view'
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

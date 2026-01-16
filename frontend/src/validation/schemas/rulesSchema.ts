@@ -17,7 +17,10 @@ export const createRuleSchema = yup.object({
         })
         .nullable()
         .test("not-null", "TxTp Version is required", value => value !== null),
-    version: yup.string().required("Version is required"),
+    version: yup
+        .string()
+        .required("Version is required")
+        .matches(/^\d+\.\d+\.\d+$/, "Version must be in format X.X.X"),
     rule_config_id: yup.object({
         label: yup.string().required(),
         value: yup.string().required(),

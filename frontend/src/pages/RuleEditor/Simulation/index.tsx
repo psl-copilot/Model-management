@@ -39,7 +39,7 @@ const Simulation = (props: ISimulation) => {
                         />
                     </>
                     :
-                    Status.STATUS_01_IN_PROGRESS ?
+                    values?.status === Status.STATUS_01_IN_PROGRESS ?
                         <Button
                             height="40px"
                             size="md"
