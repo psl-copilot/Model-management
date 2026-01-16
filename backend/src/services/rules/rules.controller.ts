@@ -8,6 +8,7 @@ import {
   Get,
   Query,
   Put,
+  Req,
 } from '@nestjs/common';
 import { TazamaAuthGuard } from '../../guards/tazama-auth.guard';
 // import { StatusValidationGuard } from '../../guards/status-validation.guard';
@@ -221,6 +222,8 @@ export class RulesController {
   // update the status of a rule based on rule ID
   @Put('/api/:ruleId/status')
   @RequireAnyClaims(TazamaClaims.EDITOR)
+  @RequireAnyClaims(TazamaClaims.APPROVER)
+  @RequireAnyClaims(TazamaClaims.PUBLISHER)
   async updateRuleStatus(
     @Param('ruleId') ruleId: string,
     @Body() body: { status: string; reason: string },
