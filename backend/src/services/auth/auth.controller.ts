@@ -8,10 +8,12 @@ import {
   HttpCode,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { LoggerService } from '@tazama-lf/frms-coe-lib';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -21,6 +23,26 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @ApiOperation({ 
+    summary: 'User login', 
+    description: 'Authenticate user and return JWT token for API access' 
+  })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Login successful', 
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Login successful' },
+        token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+        expiresIn: { type: 'number', example: 3600 }
+      }
+    }
+  })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 503, description: 'Auth service unavailable' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async login(
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
     body: LoginDto,
