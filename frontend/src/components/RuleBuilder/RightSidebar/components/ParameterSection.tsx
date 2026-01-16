@@ -64,6 +64,11 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             return null;
           }
           
+          // Skip arrayVariable for 'while' loops (while loops use custom conditions, not array iteration)
+          if (input.key === 'arrayVariable' && loopType === 'while') {
+            return null;
+          }
+          
           // Skip resultVariable for forEach, for, and while (only needed for map/filter)
           if (input.key === 'resultVariable' && loopType !== 'map' && loopType !== 'filter') {
             return null;

@@ -24,7 +24,6 @@ import {
   VariableTree,
 } from './components';
 import { getAllNodeTemplates } from '../../../utils/Flow/nodeTemplateService';
-// import { useGetNodesQuery } from '../../../redux/Api/Rule-builder';
 
 interface LeftSidebarProps {
   mode?: 'main' | 'modal';
@@ -51,16 +50,13 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   selectedNodeId = null,
   ruleId,
 }) => {
-  // State
   const [activeTab, setActiveTab] = useState<number>(0);
 
-  // Fetch global variables from API
   const { data: globalVarsData } = useGetGlobalVariablesQuery(
     ruleId || '',
     { skip: !showGlobalVariables || !ruleId }
   );
 
-  // Use API data if available, otherwise fallback to static data
   const currentGlobalVariables = useMemo(() => {
     if (globalVarsData) {
       return {
@@ -72,37 +68,29 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return globalVariables;
   }, [globalVarsData]);
 
-  //commented for now until we have API to fetch nodes  
-  // const { data: nodesData, error, isLoading } = useGetNodesQuery({});
 
-  // Use mock data for now
   const nodeTemplates = getAllNodeTemplates();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
     setActiveTab(newValue);
   };
 
-  // Custom hooks for data management
   const { getNodesToShow } = useNodePalette({ mode, hideCustomFunctions, hideImportNode, apiNodes: nodeTemplates });
   const { localVars, loopVars, loopContext } = useLocalVariables({ 
     allNodes, 
     edges, 
     selectedNodeId 
   });
-  
-  // Build variable trees
+
   const localVarsTree = useVariableTree({ obj: localVars, parentPath: '' });
   const loopVarsTree = useVariableTree({ obj: loopVars, parentPath: '' });
   const ruleRequestTree = useVariableTree({ obj: currentGlobalVariables.RuleRequest, parentPath: 'RuleRequest' });
   const ruleConfigTree = useVariableTree({ obj: currentGlobalVariables.RuleConfig, parentPath: 'RuleConfig' });
   const ruleResultTree = useVariableTree({ obj: currentGlobalVariables.RuleResult || {}, parentPath: 'RuleResult' });
 
-  // Get nodes to display based on active tab
   const nodesToShow = getNodesToShow(activeTab);
 
-  // Handlers
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string): void => {
-    // Prevent dragging Start and End nodes as they are already present in canvas
     if (nodeType === 'Start' || nodeType === 'End') {
       event.preventDefault();
       return;
@@ -111,7 +99,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  // Determine if we should show empty state
   const showVariablesEmptyState = showGlobalVariables && activeTab === 1 && ruleRequestTree.length === 0 && ruleConfigTree.length === 0;
   const showFunctionsEmptyState = activeTab === 1 && nodesToShow.length === 0 && !showGlobalVariables;
 
@@ -240,8 +227,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 </Box>
               )}
             </ScrollableList>
-
-            {/* Footer Info */}
             {mode === 'main' && (
               <Box
                 sx={{
