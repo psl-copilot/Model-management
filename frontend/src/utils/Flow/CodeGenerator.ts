@@ -1,7 +1,7 @@
 import type { Node, Edge } from '@xyflow/react';
 import type { EditableNodeData } from '../../components/RuleBuilder/EditableNode';
 import { getNodesInBranch } from '../Common/helpers';
-import { mockRuleBuilderNodes } from './mockRuleBuilderNodes';
+import { getApiNodes } from './nodeTemplateService';
 
 interface NestedCanvasData {
   nodes: Node[];
@@ -54,10 +54,12 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
   const params = nodeData.params || {};
   const nodeType = nodeData.nodeType;
 
-  // Find node definition from mock/API data
-  const nodeDefinition = mockRuleBuilderNodes.find((n) => n.node_json.node_type === nodeType);
+  
+  const nodeDefinition = getApiNodes().find((n) => {
+    const nodeJson = n.node_json as { node_type?: string };
+    return nodeJson.node_type === nodeType;
+  });
 
-  // Special handling for nodes with complex logic that can't be templated
   if (nodeType === 'If') {
     return generateIfNodeCode(node, indent);
   }
@@ -86,9 +88,12 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
     return generateExitCode(params, indent);
   }
 
-  // For all other nodes, use the code_template from API/mock data
-  if (nodeDefinition?.node_json?.code_template) {
-    return processCodeTemplate(nodeDefinition.node_json.code_template, params, indent);
+
+  if (nodeDefinition) {
+    const nodeJson = nodeDefinition.node_json as { code_template?: string };
+    if (nodeJson?.code_template && typeof nodeJson.code_template === 'string') {
+      return processCodeTemplate(nodeJson.code_template, params, indent);
+    }
   }
 
   // Fallback for unknown nodes
@@ -341,10 +346,6 @@ const generateLoopCode = (params: Record<string, string>, indent: string): strin
   return lines.join('\n');
 };
 
-/**
- * Helper function to recursively generate code for a node, including traversing If node branches
- * This is used specifically for nodes within loop bodies or other nested contexts
- */
 const generateNodeCodeRecursive = (
   node: Node,
   nodes: Node[],

@@ -90,20 +90,29 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialFlow().edges);
   
   const hasInitializedRef = useRef(false);
+  const nodesMountedRef = useRef(false);
 
   useEffect(() => {
     if (initialNodes && initialEdges && !hasInitializedRef.current) {
       setNodes(initialNodes as Node[]);
-      setEdges(initialEdges as Edge[]);
-      hasInitializedRef.current = true;
+      nodesMountedRef.current = true;
+      
+      const frameId = requestAnimationFrame(() => {
+        if (nodesMountedRef.current && !hasInitializedRef.current) {
+          setEdges(initialEdges as Edge[]);
+          hasInitializedRef.current = true;
+        }
+      });
+      
+      return () => {
+        cancelAnimationFrame(frameId);
+      };
     }
   }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
-  // Use custom hooks for all Canvas functionality
-  // First get node operations without saveHistory
   const nodeOps = useCanvasNodeOperations({
     setNodes,
     saveHistory: () => {}, // Temporary placeholder
@@ -196,8 +205,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     if (onFlowStateUpdate) {
       onFlowStateUpdate(nodes, edges, setNodes, setEdges);
     }
-    // setNodes and setEdges are stable references from useNodesState/useEdgesState
-    // onFlowStateUpdate intentionally excluded from deps to prevent infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 

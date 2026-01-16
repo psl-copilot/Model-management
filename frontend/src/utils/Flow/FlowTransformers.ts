@@ -40,24 +40,44 @@ export const transformApiNodeToCanvasNode = (node: ApiNode): Node => ({
 });
 
 export const transformApiEdgeToCanvasEdge = (edge: ApiEdge): Edge => {
-  // Reconstruct label and style from sourceHandle if not provided
-  const hasSourceHandle = edge.sourceHandle && edge.sourceHandle !== null;
+  const sourceHandleValue = edge.sourceHandle && edge.sourceHandle !== null ? edge.sourceHandle : undefined;
+  const targetHandleValue = edge.targetHandle && edge.targetHandle !== null ? edge.targetHandle : undefined;
+  
+  
+  const hasSourceHandle = sourceHandleValue !== undefined && sourceHandleValue !== null;
   const needsReconstruction = hasSourceHandle && (!edge.label || !edge.style);
   
-  return {
+  const transformedEdge: Edge = {
     id: edge.id,
     source: edge.source,
     target: edge.target,
-    sourceHandle: edge.sourceHandle || undefined,
-    targetHandle: edge.targetHandle || undefined,
-    label: edge.label || (needsReconstruction ? getLabelForHandle(edge.sourceHandle!) : undefined),
-    style: edge.style || (needsReconstruction ? {
-      stroke: getColorForHandle(edge.sourceHandle!),
-      strokeWidth: 2,
-    } : undefined),
     type: edge.type || 'smoothstep',
     animated: edge.animated || false,
   };
+
+  if (sourceHandleValue !== undefined) {
+    transformedEdge.sourceHandle = sourceHandleValue;
+  }
+  if (targetHandleValue !== undefined) {
+    transformedEdge.targetHandle = targetHandleValue;
+  }
+
+  if (edge.label) {
+    transformedEdge.label = edge.label;
+  } else if (needsReconstruction && sourceHandleValue) {
+    transformedEdge.label = getLabelForHandle(sourceHandleValue);
+  }
+
+  if (edge.style) {
+    transformedEdge.style = edge.style;
+  } else if (needsReconstruction && sourceHandleValue) {
+    transformedEdge.style = {
+      stroke: getColorForHandle(sourceHandleValue),
+      strokeWidth: 2,
+    };
+  }
+
+  return transformedEdge;
 };
 
 export const transformApiFlowData = (

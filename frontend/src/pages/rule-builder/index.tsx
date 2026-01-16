@@ -11,8 +11,9 @@ import NestedCanvas from '../../components/RuleBuilder/NestedCanvas';
 import OutputModal from '../../components/RuleBuilder/OutputModal';
 import { ValidationProvider } from '../../validation/context';
 import { ValidationErrorModal } from '../../components/RuleBuilder/ValidationErrorModal';
-import { useGetFlowQuery, useSaveFlowMutation } from '../../redux/Api/Rule-builder';
+import { useGetFlowQuery, useSaveFlowMutation, useGetNodesQuery } from '../../redux/Api/Rule-builder';
 import { transformApiFlowData, type ApiNode, type ApiEdge } from '../../utils/Flow/FlowTransformers';
+import { setApiNodes } from '../../utils/Flow/nodeTemplateService';
 import {
   useFlowAnimation,
   useFlowState,
@@ -25,7 +26,10 @@ interface RuleBuilderProps {
 
 const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
   const { id: ruleId } = useParams<{ id: string }>();
-  const { data: flowData, isLoading: isLoadingFlow } = useGetFlowQuery(ruleId || '', {
+  
+  const { data: nodesData, isLoading: isLoadingNodes, error: nodesError } = useGetNodesQuery({});
+  
+  const { data: flowData, isLoading: isLoadingFlow, error: flowError } = useGetFlowQuery(ruleId || '', {
     skip: !ruleId,
   });
   
@@ -34,14 +38,24 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
   const flowState = useFlowState();
   const nestedCanvasManager = useNestedCanvasManager();
   
+  const [apiNodesInitialized, setApiNodesInitialized] = React.useState(false);
+  
+  useEffect(() => {
+    if (nodesData && Array.isArray(nodesData)) {
+      setApiNodes(nodesData as unknown as ApiNode[]);
+      setApiNodesInitialized(true);
+    }
+  }, [nodesData]);
+  
   const transformedFlowData = useMemo(() => {
-    if (!flowData?.flow) return null;
+
+    if (!flowData?.flow || !apiNodesInitialized) return null;
     
     return transformApiFlowData(
       flowData.flow.nodes as ApiNode[] || [],
       flowData.flow.edges as ApiEdge[] || []
     );
-  }, [flowData]);
+  }, [flowData, apiNodesInitialized]);
 
   useEffect(() => {
     if (transformedFlowData?.nestedFlows) {
@@ -199,61 +213,83 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         isSaving={isSaving}
         viewOnly={viewOnly}
       />
-      {isLoadingFlow ? (
+      
+      {/* Show loader while BOTH APIs are being fetched OR nodes not initialized */}
+      {isLoadingNodes || isLoadingFlow || !apiNodesInitialized ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, flexDirection: 'column', gap: 2 }}>
+          <Typography variant="h6">
+            {isLoadingNodes ? 'Loading node templates...' : isLoadingFlow ? 'Loading rule flow...' : 'Initializing...'}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            {isLoadingNodes && 'Fetching available nodes from server'}
+            {isLoadingFlow && !isLoadingNodes && 'Fetching rule configuration'}
+            {!isLoadingNodes && !isLoadingFlow && !apiNodesInitialized && 'Setting up canvas...'}
+          </Typography>
+        </Box>
+      ) : nodesError || flowError ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, flexDirection: 'column', gap: 2 }}>
+          <Typography variant="h6" color="error">
+            Error loading rule builder
+          </Typography>
+          <Typography variant="body2">
+            {nodesError ? 'Failed to load node templates' : 'Failed to load rule flow'}
+          </Typography>
+        </Box>
+      ) : !transformedFlowData ? (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <Typography>Loading flow...</Typography>
+          <Typography>Preparing canvas...</Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {!viewOnly && (
-          <LeftSidebar 
-            mode="main" 
-            collapsed={flowState.sidebarCollapsed}
-            onToggleCollapse={flowState.handleToggleSidebar}
-            hideCustomFunctions={nestedCanvasManager.activeNestedCanvas !== null}
-            allNodes={flowState.allNodes}
-            edges={flowState.edges}
-            selectedNodeId={flowState.selectedNode?.id || null}
-            ruleId={ruleId}
-          />
-        )}
-        <RuleBuilderCanvas
-          isPlaying={Boolean(flowState.currentAnimationNode)}
-          onJsonGenerate={flowState.handleJsonGenerate}
-          onCodeGenerate={flowState.handleCodeGenerate}
-          onNodeSelect={handleNodeSelect}
-          onNodeUpdate={handleNodeUpdate}
-          debugVariables={flowState.debugVariables}
-          debugLogs={flowState.debugLogs}
-          currentNodeId={flowState.currentAnimationNode}
-          nestedCanvasData={nestedCanvasManager.nestedCanvasData}
-          viewOnly={viewOnly}
-          onFlowStateUpdate={handleFlowStateUpdate}
-          initialNodes={transformedFlowData?.nodes}
-          initialEdges={transformedFlowData?.edges}
-        />
-        <RightSidebar
-          key={flowState.selectedNode?.id || 'no-selection'}
-          selectedNode={flowState.selectedNode}
-          onClose={flowState.handleCloseRightSidebar}
-          onUpdateNode={handleNodeUpdate}
-          allNodes={flowState.allNodes}
-          viewOnly={viewOnly}
-        />
-
-        {nestedCanvasManager.activeNestedCanvas && (
-          <NestedCanvas
-            nodeId={nestedCanvasManager.activeNestedCanvas}
-            nodeLabel={nestedCanvasManager.activeNestedCanvasLabel}
-            initialNodes={nestedCanvasManager.nestedCanvasData[nestedCanvasManager.activeNestedCanvas]?.nodes}
-            initialEdges={nestedCanvasManager.nestedCanvasData[nestedCanvasManager.activeNestedCanvas]?.edges}
-            onBack={nestedCanvasManager.handleNestedCanvasBack}
-            onSave={handleNestedCanvasSave}
+          {!viewOnly && (
+            <LeftSidebar 
+              mode="main" 
+              collapsed={flowState.sidebarCollapsed}
+              onToggleCollapse={flowState.handleToggleSidebar}
+              hideCustomFunctions={nestedCanvasManager.activeNestedCanvas !== null}
+              allNodes={flowState.allNodes}
+              edges={flowState.edges}
+              selectedNodeId={flowState.selectedNode?.id || null}
+              ruleId={ruleId}
+            />
+          )}
+          <RuleBuilderCanvas
+            isPlaying={Boolean(flowState.currentAnimationNode)}
+            onJsonGenerate={flowState.handleJsonGenerate}
+            onCodeGenerate={flowState.handleCodeGenerate}
+            onNodeSelect={handleNodeSelect}
+            onNodeUpdate={handleNodeUpdate}
+            debugVariables={flowState.debugVariables}
+            debugLogs={flowState.debugLogs}
+            currentNodeId={flowState.currentAnimationNode}
+            nestedCanvasData={nestedCanvasManager.nestedCanvasData}
             viewOnly={viewOnly}
-            ruleId={ruleId}
+            onFlowStateUpdate={handleFlowStateUpdate}
+            initialNodes={transformedFlowData?.nodes}
+            initialEdges={transformedFlowData?.edges}
           />
-        )}
-      </Box>
+          <RightSidebar
+            key={flowState.selectedNode?.id || 'no-selection'}
+            selectedNode={flowState.selectedNode}
+            onClose={flowState.handleCloseRightSidebar}
+            onUpdateNode={handleNodeUpdate}
+            allNodes={flowState.allNodes}
+            viewOnly={viewOnly}
+          />
+
+          {nestedCanvasManager.activeNestedCanvas && (
+            <NestedCanvas
+              nodeId={nestedCanvasManager.activeNestedCanvas}
+              nodeLabel={nestedCanvasManager.activeNestedCanvasLabel}
+              initialNodes={nestedCanvasManager.nestedCanvasData[nestedCanvasManager.activeNestedCanvas]?.nodes}
+              initialEdges={nestedCanvasManager.nestedCanvasData[nestedCanvasManager.activeNestedCanvas]?.edges}
+              onBack={nestedCanvasManager.handleNestedCanvasBack}
+              onSave={handleNestedCanvasSave}
+              viewOnly={viewOnly}
+              ruleId={ruleId}
+            />
+          )}
+        </Box>
       )}
 
       <OutputModal
