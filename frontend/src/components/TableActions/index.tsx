@@ -7,15 +7,19 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import BlockIcon from "@mui/icons-material/Block";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 type TableActionsProps = {
     onView?: () => void;
     onEdit?: () => void;
     onDelete?: () => void;
     onClone?: () => void;
+    onHold?: () => void;
     onToggleStatus?: () => void;
     active?: boolean;
     children?: React.ReactNode;
+    pause?: boolean
 };
 
 const TableActions = ({
@@ -23,8 +27,10 @@ const TableActions = ({
     onEdit,
     onDelete,
     onClone,
+    onHold,
     onToggleStatus,
     active = false,
+    pause = false,
     children,
 }: TableActionsProps) => {
     return (
@@ -47,6 +53,13 @@ const TableActions = ({
                 <Tooltip title="Edit">
                     <IconButton size="small" sx={{ color: '#d08700' }} onClick={onEdit}>
                         <EditSquareIcon fontSize="small" />
+                    </IconButton>
+                </Tooltip>
+            )}
+            {onHold && (
+                <Tooltip title={pause ? "Resume" : "Pause"}>
+                    <IconButton size="small" sx={{ color: pause ? 'green' : 'red' }} onClick={onHold}>
+                        {pause ? <PlayArrowRoundedIcon fontSize="small" /> : <PauseRoundedIcon fontSize="small" />}
                     </IconButton>
                 </Tooltip>
             )}

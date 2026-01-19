@@ -3,16 +3,16 @@ import { Box, Paper } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import { memo } from "react";
 import { Controller } from "react-hook-form";
-import Button from "../../../../components/Button";
-import Input from "../../../../components/Input";
-import { Text } from "../../../../components/Text";
+import Button from "../../Button";
+import Input from "../../Input";
+import { Text } from "../../Text";
 import useApprovalController, { type IApproval } from "./useApprovalController";
 
 
 const Approval = (props: IApproval) => {
 
     const { values, functions } = useApprovalController(props)
-    const { isApproved, isReviewed, type, control, errors, isLoading, header, message, btnTitle } = values
+    const { control, errors, isLoading, header, message, btnTitle, showCommentsField, theme, requiresComment } = values
 
     return (
         <Grid container spacing={2}>
@@ -25,27 +25,27 @@ const Approval = (props: IApproval) => {
                     width: '100%',
                     borderRadius: 2,
                     p: 1,
-                    bgcolor: isApproved ? "#edf7ed" : isReviewed ? '#dceeff' : "#fef2f2",
-                    borderColor: isApproved ? "success.main" : isReviewed ? "static.secondary" : "error.main",
+                    bgcolor: theme.bgColor,
+                    borderColor: theme.borderColor,
                     display: 'flex',
                     gap: 1
                 }}
             >
                 <WarningRoundedIcon sx={{ color: '#ffba57' }} />
-                <Text size="sub" color={isApproved ? "text.black" : isReviewed ? "static.secondary" : "error"}>{message}</Text>
+                <Text size="sub" color={theme.textColor}>{message}</Text>
             </Paper>
 
-            {type !== 'review' && (
+            {showCommentsField && (
                 <Grid container size={12}>
                     <Controller
                         name="comments"
                         control={control}
-                        rules={!isApproved && !isReviewed ? { required: "Comment is required" } : undefined}
+                        rules={requiresComment ? { required: "Comment is required" } : undefined}
                         render={({ field }) => (
                             <Input
                                 maxWidth={'100%'}
                                 type='textarea'
-                                required
+                                required={requiresComment}
                                 rows={3}
                                 label="Comments"
                                 {...field}
@@ -59,7 +59,7 @@ const Approval = (props: IApproval) => {
                 <Button height="35px" text="Cancel" size="sm" onClick={functions.close} type="muted" />
                 <Button
                     height="35px"
-                    type={isApproved ? 'primary' : isReviewed ? "secondary" : "danger"}
+                    type={theme.buttonType}
                     text={btnTitle}
                     onClick={functions.handleSubmit}
                     size="md"

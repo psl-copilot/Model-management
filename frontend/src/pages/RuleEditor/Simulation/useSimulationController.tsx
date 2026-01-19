@@ -1,7 +1,7 @@
+import Approval from "../../../components/Modals/Approval";
 import { useModal } from "../../../contexts/ModalContext";
 import { LocalStorage } from "../../../utils/Common/enums";
 import { extractData } from "../../../utils/Common/storage";
-import Approval from "../Modals/Approval";
 
 export interface ISimulation {
     data?: Record<string, unknown> | undefined
