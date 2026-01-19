@@ -29,7 +29,7 @@ const useHomeController = () => {
 
     const [getRules, { isLoading }] = useGetRulesMutation();
     const { data: statuses, isLoading: statusLoad } = useGetStatusQuery({}, { refetchOnMountOrArgChange: true });
-   
+
     const [data, setData] = useState<unknown[]>([]);
     const [total, setTotal] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
@@ -86,7 +86,16 @@ const useHomeController = () => {
     };
 
     const handleHold = (row: Record<string, unknown>) => {
-        open(`${row?.status === Status.STATUS_01_IN_PROGRESS ? 'Pause' : 'Resume'} Confirmation Required!`, <Approval id={row?.id} type={row?.status === Status.STATUS_01_IN_PROGRESS ? 'pause' : 'resume'} />, null, { maxWidth: 'sm' })
+        open(
+            `${row?.status === Status.STATUS_01_IN_PROGRESS ? 'Pause' : 'Resume'} Confirmation Required!`,
+            <Approval
+                id={row?.id}
+                type={row?.status === Status.STATUS_01_IN_PROGRESS ? 'pause' : 'resume'}
+                onSuccess={fetchRules}
+            />,
+            null,
+            { maxWidth: 'sm' }
+        )
     }
 
     const onView = (row: Record<string, string>) => {

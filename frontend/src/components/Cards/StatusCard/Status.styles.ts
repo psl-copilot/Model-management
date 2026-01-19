@@ -4,7 +4,6 @@ import { styled, type Theme } from "@mui/material/styles";
 export const getStatusStyles = (status: string, theme: Theme) => {
     switch (status) {
         case "STATUS_01_IN_PROGRESS":
-        case "STATUS_02_ON_HOLD":
             return {
                 backgroundColor: '#fefce8',
                 color: '#d28e0e',
@@ -44,7 +43,12 @@ export const getStatusStyles = (status: string, theme: Theme) => {
                 color: '#5641f6',
                 borderColor: '#e1e8ff',
             };
-
+        case "STATUS_02_ON_HOLD":
+            return {
+                backgroundColor: theme.palette.grey[100],
+                color: theme.palette.grey[700],
+                borderColor: theme.palette.grey[300],
+            };
         default:
             return {
                 backgroundColor: theme.palette.grey[100],

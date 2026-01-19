@@ -6,7 +6,8 @@ import { useModal } from "../../../contexts/ModalContext";
 
 export interface IApproval {
     type: 'review' | 'approve' | 'reject' | 'pause' | 'resume',
-    id: string | unknown
+    id: string | unknown,
+    onSuccess?: () => void
 }
 
 interface IValues {
@@ -83,7 +84,7 @@ const requiresComment = (type: IApproval['type']) => {
 
 const useApprovalController = (props: IApproval) => {
 
-    const { type, id } = props
+    const { type, id, onSuccess } = props
     const { close } = useModal()
     const navigate = useNavigate()
 
@@ -102,7 +103,11 @@ const useApprovalController = (props: IApproval) => {
             .then((res: unknown) => {
                 if (res) {
                     close()
-                    navigate('/home')
+                    if (type === 'pause' || type === 'resume') {
+                        onSuccess?.()
+                    } else {
+                        navigate('/home')
+                    }
                 }
             })
     }
