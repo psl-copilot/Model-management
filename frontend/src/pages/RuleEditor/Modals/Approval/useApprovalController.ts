@@ -29,7 +29,7 @@ const getBtnTitle = (type: IApproval['type']) => {
     switch (type) {
         case 'approve': return 'Approve'
         case 'reject': return 'Reject'
-        case 'review': return 'Send For Approval'
+        case 'review': return 'Submit For Approval'
     }
 }
 
