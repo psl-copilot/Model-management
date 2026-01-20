@@ -1,16 +1,15 @@
 import { ThemeProvider } from '@emotion/react';
 import { createTheme } from '@mui/material';
 import { useMemo } from 'react';
+import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
-import { ROUTES } from './routes';
-import theme from './utils/Theme';
-import ProtectedRoute from './routes/ProtectedRoute';
-import MainLayout from './layout/MainLayout';
-import { Toaster } from "react-hot-toast";
-import PrivateRoute from './routes/PrivateRoute';
 import { ModalProvider } from './contexts/ModalContext';
-import { TabProvider } from './contexts/TabContext/TabProvider';
+import MainLayout from './layout/MainLayout';
+import { ROUTES } from './routes';
+import PrivateRoute from './routes/PrivateRoute';
+import ProtectedRoute from './routes/ProtectedRoute';
+import theme from './utils/Theme';
 
 function App() {
 

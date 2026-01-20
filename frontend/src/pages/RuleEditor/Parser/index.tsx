@@ -9,6 +9,7 @@ import useParserController, { type IParseProps } from "./useParserController";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SimulationResultCard from "../../../components/Cards/SimulationResult";
 import { Box } from "@mui/material";
+import Loader from "../../../components/Loader";
 
 const Parser = (props: IParseProps) => {
 
@@ -27,7 +28,7 @@ const Parser = (props: IParseProps) => {
             </Grid>
 
             <Section header={'Payload Schema Definition'} subHeader={'Define the transaction payload structure to extract variables for rule building'}>
-                {values?.txtp ?
+                {values?.txtp && !values?.isView ?
                     <Grid size={12} display={'flex'} justifyContent={'flex-end'} width={'100%'}>
                         <Button
                             height="30px"
@@ -42,30 +43,37 @@ const Parser = (props: IParseProps) => {
                     </Grid>
                     : null}
                 <Grid container size={12} spacing={2} alignItems={'flex-start'}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Controller
-                            name="payload"
-                            control={values.control}
-                            render={({ field, fieldState: { error } }) => (
-                                <Input
-                                    type="textarea"
-                                    maxWidth={'100%'}
-                                    required
-                                    rows={12}
-                                    label="JSON Payload"
-                                    {...field}
-                                    error={error?.message}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }} border={1} borderColor={'static.border'} mt={0.4} p={2} overflow={'auto'} borderRadius={1} height={310}>
-                        <FormattedJsonSection value={values?.json ?? JSON.stringify({})} />
+
+                    {!values?.isView ?
+                        <Grid size={{ xs: 12, md: 6 }}>
+                            <Controller
+                                name="payload"
+                                control={values.control}
+                                render={({ field, fieldState: { error } }) => (
+                                    <Input
+                                        type="textarea"
+                                        maxWidth={'100%'}
+                                        required
+                                        rows={12}
+                                        label="JSON Payload"
+                                        {...field}
+                                        error={error?.message}
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        : null}
+
+                    <Grid size={{ xs: 12, md: !values?.isView ? 6 : 12 }} border={1} borderColor={'static.border'} mt={0.4} p={2} overflow={'auto'} borderRadius={1} height={310}>
+                        {values?.sampleLoader && values?.isView ?
+                            <Loader /> :
+                            <FormattedJsonSection value={values?.json ?? JSON.stringify({})} />
+                        }
                     </Grid>
                 </Grid>
 
-                <Grid size={12} width={'100%'} display={'flex'} justifyContent={'center'}>
-                    {values?.json ?
+                {values?.json && !values?.isView ?
+                    <Grid size={12} width={'100%'} display={'flex'} justifyContent={'center'}>
                         <Button
                             height="40px"
                             type="secondary"
@@ -74,8 +82,15 @@ const Parser = (props: IParseProps) => {
                             loading={values.isLoading}
                             onClick={functions.handleSubmit}
                         />
-                        : null}
-                </Grid>
+                    </Grid>
+                    : null}
+
+                {values?.ruleRequest && values?.isEdit ?
+                    <Grid size={{ xs: 12, md: 12 }} border={1} borderColor={'static.border'} mt={0.4} p={2} overflow={'auto'} borderRadius={1} height={310}>
+                        <FormattedJsonSection value={JSON.stringify(values?.ruleRequest)} />
+                    </Grid> :
+                    null
+                }
             </Section >
             <Grid container display={'flex'} justifyContent={'center'} width={'100%'} size={{ xs: 12, md: 12, sm: 12 }}>
                 {
@@ -85,7 +100,7 @@ const Parser = (props: IParseProps) => {
                         </Grid>
                         : null}
             </Grid>
-            {values?.result?.success || values?.isEdit ?
+            {values?.result?.success || values?.isEdit || values?.isView ?
                 <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
                     <Button height="40px" type="secondary" size="md" text="Next" onClick={functions.handleNext} />
                 </Box>

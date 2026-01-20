@@ -44,7 +44,7 @@ const useRuleConfigController = ({ handleRuleValue, ruleConfigId, mode }: RuleCo
       isLoading,
       configLoader,
       json,
-      isView: mode === 'view'
+      isView: mode === 'view' || mode === 'edit'
     },
     functions: {
       handleRuleId

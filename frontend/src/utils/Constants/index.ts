@@ -5,6 +5,10 @@ export const serial_no_option = {
   key: "id",
 }
 
+export const REGEX = {
+  VERSION_REGEX: /^\d+\.\d+\.\d+$/
+}
+
 export const baseFontSizes = {
   bigHeader: {
     default: '2.2rem',

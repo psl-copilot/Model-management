@@ -1,11 +1,9 @@
-import { type Theme } from "@mui/material/styles";
-import { Box, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Box } from "@mui/material";
+import { styled, type Theme } from "@mui/material/styles";
 
 export const getStatusStyles = (status: string, theme: Theme) => {
     switch (status) {
         case "STATUS_01_IN_PROGRESS":
-        case "STATUS_02_ON_HOLD":
             return {
                 backgroundColor: '#fefce8',
                 color: '#d28e0e',
@@ -45,7 +43,12 @@ export const getStatusStyles = (status: string, theme: Theme) => {
                 color: '#5641f6',
                 borderColor: '#e1e8ff',
             };
-
+        case "STATUS_02_ON_HOLD":
+            return {
+                backgroundColor: theme.palette.grey[100],
+                color: theme.palette.grey[700],
+                borderColor: theme.palette.grey[300],
+            };
         default:
             return {
                 backgroundColor: theme.palette.grey[100],
@@ -56,7 +59,7 @@ export const getStatusStyles = (status: string, theme: Theme) => {
 };
 
 
-export const BoxContainer = styled(Box)(({ theme }) => ({
+export const BoxContainer = styled(Box)(() => ({
     width: '7px',
     height: '7px',
     borderRadius: '7px',

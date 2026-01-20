@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import StatusCard from "../../components/Cards/StatusCard";
 import type { DropdownOption } from "../../components/DropDown";
+import Approval from "../../components/Modals/Approval";
 import type { TableColumn } from "../../components/Table";
 import TableActions from "../../components/TableActions";
+import { useModal } from "../../contexts/ModalContext";
 import useFilters from "../../hooks/useFilters";
 import { useGetRulesMutation, useGetStatusQuery } from "../../redux/Api/Rules";
 import { LocalStorage } from "../../utils/Common/enums";
 import { extractData, removeData } from "../../utils/Common/storage";
 import { claims, publishingStatus, ruleTypes, Status } from "../../utils/Constants/data";
-import StatusCard from "../../components/Cards/StatusCard";
 
 const useHomeController = () => {
     const navigate = useNavigate();
@@ -16,7 +18,7 @@ const useHomeController = () => {
     const [status, setStatus] = useState<DropdownOption | DropdownOption[] | null>(null)
 
     const user = extractData('user')
-
+    const { open } = useModal()
     const isEditor = user.claims === claims.editor
 
     const {
@@ -38,28 +40,28 @@ const useHomeController = () => {
         setSearchTerm('')
     }
 
+    const fetchRules = async () => {
+        try {
+            const params = {
+                offset,
+                limit
+            }
+            const statusValue = status && !Array.isArray(status) ? status.value : undefined;
+            const ruleValue = ruleType && !Array.isArray(ruleType) ? ruleType.value : undefined;
+            const body = { ruleName: searchTerm.length > 0 ? searchTerm : undefined, status: statusValue, ruleType: ruleValue };
+            const response = await getRules({
+                params, body
+            }).unwrap();
+
+            setData(response?.rules || []);
+            setTotal(response?.total || 0);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
 
     useEffect(() => {
-        const fetchRules = async () => {
-            try {
-                const params = {
-                    offset,
-                    limit
-                }
-                const statusValue = status && !Array.isArray(status) ? status.value : undefined;
-                const ruleValue = ruleType && !Array.isArray(ruleType) ? ruleType.value : undefined;
-                const body = { ruleName: searchTerm.length > 0 ? searchTerm : undefined, status: statusValue, ruleType: ruleValue };
-                const response = await getRules({
-                    params, body
-                }).unwrap();
-
-                setData(response?.rules || []);
-                setTotal(response?.total || 0);
-            } catch (err) {
-                console.error(err);
-            }
-        };
-
         fetchRules();
     }, [getRules, offset, limit, searchTerm, status, ruleType]);
 
@@ -83,6 +85,19 @@ const useHomeController = () => {
         navigate(row ? `/editor/${row?.id}?mode=edit` : "/editor");
     };
 
+    const handleHold = (row: Record<string, unknown>) => {
+        open(
+            `${row?.status === Status.STATUS_01_IN_PROGRESS ? 'Pause' : 'Resume'} Confirmation Required!`,
+            <Approval
+                id={row?.id}
+                type={row?.status === Status.STATUS_01_IN_PROGRESS ? 'pause' : 'resume'}
+                onSuccess={fetchRules}
+            />,
+            null,
+            { maxWidth: 'sm' }
+        )
+    }
+
     const onView = (row: Record<string, string>) => {
         navigate(`/editor/${row?.id}?mode=view`);
     }
@@ -105,9 +120,13 @@ const useHomeController = () => {
             key: 'actions',
             render: (row: Record<string, unknown>) => (
                 <TableActions
+                    pause={row?.status !== Status.STATUS_01_IN_PROGRESS ? true : false}
                     onView={() => onView(row as Record<string, string>)}
                     {...(isEditor && {
-                        ...(row?.status === Status.STATUS_01_IN_PROGRESS ? { onEdit: () => handleCreateEdit(row as Record<string, string>) } : {}),
+                        ...(row?.status === Status.STATUS_01_IN_PROGRESS || row?.status === Status.STATUS_02_ON_HOLD ? {
+                            onEdit: () => handleCreateEdit(row as Record<string, string>),
+                            onHold: () => handleHold(row as Record<string, string>),
+                        } : {}),
                         onClone: () => onView(row as Record<string, string>)
                     })}
                 />

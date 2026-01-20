@@ -44,6 +44,7 @@ export const rulesApi = createApi({
                 method: "PUT",
                 body: { ...body },
             }),
+            invalidatesTags: ['rule']
         }),
         getRuleById: builder.query({
             query: ({ id }) => ({

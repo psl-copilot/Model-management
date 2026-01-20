@@ -6,6 +6,7 @@ import type { IResult } from "../../../utils/Common/types";
 import { extractData } from "../../../utils/Common/storage";
 import { LocalStorage } from "../../../utils/Common/enums";
 import { useTab } from "../../../contexts/TabContext/useTab";
+import { useGetGlobalVariablesQuery } from "../../../redux/Api/Rule-builder";
 
 
 export interface IParseProps {
@@ -20,8 +21,12 @@ const useParserController = (props: IParseProps) => {
 
     const { mode } = props
 
+    const isEdit = mode === 'edit'
+    const isView = mode === 'view'
+
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
-    const [getPayload, { isLoading: sampleLoader }] = useLazyGetSamplePayloadQuery()
+    const [getPayload, { isFetching: sampleLoader }] = useLazyGetSamplePayloadQuery()
+    const { data: globalVariables } = useGetGlobalVariablesQuery(data?.id, { refetchOnMountOrArgChange: true })
     const [result, setResult] = useState<IResult | null>(null)
 
     const initial = {
@@ -46,12 +51,22 @@ const useParserController = (props: IParseProps) => {
         }
     }, [isSuccess, parseBody])
 
-    const fetchJson = () => {
+    const getData = () => {
         getPayload({ type: data?.txtp }).unwrap().then((res) => {
             if (res) {
                 setValue('payload', JSON.stringify(res, null, 4))
             }
         })
+    }
+
+    useEffect(() => {
+        if (isView || isEdit) {
+            getData()
+        }
+    }, [isView, isEdit])
+
+    const fetchJson = () => {
+        getData()
     }
 
     return {
@@ -62,7 +77,9 @@ const useParserController = (props: IParseProps) => {
             isLoading,
             sampleLoader,
             txtp: data?.txtp,
-            isEdit: mode === 'edit'
+            isEdit,
+            isView,
+            ruleRequest: globalVariables?.RuleRequest
         },
         functions: {
             handleSubmit: handleSubmit(onSubmit),

@@ -121,7 +121,7 @@ const useOverviewController = (props: IOverviewProps) => {
     return {
         values: {
             control,
-            isEdit: mode === 'edit' || mode === null || mode == 'view',
+            isEdit: mode === 'edit' || mode == 'view',
             errors,
             isLoading,
             rule_config_id,
