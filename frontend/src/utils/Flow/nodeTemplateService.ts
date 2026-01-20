@@ -1,4 +1,5 @@
 import { mapApiNodeToTemplate } from './apiNodeMapper';
+import { expandFunctionNodes } from './expandFunctionNodes';
 import type { NodeTemplate } from '../../hooks/RuleBuilder/useNodePalette';
 
 interface ApiNodeInput {
@@ -36,9 +37,12 @@ interface ApiNode {
 }
 
 let apiNodesStore: ApiNode[] = [];
+let expandedNodesStore: NodeTemplate[] = [];
 
 export const setApiNodes = (apiNodes: unknown[]): void => {
   apiNodesStore = apiNodes as ApiNode[];
+  // Expand nodes with modes into separate palette entries
+  expandedNodesStore = expandFunctionNodes(apiNodesStore);
 };
 
 export const getApiNodes = (): ApiNode[] => {
@@ -46,19 +50,34 @@ export const getApiNodes = (): ApiNode[] => {
 };
 
 
-export const getNodeTemplate = (nodeType: string): NodeTemplate | undefined => {
-  const apiNodes = getApiNodes();
-  const apiNode = apiNodes.find((node) => {
-    const nodeJson = node.node_json as { node_type?: string };
-    return nodeJson.node_type === nodeType;
+export const getNodeTemplate = (nodeType: string, mode?: string): NodeTemplate | undefined => {
+  const result = expandedNodesStore.find((node) => {
+    const typeMatch = node.type === nodeType || node.nodeType === nodeType;
+    const modeMatch = !mode || node.mode === mode;
+    return typeMatch && modeMatch;
   });
-  if (!apiNode) return undefined;
-  return mapApiNodeToTemplate(apiNode);
+  
+  // Debug logging for development
+  if (import.meta.env.DEV) {
+    console.log(`[getNodeTemplate] Looking for nodeType="${nodeType}", mode="${mode}"`, {
+      result,
+      foundMode: result?.mode,
+      foundInputs: result?.inputs,
+      foundFunctionName: result?.function_name,
+      foundUseDefinitionParameters: result?.useDefinitionParameters
+    });
+    
+    if (!result) {
+      console.warn(`[getNodeTemplate] Template not found for nodeType="${nodeType}", mode="${mode}"`);
+      console.log('[getNodeTemplate] Available templates:', expandedNodesStore.map(n => ({ type: n.type, nodeType: n.nodeType, mode: n.mode })));
+    }
+  }
+  
+  return result;
 };
 
 export const getAllNodeTemplates = (): NodeTemplate[] => {
-  const apiNodes = getApiNodes();
-  return apiNodes.map((node) => mapApiNodeToTemplate(node));
+  return expandedNodesStore;
 };
 
 export const getNodeTemplatesMap = (): Record<string, NodeTemplate> => {

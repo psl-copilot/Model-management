@@ -9,6 +9,7 @@ import {
   EmptyState,
 } from './styles';
 import { getNodeTemplate } from '../../../utils/Flow/nodeTemplateService';
+import { usesDynamicParameters } from '../../../utils/Flow/functionParameterUtils';
 import {
   NodeHeader,
   BasicPropertiesSection,
@@ -17,6 +18,7 @@ import {
   ParameterSection,
   ConnectionInfoSection,
   FunctionPropertiesSection,
+  FunctionCallSection,
   AdvancedSection,
 } from './components';
 import { useNodeValidation } from '../../../hooks/RuleBuilder/useNodeValidation';
@@ -33,6 +35,9 @@ interface NodeData {
   label?: string;
   nodeType?: string;
   params?: Record<string, string>;
+  mode?: 'definition' | 'call';
+  generation_type?: 'definition' | 'call';
+  function_name?: string;
   [key: string]: unknown;
 }
 
@@ -59,7 +64,26 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const currentParamsRef = React.useRef<Record<string, string>>({});
 
   const nodeData = selectedNode?.data as NodeData | undefined;
-  const template = nodeData?.nodeType ? getNodeTemplate(nodeData.nodeType) || null : null;
+  
+  // Extract clean nodeType (without mode if accidentally combined)
+  const cleanNodeType = useMemo(() => {
+    let nodeType = nodeData?.nodeType;
+    if (nodeType && nodeType.includes('::')) {
+      [nodeType] = nodeType.split('::');
+    }
+    return nodeType;
+  }, [nodeData?.nodeType]);
+  
+  // Memoize mode and template to prevent unnecessary lookups
+  const mode = useMemo(
+    () => nodeData?.mode || nodeData?.generation_type,
+    [nodeData?.mode, nodeData?.generation_type]
+  );
+  
+  const template = useMemo(
+    () => cleanNodeType ? getNodeTemplate(cleanNodeType, mode as string | undefined) || null : null,
+    [cleanNodeType, mode]
+  );
 
   // Validation hook
   const { validate, getFieldError } = useNodeValidation(
@@ -358,7 +382,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     );
   }
 
-  if (!selectedNode || !template) {
+  if (!selectedNode) {
     return (
       <SidebarContainer collapsed={false}>
         <CloseButton size="small" onClick={onClose} aria-label="Close properties panel">
@@ -366,14 +390,59 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         </CloseButton>
         <EmptyState>
           <InfoOutlinedIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-          <Typography color="text.secondary">Node not found</Typography>
+          <Typography color="text.secondary">No node selected</Typography>
+        </EmptyState>
+      </SidebarContainer>
+    );
+  }
+  
+  if (!template) {
+    // Extract nodeType without mode if it was accidentally combined
+    let displayNodeType = nodeData?.nodeType || 'Unknown';
+    if (displayNodeType.includes('::')) {
+      [displayNodeType] = displayNodeType.split('::');
+    }
+    
+    return (
+      <SidebarContainer collapsed={false}>
+        <CloseButton size="small" onClick={onClose} aria-label="Close properties panel">
+          <CloseIcon fontSize="small" />
+        </CloseButton>
+        <EmptyState>
+          <InfoOutlinedIcon sx={{ fontSize: 48, color: 'warning.main', mb: 2 }} />
+          <Typography color="text.primary" fontWeight={600} mb={1}>Template Not Found</Typography>
+          <Typography color="text.secondary" variant="body2" mb={1}>
+            Node Type: {displayNodeType}
+          </Typography>
+          {mode && (
+            <Typography color="text.secondary" variant="body2" mb={1}>
+              Mode: {mode}
+            </Typography>
+          )}
+          <Typography color="text.secondary" variant="caption">
+            This node may not be properly configured. Check the API response.
+          </Typography>
         </EmptyState>
       </SidebarContainer>
     );
   }
 
   const isFunctionNode = template && 'description' in template;
+  const isFunctionCallNode = mode === 'call' && (nodeData?.function_name || template?.function_name || usesDynamicParameters(template));
   const isReadOnly = nodeData?.nodeType === 'Start' || nodeData?.nodeType === 'End';
+
+  // Debug logging for function call detection
+  if (import.meta.env.DEV && mode === 'call') {
+    console.log('[RightSidebar] Function call detection:', {
+      mode,
+      nodeData_function_name: nodeData?.function_name,
+      template_function_name: template?.function_name,
+      usesDynamicParameters: usesDynamicParameters(template),
+      isFunctionCallNode,
+      template,
+      nodeData
+    });
+  }
 
   return (
     <SidebarContainer collapsed={false}>
@@ -421,6 +490,20 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
           onRemoveCondition={handleRemoveCondition}
           inputRefs={inputRefs}
           onDragOver={handleDragOver}
+          viewOnly={viewOnly}
+          allNodes={allNodes}
+          getFieldError={getFieldError}
+        />
+      ) : isFunctionCallNode && (nodeData?.function_name || template?.function_name) ? (
+        <FunctionCallSection
+          functionName={nodeData?.function_name || template.function_name || ''}
+          currentParams={currentParams}
+          onParamChange={handleParamChange}
+          onParamBlur={handleParamBlur}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          inputRefs={inputRefs}
+          isReadOnly={isReadOnly}
           viewOnly={viewOnly}
           allNodes={allNodes}
           getFieldError={getFieldError}

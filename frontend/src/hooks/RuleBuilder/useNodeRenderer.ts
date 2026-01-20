@@ -4,9 +4,28 @@ import { getNodeTemplate } from '../../utils/Flow/nodeTemplateService';
 import { useNodeStyles, useNodeHandles } from './index';
 
 export const useNodeRenderer = (nodeData: EditableNodeData) => {
-  // Get node template and styling
-  const template = getNodeTemplate(nodeData.nodeType);
-  const { backgroundColor, borderColor } = useNodeStyles(nodeData.nodeType);
+  // Memoize mode extraction to prevent unnecessary lookups
+  const mode = useMemo(
+    () => nodeData.mode || nodeData.generation_type,
+    [nodeData.mode, nodeData.generation_type]
+  );
+  
+  // Extract clean nodeType (without mode if accidentally combined)
+  const cleanNodeType = useMemo(() => {
+    let nodeType = nodeData.nodeType;
+    if (nodeType && nodeType.includes('::')) {
+      [nodeType] = nodeType.split('::');
+    }
+    return nodeType;
+  }, [nodeData.nodeType]);
+  
+  // Memoize template lookup (expensive operation)
+  const template = useMemo(
+    () => getNodeTemplate(cleanNodeType, mode),
+    [cleanNodeType, mode]
+  );
+  
+  const { backgroundColor, borderColor } = useNodeStyles(cleanNodeType);
   
   // Memoize local params to prevent unnecessary re-renders
   const localParams = useMemo(() => nodeData.params || {}, [nodeData.params]);
@@ -14,28 +33,31 @@ export const useNodeRenderer = (nodeData: EditableNodeData) => {
   // Check if this is a special node (Start, End, HandleTransaction)
   const isSpecialNode = useMemo(
     () =>
-      nodeData.nodeType === 'Start' ||
-      nodeData.nodeType === 'End' ||
-      nodeData.nodeType === 'HandleTransaction',
-    [nodeData.nodeType]
+      cleanNodeType === 'Start' ||
+      cleanNodeType === 'End' ||
+      cleanNodeType === 'HandleTransaction',
+    [cleanNodeType]
   );
 
   // Get conditions for If nodes
   const conditions = useMemo(() => {
-    if (nodeData.nodeType !== 'If') return [];
+    if (cleanNodeType !== 'If') return [];
     try {
       const conditionsStr = localParams['conditions'];
       return conditionsStr ? JSON.parse(conditionsStr) : [{ type: 'if', condition: 'x > 5' }];
     } catch {
       return [{ type: 'if', condition: 'x > 5' }];
     }
-  }, [nodeData.nodeType, localParams]);
+  }, [cleanNodeType, localParams]);
 
-  // Get handle configurations
+  // Get handle configurations (provide defaults if template not found)
+  const hasTargetHandle = template?.handles?.target ?? true;
+  const hasSourceHandle = template?.handles?.source ?? true;
+  
   const { targetHandle, sourceHandles } = useNodeHandles(
-    nodeData.nodeType,
-    template?.handles?.target || false,
-    template?.handles?.source || false,
+    cleanNodeType,
+    hasTargetHandle,
+    hasSourceHandle,
     conditions
   );
 

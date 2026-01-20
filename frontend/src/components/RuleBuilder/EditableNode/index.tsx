@@ -14,6 +14,9 @@ export interface EditableNodeData extends Record<string, unknown> {
   onParamChange?: (paramKey: string, value: string) => void;
   nodeType: string;
   params?: Record<string, string>;
+  mode?: 'definition' | 'call';
+  generation_type?: 'definition' | 'call';
+  function_name?: string;
 }
 
 const NodeContainer = styled(Box)<{ 

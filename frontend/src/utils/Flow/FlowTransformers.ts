@@ -8,6 +8,9 @@ export interface ApiNode {
   params?: Record<string, unknown>;
   position?: { x: number; y: number };
   nestedFlow?: { nodes: ApiNode[]; edges: ApiEdge[] };
+  mode?: 'definition' | 'call';
+  generation_type?: 'definition' | 'call';
+  function_name?: string;
 }
 
 export interface ApiEdge {
@@ -28,16 +31,31 @@ export interface TransformedFlowData {
   nestedFlows: Record<string, { nodes: Node[]; edges: Edge[] }>;
 }
 
-export const transformApiNodeToCanvasNode = (node: ApiNode): Node => ({
-  id: node.id,
-  type: 'editableNode',
-  position: node.position || { x: 0, y: 0 },
-  data: {
+export const transformApiNodeToCanvasNode = (node: ApiNode): Node => {
+  const nodeData: Record<string, unknown> = {
     label: node.label,
     nodeType: node.type,
     params: node.params || {},
-  },
-});
+  };
+  
+  // Restore mode, generation_type, and function_name for function nodes
+  if (node.mode) {
+    nodeData.mode = node.mode;
+  }
+  if (node.generation_type) {
+    nodeData.generation_type = node.generation_type;
+  }
+  if (node.function_name) {
+    nodeData.function_name = node.function_name;
+  }
+  
+  return {
+    id: node.id,
+    type: 'editableNode',
+    position: node.position || { x: 0, y: 0 },
+    data: nodeData,
+  };
+};
 
 export const transformApiEdgeToCanvasEdge = (edge: ApiEdge): Edge => {
   const sourceHandleValue = edge.sourceHandle && edge.sourceHandle !== null ? edge.sourceHandle : undefined;

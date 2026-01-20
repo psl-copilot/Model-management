@@ -6,14 +6,19 @@ import type { Node, Edge } from '@xyflow/react';
 let nodeCounter = 0;
 let edgeCounter = 0;
 let nestedNodeCounter = 0;
+let hasInitialized = false;
 
 /**
  * Reset counters (useful for testing or reinitialization)
  */
 export const resetCounters = () => {
-  nodeCounter = 0;
-  edgeCounter = 0;
-  nestedNodeCounter = 0;
+  // Only reset if not already initialized to prevent ID collisions
+  if (!hasInitialized) {
+    nodeCounter = 0;
+    edgeCounter = 0;
+    nestedNodeCounter = 0;
+    hasInitialized = true;
+  }
 };
 
 /**

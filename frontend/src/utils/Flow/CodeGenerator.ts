@@ -1,7 +1,8 @@
 import type { Node, Edge } from '@xyflow/react';
 import type { EditableNodeData } from '../../components/RuleBuilder/EditableNode';
 import { getNodesInBranch } from '../Common/helpers';
-import { getApiNodes } from './nodeTemplateService';
+import { getApiNodes, getNodeTemplate } from './nodeTemplateService';
+import { getFunctionParameters, generateFunctionArgs } from './functionParameterUtils';
 
 interface NestedCanvasData {
   nodes: Node[];
@@ -49,16 +50,55 @@ const processCodeTemplate = (
   return processedCode;
 };
 
-const generateNodeCode = (node: Node, indent: string = ''): string => {
+const generateFunctionCallCode = (
+  node: Node,
+  allNodes: Node[],
+  indent: string = ''
+): string => {
+  const nodeData = node.data as EditableNodeData;
+  const params = nodeData.params || {};
+  const functionName = nodeData.function_name;
+
+  if (!functionName) return '';
+
+  // Get function parameters from definition
+  const functionParams = getFunctionParameters(functionName, allNodes);
+  if (!functionParams || functionParams.length === 0) {
+    // Fallback to template-based generation if no parameters found
+    return '';
+  }
+
+  // Generate arguments string
+  const args = generateFunctionArgs(functionParams, params);
+
+  // Check if user wants to store result in variable
+  const storeResult = params.storeResult !== 'false'; // Default to true
+  const resultVariable = params.resultVariable || 'result';
+
+  // Generate the function call
+  let code = '';
+  if (storeResult) {
+    code = `const ${resultVariable} = ${functionName}(${args});`;
+  } else {
+    code = `${functionName}(${args});`;
+  }
+
+  // Add indent
+  if (indent) {
+    code = indent + code;
+  }
+
+  return code;
+};
+
+const generateNodeCode = (node: Node, indent: string = '', allNodes?: Node[]): string => {
   const nodeData = node.data as EditableNodeData;
   const params = nodeData.params || {};
   const nodeType = nodeData.nodeType;
+  const mode = nodeData.mode || nodeData.generation_type;
 
-  
-  const nodeDefinition = getApiNodes().find((n) => {
-    const nodeJson = n.node_json as { node_type?: string };
-    return nodeJson.node_type === nodeType;
-  });
+  // Get the correct template based on node type and mode
+  const template = getNodeTemplate(nodeType, mode);
 
   if (nodeType === 'If') {
     return generateIfNodeCode(node, indent);
@@ -88,6 +128,29 @@ const generateNodeCode = (node: Node, indent: string = ''): string => {
     return generateExitCode(params, indent);
   }
 
+  // Handle function call nodes with dynamic parameters (call mode)
+  if (mode === 'call' && nodeData.function_name) {
+    const dynamicCode = generateFunctionCallCode(node, allNodes || [], indent);
+    if (dynamicCode) {
+      return dynamicCode;
+    }
+  }
+
+  // Handle function nodes with call_template (call mode)
+  if (template && template.call_template) {
+    return processCodeTemplate(template.call_template as string, params, indent);
+  }
+
+  // Handle regular nodes with code_template
+  if (template && template.code_template) {
+    return processCodeTemplate(template.code_template as string, params, indent);
+  }
+
+  // Fallback: try to use API node definition
+  const nodeDefinition = getApiNodes().find((n) => {
+    const nodeJson = n.node_json as { node_type?: string };
+    return nodeJson.node_type === nodeType;
+  });
 
   if (nodeDefinition) {
     const nodeJson = nodeDefinition.node_json as { code_template?: string };
@@ -405,7 +468,7 @@ const generateNodeCodeRecursive = (
   }
   
   // For all other nodes, use standard code generation
-  return generateNodeCode(node, indent);
+  return generateNodeCode(node, indent, nodes);
 };
 
 const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '  '): string => {
@@ -561,7 +624,7 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
           branchNodes.forEach((n) => processedNodes.add(n.id));
           
           const branchCode = branchNodes
-            .map((n) => generateNodeCode(n, indent + '  '))
+            .map((n) => generateNodeCode(n, indent + '  ', nodes))
             .filter(Boolean)
             .join('\n');
           
@@ -593,7 +656,7 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
         codeLines.push(`${indent}// Error parsing If node conditions`);
       }
     } else {
-      const code = generateNodeCode(node, indent);
+      const code = generateNodeCode(node, indent, nodes);
       if (code) codeLines.push(code);
       
       const nextEdge = edges.find((e) => e.source === nodeId);
@@ -606,9 +669,29 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
   return codeLines.join('\n');
 };
 
+/**
+ * Helper function to generate function definition from a function node
+ */
+const generateFunctionDefinition = (node: Node): string => {
+  const nodeData = node.data as EditableNodeData;
+  const params = nodeData.params || {};
+  const mode = nodeData.mode || nodeData.generation_type || 'definition';
+  const template = getNodeTemplate(nodeData.nodeType, mode);
+  
+  if (!template || !template.code_template) {
+    return '';
+  }
+  
+  // For definition mode, use code_template (might be in params for editable functions)
+  const codeTemplate = params.code_template || template.code_template;
+  
+  // Use the code_template from API, replace placeholders with params
+  return processCodeTemplate(codeTemplate as string, params, '');
+};
+
 export const generateTypeScriptCode = (
   nodes: Node[],
-  _edges: Edge[],
+  edges: Edge[],
   nestedCanvasData: Record<string, NestedCanvasData>
 ): string => {
   // Check if there's a HandleTransaction node
@@ -621,6 +704,11 @@ export const generateTypeScriptCode = (
   
   const nestedData = nestedCanvasData[handleTransactionNode.id];
   const nestedCode = generateNestedFlowCode(nestedData.nodes, nestedData.edges, '  ');
+  
+  // Helper function to check if a node is connected
+  const isNodeConnected = (nodeId: string): boolean => {
+    return edges.some((edge) => edge.source === nodeId || edge.target === nodeId);
+  };
   
   // Helper function to extract import statement from a node
   const extractImportStatement = (node: Node): string => {
@@ -645,9 +733,26 @@ import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';`;
     ? `${baseImports}\n${customImportStatements}` 
     : baseImports;
   
-  // Generate the complete handleTransaction wrapper
+  // Extract Function Definition nodes from main canvas (only if connected)
+  const functionNodes = nodes.filter((node) => {
+    const nodeData = node.data as EditableNodeData;
+    const nodeType = nodeData.nodeType;
+    const mode = nodeData.mode || nodeData.generation_type;
+    const template = getNodeTemplate(nodeType, mode);
+    
+    // Only include function nodes in definition mode that are connected to the flow
+    return template && template.isFunction === true && (mode === 'definition' || !mode) && isNodeConnected(node.id);
+  });
+  
+  // Generate function definitions
+  const functionDefinitions = functionNodes
+    .map((node) => generateFunctionDefinition(node))
+    .filter(Boolean)
+    .join('\n\n');
+  
+  // Generate the complete code with functions before handleTransaction
   const code = `${allImports}
-
+${functionDefinitions ? '\n' + functionDefinitions + '\n' : ''}
 export async function handleTransaction(
   req: RuleRequest,
   determineOutcome: (value: number, ruleConfig: RuleConfig, ruleResult: RuleResult) => RuleResult,

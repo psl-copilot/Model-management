@@ -331,16 +331,24 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
 
       if (!reactFlowInstance) return;
 
-      const type = event.dataTransfer.getData('application/reactflow');
-      if (!type) return;
+      const dragData = event.dataTransfer.getData('application/reactflow');
+      if (!dragData) return;
+
+      // Extract type and mode from drag data (format: "Type::mode" or just "Type")
+      const [type, mode] = dragData.includes('::') ? dragData.split('::') : [dragData, undefined];
+      
+      // Convert string "undefined" to actual undefined
+      const cleanMode = mode === 'undefined' ? undefined : mode;
 
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
 
+
       // Create node with nested canvas ID
-      const template = getNodeTemplate(type);
+      const template = getNodeTemplate(type, cleanMode);
+      
       const newNodeId = generateNestedNodeId();
 
       const defaultParams: Record<string, string> = {};
@@ -358,6 +366,9 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
           label: template?.displayName || type,
           nodeType: type,
           params: defaultParams,
+          mode: cleanMode,
+          generation_type: template?.generation_type || cleanMode,
+          function_name: template?.function_name,
         },
       };
 
@@ -447,7 +458,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
       {/* Main Content with Sidebar and Canvas */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left Sidebar with Global Variables */}
-        {!viewOnly && <LeftSidebar mode="main" hideCustomFunctions={false} hideImportNode={true} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} ruleId={ruleId} />}
+        {!viewOnly && <LeftSidebar mode="modal" hideCustomFunctions={false} hideImportNode={true} showGlobalVariables={true} allNodes={nodes} edges={edges} selectedNodeId={selectedNode?.id || null} ruleId={ruleId} />}
 
         {/* Canvas */}
         <Box ref={reactFlowWrapper} sx={{ flex: 1, position: 'relative' }}>

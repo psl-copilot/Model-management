@@ -51,9 +51,12 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
 
     if (!flowData?.flow || !apiNodesInitialized) return null;
     
+    // Handle new response structure: flow.flow_json
+    const flowJson = flowData.flow.flow_json || flowData.flow;
+    
     return transformApiFlowData(
-      flowData.flow.nodes as ApiNode[] || [],
-      flowData.flow.edges as ApiEdge[] || []
+      flowJson.nodes as ApiNode[] || [],
+      flowJson.edges as ApiEdge[] || []
     );
   }, [flowData, apiNodesInitialized]);
 
@@ -143,9 +146,25 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
         return;
       }
 
+      // Generate TypeScript code
+      const tsCode = window.generateFlowCode?.();
+      if (!tsCode) {
+        toast.error('Failed to generate TypeScript code');
+        return;
+      }
+
+      // Convert TypeScript code to base64
+      const tsFileBase64 = btoa(unescape(encodeURIComponent(tsCode)));
+
+      // Prepare payload with new structure
+      const payload = {
+        flow_json: JSON.parse(flowJson),
+        ts_file_base64: tsFileBase64,
+      };
+
       const response = await saveFlow({
         ruleId,
-        flowData: JSON.parse(flowJson),
+        flowData: payload,
       }).unwrap();
 
       toast.success(response.message || 'Flow saved successfully');

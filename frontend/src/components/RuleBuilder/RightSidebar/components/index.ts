@@ -5,4 +5,5 @@ export { default as IfConditionEditor } from './IfConditionEditor';
 export { default as ParameterSection } from './ParameterSection';
 export { default as ConnectionInfoSection } from './ConnectionInfoSection';
 export { default as FunctionPropertiesSection } from './FunctionPropertiesSection';
+export { default as FunctionCallSection } from './FunctionCallSection';
 export { default as AdvancedSection } from './AdvancedSection';

@@ -7,7 +7,7 @@ import type { NodeTemplate } from '../../../../hooks/RuleBuilder/useNodePalette'
 
 interface NodePaletteProps {
   nodes: NodeTemplate[];
-  onDragStart: (event: React.DragEvent<HTMLDivElement>, nodeType: string) => void;
+  onDragStart: (event: React.DragEvent<HTMLDivElement>, nodeType: string, mode?: string) => void;
 }
 
 const NodePalette: React.FC<NodePaletteProps> = ({ nodes, onDragStart }) => {
@@ -19,14 +19,20 @@ const NodePalette: React.FC<NodePaletteProps> = ({ nodes, onDragStart }) => {
   return (
     <>
       {nodes.map((node) => {
-        const nonDraggable = isNonDraggable(node.type || '');
+        // Use nodeType or type, but ensure we don't include mode in it
+        let nodeType = node.nodeType || node.type || '';
+        // If nodeType accidentally includes ::mode, split it
+        if (nodeType.includes('::')) {
+          [nodeType] = nodeType.split('::');
+        }
+        const nonDraggable = isNonDraggable(nodeType);
         return (
         <NodeCard
-          key={node.type}
+          key={`${nodeType}-${node.mode || 'default'}`}
           elevation={1}
           nodecolor={node.color || '#gray'}
           draggable={!nonDraggable}
-          onDragStart={(e) => onDragStart(e, node.type || '')}
+          onDragStart={(e) => onDragStart(e, nodeType, node.mode)}
           sx={{
             opacity: nonDraggable ? 0.6 : 1,
             cursor: nonDraggable ? 'not-allowed' : 'grab',

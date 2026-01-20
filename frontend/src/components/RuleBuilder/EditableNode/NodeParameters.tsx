@@ -2,17 +2,27 @@ import React, { useState } from 'react';
 import { Box, Typography, IconButton, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import type { BaseNodeTemplate, NodeInput } from '../../../utils/Templates/customFuncTemplate';
+import type { NodeTemplate } from '../../../hooks/RuleBuilder/useNodePalette';
 
 interface NodeParametersProps {
-  template: BaseNodeTemplate;
+  template: NodeTemplate;
   params: Record<string, string>;
+}
+
+interface NodeInput {
+  key: string;
+  label: string;
+  type?: string;
+  defaultValue?: string;
+  required?: boolean;
+  placeholder?: string;
+  options?: string[];
 }
 
 export const NodeParameters: React.FC<NodeParametersProps> = ({ template, params }) => {
   const [expanded, setExpanded] = useState(false);
 
-  if (!template || template.inputs.length === 0) {
+  if (!template || !template.inputs || template.inputs.length === 0) {
     return null;
   }
 
@@ -60,7 +70,7 @@ export const NodeParameters: React.FC<NodeParametersProps> = ({ template, params
                   sx={{
                     fontSize: '0.75rem',
                     color: 'text.primary',
-                    fontFamily: value.length > 20 ? 'monospace' : 'inherit',
+                    fontFamily: value && value.length > 20 ? 'monospace' : 'inherit',
                     wordBreak: 'break-word',
                     whiteSpace: 'pre-wrap',
                   }}
