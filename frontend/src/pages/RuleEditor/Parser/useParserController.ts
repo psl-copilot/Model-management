@@ -26,7 +26,7 @@ const useParserController = (props: IParseProps) => {
 
     const [submit, { data: parseBody, isLoading, isSuccess }] = useParsePayloadMutation()
     const [getPayload, { isFetching: sampleLoader }] = useLazyGetSamplePayloadQuery()
-    const { data: globalVariables } = useGetGlobalVariablesQuery(data?.id, { refetchOnMountOrArgChange: true })
+    const { data: globalVariables } = useGetGlobalVariablesQuery(data?.id, { refetchOnMountOrArgChange: true, skip: !(isView || isEdit) })
     const [result, setResult] = useState<IResult | null>(null)
 
     const initial = {
@@ -68,7 +68,7 @@ const useParserController = (props: IParseProps) => {
     const fetchJson = () => {
         getData()
     }
-
+    
     return {
         values: {
             control,

@@ -85,7 +85,7 @@ const Parser = (props: IParseProps) => {
                     </Grid>
                     : null}
 
-                {values?.ruleRequest && values?.isEdit ?
+                {values?.ruleRequest ?
                     <Grid size={{ xs: 12, md: 12 }} border={1} borderColor={'static.border'} mt={0.4} p={2} overflow={'auto'} borderRadius={1} height={310}>
                         <FormattedJsonSection value={JSON.stringify(values?.ruleRequest)} />
                     </Grid> :
