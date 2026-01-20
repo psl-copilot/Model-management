@@ -97,7 +97,9 @@ export class RulesController {
   ): Promise<Rules[]> {
     const updatedFilters = filters ?? {};
     
-    if (!updatedFilters.status || (Array.isArray(updatedFilters.status) && updatedFilters.status.length === 0)) {
+    if (!updatedFilters.status || 
+        updatedFilters.status === '' || 
+        (Array.isArray(updatedFilters.status) && updatedFilters.status.length === 0)) {
       const allowedStatuses = await this.rulesService.getRulesStatusbyRole(user.token.tokenString);
       if (allowedStatuses.length > 0) {
         updatedFilters.status = allowedStatuses;
