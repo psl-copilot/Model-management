@@ -38,7 +38,7 @@ const Approval = (props: IApproval) => {
             {showCommentsField && (
                 <Grid container size={12}>
                     <Controller
-                        name="comments"
+                        name="comment"
                         control={control}
                         rules={requiresComment ? { required: "Comment is required" } : undefined}
                         render={({ field }) => (
@@ -49,7 +49,7 @@ const Approval = (props: IApproval) => {
                                 rows={3}
                                 label="Comments"
                                 {...field}
-                                error={errors.comments?.message}
+                                error={errors.comment?.message}
                             />
                         )}
                     />
