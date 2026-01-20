@@ -80,6 +80,73 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             return null;
           }
 
+          // Show condition for every, some, find
+          if (input.key === 'condition' && loopType !== 'every' && loopType !== 'some' && loopType !== 'find') {
+            return null;
+          }
+
+          // Show reduceLogic and initialValue only for reduce
+          if ((input.key === 'reduceLogic' || input.key === 'initialValue') && loopType !== 'reduce') {
+            return null;
+          }
+
+          // For Array Operation node, only show 'value' for relevant operations
+          if (nodeType === 'arrayOp' && input.key === 'value') {
+            const operation = currentParams['operation'];
+            if (operation !== 'push' && operation !== 'concat' && operation !== 'findIndex') {
+              return null;
+            }
+          }
+
+          // For Math node, only show 'value2' for operations that need it (pow)
+          if (nodeType === 'math' && input.key === 'value2') {
+            const method = currentParams['method'];
+            if (method !== 'pow') {
+              return null;
+            }
+          }
+
+          // Show condition for every, some, find
+          if (input.key === 'condition' && loopType !== 'every' && loopType !== 'some' && loopType !== 'find') {
+            return null;
+          }
+
+          // Show reduceLogic and initialValue only for reduce
+          if ((input.key === 'reduceLogic' || input.key === 'initialValue') && loopType !== 'reduce') {
+            return null;
+          }
+
+          // For Array Operation node, only show 'value' for relevant operations
+          if (nodeType === 'arrayOp' && input.key === 'value') {
+            const operation = currentParams['operation'];
+            if (operation !== 'push' && operation !== 'concat' && operation !== 'findIndex') {
+              return null;
+            }
+          }
+
+          // For Math node, only show 'value2' for operations that need it (pow)
+          if (nodeType === 'math' && input.key === 'value2') {
+            const method = currentParams['method'];
+            if (method !== 'pow') {
+              return null;
+            }
+          }
+
+          // For String Function node, show/hide parameters based on operation
+          if (nodeType === 'stringFunc') {
+            const method = currentParams['method'];
+            
+            // separator only for split
+            if (input.key === 'separator' && method !== 'split') {
+              return null;
+            }
+            
+            // start and end only for slice and substring
+            if ((input.key === 'start' || input.key === 'end') && method !== 'slice' && method !== 'substring') {
+              return null;
+            }
+          }
+
           // Skip returnValue if exitType is not 'return' (for Exit node)
           const exitType = currentParams['exitType'];
           if (input.key === 'returnValue' && exitType !== 'return') {

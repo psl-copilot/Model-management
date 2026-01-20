@@ -72,11 +72,9 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   initialNodes,
   initialEdges,
 }) => {
-  // Capture initial values only once using ref
   const initialDataRef = useRef({ nodes: initialNodes, edges: initialEdges });
   
   const getInitialFlow = React.useMemo(() => {
-    // Use the ref values captured on first render
     if (initialDataRef.current.nodes && initialDataRef.current.edges) {
       return {
         nodes: initialDataRef.current.nodes as Node[],
@@ -88,7 +86,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       nodes: defaultFlow.mainCanvas.nodes as Node[],
       edges: defaultFlow.mainCanvas.edges as Edge[],
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(getInitialFlow.nodes);
@@ -96,7 +93,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   
   const onFlowStateUpdateRef = useRef(onFlowStateUpdate);
 
-  // Keep ref updated
   useEffect(() => {
     onFlowStateUpdateRef.current = onFlowStateUpdate;
   }, [onFlowStateUpdate]);
@@ -106,7 +102,7 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
 
   const nodeOps = useCanvasNodeOperations({
     setNodes,
-    saveHistory: () => {}, // Temporary placeholder
+    saveHistory: () => {},
     setEdges,
   });
 
@@ -128,7 +124,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     },
   });
 
-  // Now get node operations with proper saveHistory
   const { createNodeFromTemplate: createNode, updateNode: update } =
     useCanvasNodeOperations({
       setNodes,
@@ -141,7 +136,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     saveHistory: pushHistory,
   });
 
-  // Generate code/JSON handled by this hook (exposes window.generateFlowJson/Code)
   useCanvasCodeGeneration({
     nodes,
     edges,
@@ -158,7 +152,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     closeDebugger,
   } = useDebuggerPanel({ isPlaying });
 
-  // Handle node selection
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
       if (onNodeSelect) {
@@ -168,14 +161,12 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     [onNodeSelect]
   );
 
-  // Handle clicking on pane (deselect)
   const onPaneClick = useCallback(() => {
     if (onNodeSelect) {
       onNodeSelect(null);
     }
   }, [onNodeSelect]);
 
-  // Handle node updates from RightSidebar
   const handleNodeUpdate = useCallback(
     (nodeId: string, updates: Record<string, unknown>) => {
       update(nodeId, updates);
@@ -183,15 +174,12 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     [update]
   );
 
-  // Expose handleNodeUpdate to parent
   React.useEffect(() => {
     if (onNodeUpdate) {
-      // Pass the handler to parent so it can be used by RightSidebar
       onNodeUpdate('_handler', handleNodeUpdate as unknown as Record<string, unknown>);
     }
   }, [onNodeUpdate, handleNodeUpdate]);
 
-  // Sync flow state with parent for animation (using ref to prevent parent re-renders)
   React.useEffect(() => {
     if (onFlowStateUpdateRef.current) {
       onFlowStateUpdateRef.current(nodes, edges, setNodes, setEdges);
@@ -213,9 +201,8 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       const dragData = event.dataTransfer.getData('application/reactflow');
       if (!dragData) return;
 
-      // Extract type and mode (format: "nodeType::mode" or just "nodeType")
       let [type, mode] = dragData.includes('::') ? dragData.split('::') : [dragData, undefined];
-      // Convert string "undefined" to actual undefined
+      
       if (mode === 'undefined' || mode === 'null' || mode === '') {
         mode = undefined;
       }

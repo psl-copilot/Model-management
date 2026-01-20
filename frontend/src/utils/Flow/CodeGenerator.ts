@@ -128,6 +128,18 @@ const generateNodeCode = (node: Node, indent: string = '', allNodes?: Node[]): s
     return generateExitCode(params, indent);
   }
 
+  if (nodeType === 'arrayOp') {
+    return generateArrayOpCode(params, indent);
+  }
+
+  if (nodeType === 'math') {
+    return generateMathCode(params, indent);
+  }
+
+  if (nodeType === 'stringFunc') {
+    return generateStringFuncCode(params, indent);
+  }
+
   // Handle function call nodes with dynamic parameters (call mode)
   if (mode === 'call' && nodeData.function_name) {
     const dynamicCode = generateFunctionCallCode(node, allNodes || [], indent);
@@ -265,6 +277,62 @@ const generateExitCode = (params: Record<string, string>, indent: string): strin
   } else { // break
     return `${indent}break;`;
   }
+};
+
+const generateArrayOpCode = (params: Record<string, string>, indent: string): string => {
+  const array = stripVariableIndicators(params.array || 'arr');
+  const operation = params.operation || 'pop';
+  const value = stripVariableIndicators(params.value || '');
+  const resultVar = params.resultVar || 'arrayOpResult';
+  
+  // Only push and concat need a value parameter
+  const needsValue = operation === 'push' || operation === 'concat' || operation === 'findIndex';
+  const operationCall = needsValue && value ? `${operation}(${value})` : `${operation}()`;
+  
+  return `${indent}const ${resultVar} = ${array}.${operationCall};`;
+};
+
+const generateMathCode = (params: Record<string, string>, indent: string): string => {
+  const method = params.method || 'sqrt';
+  const value = stripVariableIndicators(params.value || '0');
+  const value2 = params.value2 ? stripVariableIndicators(params.value2) : '';
+  const resultVar = params.resultVar || 'mathResult';
+  
+  // Only pow needs two arguments
+  const methodArgs = method === 'pow' && value2 ? `${value}, ${value2}` : value;
+  
+  return `${indent}const ${resultVar} = Math.${method}(${methodArgs});`;
+};
+
+const generateStringFuncCode = (params: Record<string, string>, indent: string): string => {
+  const method = params.method || 'trim';
+  const text = stripVariableIndicators(params.text || '""');
+  const separator = params.separator ? stripVariableIndicators(params.separator) : '';
+  const start = params.start || '';
+  const end = params.end || '';
+  const resultVar = params.resultVar || 'stringResult';
+  
+  let methodCall = '';
+  
+  // Different string methods need different parameters
+  if (method === 'split') {
+    // split needs a separator
+    methodCall = separator ? `${method}(${separator})` : `${method}('')`;
+  } else if (method === 'slice' || method === 'substring') {
+    // slice and substring need start and optionally end
+    if (end) {
+      methodCall = `${method}(${start}, ${end})`;
+    } else if (start) {
+      methodCall = `${method}(${start})`;
+    } else {
+      methodCall = `${method}(0)`;
+    }
+  } else {
+    // trim, toUpperCase, toLowerCase, toString don't need parameters
+    methodCall = `${method}()`;
+  }
+  
+  return `${indent}const ${resultVar} = ${text}.${methodCall};`;
 };
 
 const generateFetchDBCode = (params: Record<string, string>, indent: string): string => {
@@ -593,6 +661,37 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
             loopCode += `${indent}  return true;\n`;
           }
           loopCode += `${indent}});`;
+          break;
+        }
+
+        case 'every': {
+          const condition = stripVariableIndicators(params.condition || 'true');
+          const everyParams = indexVariable ? `${itemVariable}, ${indexVariable}` : itemVariable;
+          loopCode += `${indent}const ${resultVariable} = ${arrayVariable}.every((${everyParams}) => ${condition});`;
+          break;
+        }
+
+        case 'some': {
+          const condition = stripVariableIndicators(params.condition || 'true');
+          const someParams = indexVariable ? `${itemVariable}, ${indexVariable}` : itemVariable;
+          loopCode += `${indent}const ${resultVariable} = ${arrayVariable}.some((${someParams}) => ${condition});`;
+          break;
+        }
+
+        case 'find': {
+          const condition = stripVariableIndicators(params.condition || 'true');
+          const findParams = indexVariable ? `${itemVariable}, ${indexVariable}` : itemVariable;
+          loopCode += `${indent}const ${resultVariable} = ${arrayVariable}.find((${findParams}) => ${condition});`;
+          break;
+        }
+
+        case 'reduce': {
+          const reduceLogic = stripVariableIndicators(params.reduceLogic || 'return acc;');
+          const initialValue = stripVariableIndicators(params.initialValue || '0');
+          const reduceParams = indexVariable ? `acc, ${itemVariable}, ${indexVariable}` : `acc, ${itemVariable}`;
+          loopCode += `${indent}const ${resultVariable} = ${arrayVariable}.reduce((${reduceParams}) => {\n`;
+          loopCode += `${indent}  ${reduceLogic}\n`;
+          loopCode += `${indent}}, ${initialValue});`;
           break;
         }
           

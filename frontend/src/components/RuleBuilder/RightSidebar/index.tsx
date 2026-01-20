@@ -55,7 +55,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
 }) => {
   const collapsed = !selectedNode;
 
-  // Local state for editing
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
   const [editingParams, setEditingParams] = useState<Record<string, string> | null>(null);
   const inputRefs = React.useRef<Record<string, HTMLInputElement | HTMLTextAreaElement>>({});
@@ -65,7 +64,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
 
   const nodeData = selectedNode?.data as NodeData | undefined;
   
-  // Extract clean nodeType (without mode if accidentally combined)
   const cleanNodeType = useMemo(() => {
     let nodeType = nodeData?.nodeType;
     if (nodeType && nodeType.includes('::')) {
@@ -74,7 +72,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     return nodeType;
   }, [nodeData?.nodeType]);
   
-  // Memoize mode and template to prevent unnecessary lookups
   const mode = useMemo(
     () => nodeData?.mode || nodeData?.generation_type,
     [nodeData?.mode, nodeData?.generation_type]
@@ -85,14 +82,12 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     [cleanNodeType, mode]
   );
 
-  // Validation hook
   const { validate, getFieldError } = useNodeValidation(
     selectedNode?.id || '',
     nodeData?.nodeType || '',
     nodeData?.label || 'Unknown'
   );
 
-  // Memoized current values
   const currentLabel = useMemo(
     () => editingLabel !== null ? editingLabel : (nodeData?.label || ''),
     [editingLabel, nodeData?.label]
@@ -103,7 +98,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     [editingParams, nodeData?.params]
   );
   
-  // Keep ref in sync with currentParams
   React.useEffect(() => {
     currentParamsRef.current = currentParams;
   }, [currentParams]);
@@ -252,12 +246,10 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
       const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
       setEditingParams(updatedParams);
       
-      // Debounce the update
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
       }
       
-      // Debounce validation
       if (validationTimeoutRef.current) {
         clearTimeout(validationTimeoutRef.current);
       }
@@ -287,12 +279,10 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
     setEditingParams(updatedParams);
     
-    // Debounce the update
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
     
-    // Debounce validation
     if (validationTimeoutRef.current) {
       clearTimeout(validationTimeoutRef.current);
     }
@@ -316,12 +306,10 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
       const updatedParams = { ...currentParamsRef.current, conditions: JSON.stringify(newConditions) };
       setEditingParams(updatedParams);
       
-      // Debounce the update
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
       }
       
-      // Debounce validation
       if (validationTimeoutRef.current) {
         clearTimeout(validationTimeoutRef.current);
       }
@@ -397,7 +385,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   }
   
   if (!template) {
-    // Extract nodeType without mode if it was accidentally combined
     let displayNodeType = nodeData?.nodeType || 'Unknown';
     if (displayNodeType.includes('::')) {
       [displayNodeType] = displayNodeType.split('::');
@@ -431,7 +418,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const isFunctionCallNode = mode === 'call' && (nodeData?.function_name || template?.function_name || usesDynamicParameters(template));
   const isReadOnly = nodeData?.nodeType === 'Start' || nodeData?.nodeType === 'End';
 
-  // Debug logging for function call detection
   if (import.meta.env.DEV && mode === 'call') {
     console.log('[RightSidebar] Function call detection:', {
       mode,

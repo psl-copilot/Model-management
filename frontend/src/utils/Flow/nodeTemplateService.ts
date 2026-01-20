@@ -57,22 +57,6 @@ export const getNodeTemplate = (nodeType: string, mode?: string): NodeTemplate |
     return typeMatch && modeMatch;
   });
   
-  // Debug logging for development
-  if (import.meta.env.DEV) {
-    console.log(`[getNodeTemplate] Looking for nodeType="${nodeType}", mode="${mode}"`, {
-      result,
-      foundMode: result?.mode,
-      foundInputs: result?.inputs,
-      foundFunctionName: result?.function_name,
-      foundUseDefinitionParameters: result?.useDefinitionParameters
-    });
-    
-    if (!result) {
-      console.warn(`[getNodeTemplate] Template not found for nodeType="${nodeType}", mode="${mode}"`);
-      console.log('[getNodeTemplate] Available templates:', expandedNodesStore.map(n => ({ type: n.type, nodeType: n.nodeType, mode: n.mode })));
-    }
-  }
-  
   return result;
 };
 

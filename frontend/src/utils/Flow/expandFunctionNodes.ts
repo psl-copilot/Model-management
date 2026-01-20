@@ -50,9 +50,7 @@ export const expandFunctionNodes = (apiNodes: ApiNode[]): NodeTemplate[] => {
   apiNodes.forEach((apiNode) => {
     const nodeJson = apiNode.node_json;
 
-    // Check if this is a dual-mode function node (has modes object)
     if (nodeJson.type === 'function' && nodeJson.modes) {
-      // Create definition variant (for main canvas)
       if (nodeJson.modes.definition) {
         const defMode = nodeJson.modes.definition;
         expanded.push({
@@ -75,7 +73,6 @@ export const expandFunctionNodes = (apiNodes: ApiNode[]): NodeTemplate[] => {
         });
       }
 
-      // Create call variant (for nested canvas)
       if (nodeJson.modes.call) {
         const callMode = nodeJson.modes.call;
         expanded.push({
@@ -98,11 +95,9 @@ export const expandFunctionNodes = (apiNodes: ApiNode[]): NodeTemplate[] => {
         });
       }
     } else {
-      // Regular node (including simple function nodes)
-      // Simple function nodes work in nested canvas by default
       const visibleOn = nodeJson.type === 'function' 
-        ? ['nested']  // Function nodes available in nested canvas
-        : ['main', 'nested'];  // Basic nodes available everywhere
+        ? ['nested']
+        : ['main', 'nested'];
 
       expanded.push({
         type: nodeJson.node_type,
