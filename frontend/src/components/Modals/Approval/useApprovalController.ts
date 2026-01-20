@@ -99,7 +99,14 @@ const useApprovalController = (props: IApproval) => {
 
     const onSubmit = (values: IValues) => {
         const status = getStatus(type)
-        submit({ id, body: { ...values, status } })
+        const body = {
+            ...(status === Status.STATUS_04_APPROVED ||
+                status === Status.STATUS_05_REJECTED
+                ? values
+                : {}),
+            status,
+        }
+        submit({ id, body })
             .then((res: unknown) => {
                 if (res) {
                     close()
