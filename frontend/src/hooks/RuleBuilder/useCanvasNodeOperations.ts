@@ -19,8 +19,8 @@ export const useCanvasNodeOperations = ({
   const { clearNodeErrors } = useValidationContext();
 
   const createNodeFromTemplate = useCallback(
-    (type: string, position: { x: number; y: number }) => {
-      const template = getNodeTemplate(type);
+    (type: string, position: { x: number; y: number }, mode?: string) => {
+      const template = getNodeTemplate(type, mode);
       const newNodeId = generateNodeId();
 
       // Initialize params with default values from template
@@ -39,6 +39,9 @@ export const useCanvasNodeOperations = ({
           label: template?.displayName || type,
           nodeType: type,
           params: defaultParams,
+          mode: template?.mode,
+          generation_type: template?.generation_type,
+          function_name: template?.function_name,
           onChange: (value: string) => {
             setNodes((nds) =>
               nds.map((node) =>

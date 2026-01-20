@@ -2,12 +2,21 @@ import { useMemo } from 'react';
 
 export interface NodeTemplate {
   type?: string;
+  nodeType?: string;
   label?: string;
   description?: string;
   color?: string;
   displayName?: string;
   isFunction?: boolean;
   bgColor?: string;
+  code_template?: string;
+  call_template?: string;
+  mode?: 'definition' | 'call';
+  generation_type?: 'definition' | 'call';
+  visible_on_canvas?: string[];
+  function_name?: string;
+  parameters?: Array<{ name: string; type: string; label: string }>;
+  useDefinitionParameters?: boolean;
   inputs?: Array<{
     key: string;
     label: string;
@@ -40,7 +49,16 @@ export const useNodePalette = ({
   const basicNodes: NodeTemplate[] = useMemo(
     () => {
       if (apiNodes && apiNodes.length > 0) {
-        let nodes = apiNodes.filter((node) => !node.isFunction);
+        let nodes = apiNodes.filter((node) => {
+          // Filter by canvas visibility
+          const visibleOn = node.visible_on_canvas || ['main', 'nested'];
+          const isVisibleOnThisCanvas = mode === 'modal' 
+            ? visibleOn.includes('nested') 
+            : visibleOn.includes('main');
+          
+          return !node.isFunction && isVisibleOnThisCanvas;
+        });
+        
         // Filter out Import nodes if hideImportNode is true
         if (hideImportNode) {
           nodes = nodes.filter((node) => node.type !== 'Import');
@@ -59,7 +77,7 @@ export const useNodePalette = ({
       // Filter out Import nodes if hideImportNode is true
       return hideImportNode ? nodes.filter((n) => n.type !== 'Import') : nodes;
     },
-    [apiNodes, hideImportNode]
+    [apiNodes, hideImportNode, mode]
   );
 
   const modalNodes: NodeTemplate[] = useMemo(
@@ -70,11 +88,19 @@ export const useNodePalette = ({
   const functionNodes: NodeTemplate[] = useMemo(
     () => {
       if (apiNodes && apiNodes.length > 0) {
-        return apiNodes.filter((node) => node.isFunction);
+        return apiNodes.filter((node) => {
+          if (!node.isFunction) return false;
+          
+          // Filter by canvas visibility
+          const visibleOn = node.visible_on_canvas || ['nested'];
+          return mode === 'modal' 
+            ? visibleOn.includes('nested') 
+            : visibleOn.includes('main');
+        });
       }
       return [];
     },
-    [apiNodes]
+    [apiNodes, mode]
   );
 
   const getNodesToShow = (activeTab: number): NodeTemplate[] => {

@@ -72,11 +72,15 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   initialNodes,
   initialEdges,
 }) => {
-  const getInitialFlow = useCallback(() => {
-    if (initialNodes && initialEdges) {
+  // Capture initial values only once using ref
+  const initialDataRef = useRef({ nodes: initialNodes, edges: initialEdges });
+  
+  const getInitialFlow = React.useMemo(() => {
+    // Use the ref values captured on first render
+    if (initialDataRef.current.nodes && initialDataRef.current.edges) {
       return {
-        nodes: initialNodes as Node[],
-        edges: initialEdges as Edge[],
+        nodes: initialDataRef.current.nodes as Node[],
+        edges: initialDataRef.current.edges as Edge[],
       };
     }
     const defaultFlow = getDefaultFlow();
@@ -84,31 +88,18 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       nodes: defaultFlow.mainCanvas.nodes as Node[],
       edges: defaultFlow.mainCanvas.edges as Edge[],
     };
-  }, [initialNodes, initialEdges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(getInitialFlow().nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialFlow().edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(getInitialFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(getInitialFlow.edges);
   
-  const hasInitializedRef = useRef(false);
-  const nodesMountedRef = useRef(false);
+  const onFlowStateUpdateRef = useRef(onFlowStateUpdate);
 
+  // Keep ref updated
   useEffect(() => {
-    if (initialNodes && initialEdges && !hasInitializedRef.current) {
-      setNodes(initialNodes as Node[]);
-      nodesMountedRef.current = true;
-      
-      const frameId = requestAnimationFrame(() => {
-        if (nodesMountedRef.current && !hasInitializedRef.current) {
-          setEdges(initialEdges as Edge[]);
-          hasInitializedRef.current = true;
-        }
-      });
-      
-      return () => {
-        cancelAnimationFrame(frameId);
-      };
-    }
-  }, [initialNodes, initialEdges, setNodes, setEdges]);
+    onFlowStateUpdateRef.current = onFlowStateUpdate;
+  }, [onFlowStateUpdate]);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -200,10 +191,10 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
     }
   }, [onNodeUpdate, handleNodeUpdate]);
 
-  // Sync flow state with parent for animation
+  // Sync flow state with parent for animation (using ref to prevent parent re-renders)
   React.useEffect(() => {
-    if (onFlowStateUpdate) {
-      onFlowStateUpdate(nodes, edges, setNodes, setEdges);
+    if (onFlowStateUpdateRef.current) {
+      onFlowStateUpdateRef.current(nodes, edges, setNodes, setEdges);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
@@ -219,15 +210,26 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
 
       if (!reactFlowInstance) return;
 
-      const type = event.dataTransfer.getData('application/reactflow');
-      if (!type) return;
+      const dragData = event.dataTransfer.getData('application/reactflow');
+      if (!dragData) return;
+
+      // Extract type and mode (format: "nodeType::mode" or just "nodeType")
+      let [type, mode] = dragData.includes('::') ? dragData.split('::') : [dragData, undefined];
+      // Convert string "undefined" to actual undefined
+      if (mode === 'undefined' || mode === 'null' || mode === '') {
+        mode = undefined;
+      }
+
+      if (import.meta.env.DEV) {
+        console.log('[Canvas] onDrop:', { dragData, type, mode });
+      }
 
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
       });
 
-      createNode(type, position);
+      createNode(type, position, mode);
     },
     [reactFlowInstance, createNode]
   );

@@ -2,7 +2,7 @@
 declare global {
   interface Window {
     generateFlowJson?: () => string;
-    generateFlowCode?: () => void;
+    generateFlowCode?: () => string;
     generateNestedFlowJson?: () => void;
     generateNestedFlowCode?: () => void;
   }

@@ -3,6 +3,7 @@ import { TextField, Typography, Divider, Select, MenuItem, FormControl, InputLab
 import type { Node } from '@xyflow/react';
 import type { NodeInput } from '../../../../utils/Templates/customFuncTemplate';
 import { PropertyRow, SectionContainer, SectionTitle } from '../styles';
+import CodeEditor from './CodeEditor';
 
 interface ParameterSectionProps {
   inputs: NodeInput[];
@@ -93,6 +94,14 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
 
           // Determine if this should be a multiline input
           const isMultiline = input.type === 'textarea' || input.key === 'code' || input.key === 'query' || input.key === 'importStatement' || input.key === 'loopBody' || (typeof currentValue === 'string' && currentValue.length > 50);
+          
+          // Determine number of rows based on field type - use minRows for auto-expansion
+          const getMinRows = () => {
+            if (input.key === 'code' || input.key === 'loopBody') return 15; // Larger code blocks
+            if (input.key === 'query' || input.key === 'importStatement') return 10; // SQL/Import statements
+            if (isMultiline) return 8; // Default multiline
+            return 1; // Single line
+          };
 
           // Check for validation errors
           const fieldError = getFieldError?.(input.key);
@@ -101,12 +110,15 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
           const isVariableNameField = nodeType === 'SetVariable' && (input.key === 'name' || input.key === 'variableName');
           const hasError = !!fieldError || (isVariableNameField && !!variableError);
           
-          // Determine helper text
+          // Check if this is a code field
+          const isCodeField = input.key === 'code' || input.key === 'loopBody' || input.key === 'query' || input.key === 'code_template' || input.key === 'function_code';
+          
+          // Determine helper text (simplified for code fields)
           const helperText = fieldError 
             || (isVariableNameField && variableError) 
             || (isReadOnly ? 'Start/End nodes cannot be edited' : '')
             || (viewOnly ? 'View only mode' : '')
-            || `Default: ${input.defaultValue}. Drop variables here.`;
+            || (isCodeField ? 'Write or paste your code here' : `Default: ${input.defaultValue}. Drop variables here.`);
 
           // Render generic dropdown for inputs with options array
           if (input.options && input.options.length > 0) {
@@ -192,6 +204,35 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             );
           }
 
+          // Render Monaco Editor for code fields
+          if (isCodeField) {
+            return (
+              <PropertyRow
+                key={input.key}
+                onDrop={onDrop(input.key)}
+                onDragOver={onDragOver}
+              >
+                <CodeEditor
+                  value={currentValue}
+                  onChange={(value) => {
+                    const syntheticEvent = {
+                      target: { value }
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    onParamChange(input.key)(syntheticEvent);
+                  }}
+                  onBlur={onParamBlur}
+                  label={input.label}
+                  disabled={isReadOnly || viewOnly}
+                  error={hasError}
+                  helperText={fieldError || (isReadOnly ? 'Start/End nodes cannot be edited' : '') || (viewOnly ? 'View only mode' : '')}
+                  language={input.key === 'query' ? 'sql' : 'typescript'}
+                  height={input.key === 'code' || input.key === 'loopBody' || input.key === 'code_template' ? '500px' : '350px'}
+                  required={input.required}
+                />
+              </PropertyRow>
+            );
+          }
+
           return (
             <PropertyRow
               key={input.key}
@@ -212,7 +253,8 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
                 size="small"
                 variant="outlined"
                 multiline={isMultiline}
-                rows={isMultiline ? 3 : 1}
+                minRows={getMinRows()}
+                maxRows={30}
                 error={hasError}
                 helperText={helperText}
                 disabled={isReadOnly || viewOnly}

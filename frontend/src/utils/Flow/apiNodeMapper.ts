@@ -47,6 +47,7 @@ export const mapApiNodeToTemplate = (apiNode: ApiNode): NodeTemplate => {
     color: node_json.color,
     bgColor: getBgColorFromHex(node_json.color),
     isFunction: node_json.type === 'function',
+    code_template: node_json.code_template,
     inputs: node_json.inputs?.map((input) => ({
       key: input.key,
       label: input.label,

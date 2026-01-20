@@ -75,7 +75,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     setActiveTab(newValue);
   };
 
-  const { getNodesToShow } = useNodePalette({ mode, hideCustomFunctions, hideImportNode, apiNodes: nodeTemplates });
+  const { getNodesToShow, functionNodes } = useNodePalette({ mode, hideCustomFunctions, hideImportNode, apiNodes: nodeTemplates });
   const { localVars, loopVars, loopContext } = useLocalVariables({ 
     allNodes, 
     edges, 
@@ -90,17 +90,24 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   const nodesToShow = getNodesToShow(activeTab);
 
-  const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string): void => {
+  const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string, mode?: string): void => {
     if (nodeType === 'Start' || nodeType === 'End') {
       event.preventDefault();
       return;
     }
-    event.dataTransfer.setData('application/reactflow', nodeType);
+    // Store both type and mode in data transfer
+    // Only include mode if it's a truthy value (not undefined, null, or empty string)
+    const dragData = mode && mode !== 'undefined' ? `${nodeType}::${mode}` : nodeType;
+    event.dataTransfer.setData('application/reactflow', dragData);
     event.dataTransfer.effectAllowed = 'move';
+    
+    if (import.meta.env.DEV) {
+      console.log('[LeftSidebar] onDragStart:', { nodeType, mode, dragData });
+    }
   };
 
-  const showVariablesEmptyState = showGlobalVariables && activeTab === 1 && ruleRequestTree.length === 0 && ruleConfigTree.length === 0;
-  const showFunctionsEmptyState = activeTab === 1 && nodesToShow.length === 0 && !showGlobalVariables;
+  const showVariablesEmptyState = showGlobalVariables && activeTab === 2 && ruleRequestTree.length === 0 && ruleConfigTree.length === 0;
+  const showFunctionsEmptyState = activeTab === 1 && functionNodes.length === 0;
 
   return (
     <Box sx={{ position: 'relative' }}>
@@ -174,6 +181,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 }}
               >
                 <Tab label="Basic Nodes" />
+                <Tab label="Functions" />
                 <Tab label="Variables" />
               </Tabs>
             )}
@@ -190,7 +198,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
             {/* Content Section */}
             <ScrollableList>
               {/* Node Cards or Variables */}
-              {showGlobalVariables && activeTab === 1 ? (
+              {showGlobalVariables && activeTab === 2 ? (
                 <VariableTree
                   localVarsTree={localVarsTree}
                   loopVarsTree={loopVarsTree}
@@ -198,6 +206,11 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   ruleRequestTree={ruleRequestTree}
                   ruleConfigTree={ruleConfigTree}
                   ruleResultTree={ruleResultTree}
+                />
+              ) : showGlobalVariables && activeTab === 1 ? (
+                <NodePalette
+                  nodes={functionNodes}
+                  onDragStart={onDragStart}
                 />
               ) : (
                 <NodePalette
@@ -248,7 +261,42 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   <Box display="flex" alignItems="center">
                     <CodeIcon sx={{ fontSize: 16, color: 'teal.500', mr: 1 }} />
                     <Typography variant="caption" color="text.secondary">
-                      {showGlobalVariables ? 'Global variables available for use' : 'Reusable functions with custom logic'}
+                      Reusable functions with custom logic
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+            {mode === 'modal' && (
+              <Box
+                sx={{
+                  p: 1.5,
+                  borderTop: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'grey.50',
+                }}
+              >
+                {activeTab === 0 && (
+                  <Box display="flex" alignItems="center">
+                    <InfoOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', mr: 1 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Basic building blocks for your flow
+                    </Typography>
+                  </Box>
+                )}
+                {activeTab === 1 && (
+                  <Box display="flex" alignItems="center">
+                    <CodeIcon sx={{ fontSize: 16, color: 'teal.500', mr: 1 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Call functions defined in main canvas
+                    </Typography>
+                  </Box>
+                )}
+                {activeTab === 2 && (
+                  <Box display="flex" alignItems="center">
+                    <InfoOutlinedIcon sx={{ fontSize: 16, color: 'primary.main', mr: 1 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Global variables available for use
                     </Typography>
                   </Box>
                 )}
