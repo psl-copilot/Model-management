@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextField, Typography, Divider, Checkbox, FormControlLabel } from '@mui/material';
+import { TextField, Typography, Divider, Checkbox, FormControlLabel, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import type { Node } from '@xyflow/react';
 import { PropertyRow, SectionContainer, SectionTitle } from '../styles';
 import { getFunctionParameters, type FunctionParameter } from '../../../../utils/Flow/functionParameterUtils';
@@ -15,6 +15,7 @@ interface FunctionCallSectionProps {
   isReadOnly: boolean;
   viewOnly: boolean;
   allNodes?: Node[];
+  nodeType?: string;
   getFieldError?: (fieldName: string) => string | undefined;
 }
 
@@ -29,35 +30,165 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
   isReadOnly,
   viewOnly,
   allNodes,
+  nodeType,
   getFieldError,
 }) => {
-  // Get function parameters from definition node or API
+  const isCustomFunctionCall = nodeType === 'CustomFunction';
+
+  const availableCustomFunctions = React.useMemo(() => {
+    if (!isCustomFunctionCall || !allNodes || allNodes.length === 0) return [];
+    
+    return allNodes
+      .filter(node => {
+        const nodeData = node.data as { nodeType?: string; mode?: string; generation_type?: string; params?: Record<string, string> };
+        return nodeData?.nodeType === 'CustomFunction' && 
+               (nodeData?.mode === 'definition' || nodeData?.generation_type === 'definition') &&
+               nodeData?.params?.function_name;
+      })
+      .map(node => {
+        const params = (node.data as { params?: Record<string, string> }).params;
+        return {
+          name: params?.function_name || '',
+          id: node.id,
+        };
+      })
+      .filter(f => f.name);
+  }, [isCustomFunctionCall, allNodes]);
+
+  const selectedFunctionName = currentParams['function_name'] || functionName;
+
   const parameters = React.useMemo(
-    () => getFunctionParameters(functionName, allNodes),
-    [functionName, allNodes]
+    () => {
+      if (!selectedFunctionName) return null;
+      return getFunctionParameters(selectedFunctionName, allNodes);
+    },
+    [selectedFunctionName, allNodes]
   );
 
-  if (!parameters || parameters.length === 0) {
+  // Show function selector if this is a CustomFunction call and no function is selected yet
+  if (isCustomFunctionCall && !selectedFunctionName) {
     return (
-      <SectionContainer>
-        <SectionTitle>Function Call</SectionTitle>
-        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mt: 1 }}>
-          No parameters found for function "{functionName}". Make sure the function definition exists on the main canvas.
-        </Typography>
-      </SectionContainer>
+      <>
+        <Divider />
+        <SectionContainer>
+          <SectionTitle>Function Call</SectionTitle>
+          
+          {availableCustomFunctions.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mt: 1 }}>
+              No custom functions found. Create a custom function definition on the main canvas first.
+            </Typography>
+          ) : (
+            <PropertyRow>
+              <FormControl fullWidth size="small" error={!!getFieldError?.('function_name')}>
+                <InputLabel>Select Function to Call</InputLabel>
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    const syntheticEvent = {
+                      target: { value: e.target.value }
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    onParamChange('function_name')(syntheticEvent);
+                    if (onParamBlur) onParamBlur();
+                  }}
+                  label="Select Function to Call"
+                  disabled={isReadOnly || viewOnly}
+                >
+                  {availableCustomFunctions.map((func) => (
+                    <MenuItem key={func.id} value={func.name}>
+                      {func.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {getFieldError?.('function_name') || 'Choose which custom function to call'}
+                </FormHelperText>
+              </FormControl>
+            </PropertyRow>
+          )}
+        </SectionContainer>
+      </>
     );
   }
 
-  // Check if user wants to store result
+  if (!parameters || parameters.length === 0) {
+    return (
+      <>
+        <Divider />
+        <SectionContainer>
+          <SectionTitle>Function Call</SectionTitle>
+          
+          {isCustomFunctionCall && (
+            <PropertyRow sx={{ mb: 2 }}>
+              <FormControl fullWidth size="small" error={!!getFieldError?.('function_name')}>
+                <InputLabel>Select Function to Call</InputLabel>
+                <Select
+                  value={selectedFunctionName || ''}
+                  onChange={(e) => {
+                    const syntheticEvent = {
+                      target: { value: e.target.value }
+                    } as React.ChangeEvent<HTMLInputElement>;
+                    onParamChange('function_name')(syntheticEvent);
+                    if (onParamBlur) onParamBlur();
+                  }}
+                  label="Select Function to Call"
+                  disabled={isReadOnly || viewOnly}
+                >
+                  {availableCustomFunctions.map((func) => (
+                    <MenuItem key={func.id} value={func.name}>
+                      {func.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {getFieldError?.('function_name') || 'Choose which custom function to call'}
+                </FormHelperText>
+              </FormControl>
+            </PropertyRow>
+          )}
+          
+          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mt: 1 }}>
+            No parameters found for function "{selectedFunctionName}". Make sure the function definition exists on the main canvas.
+          </Typography>
+        </SectionContainer>
+      </>
+    );
+  }
+
   const storeResult = currentParams['storeResult'] !== 'false'; // Default to true
 
   return (
     <>
       <Divider />
       <SectionContainer>
-        <SectionTitle>Function Call: {functionName}</SectionTitle>
-
-        {/* Store Result Checkbox */}
+        <SectionTitle>Function Call: {selectedFunctionName}</SectionTitle>
+        {isCustomFunctionCall && availableCustomFunctions.length > 0 && (
+          <PropertyRow>
+            <FormControl fullWidth size="small" error={!!getFieldError?.('function_name')}>
+              <InputLabel>Function to Call</InputLabel>
+              <Select
+                value={selectedFunctionName || ''}
+                onChange={(e) => {
+                  const syntheticEvent = {
+                    target: { value: e.target.value }
+                  } as React.ChangeEvent<HTMLInputElement>;
+                  onParamChange('function_name')(syntheticEvent);
+                  if (onParamBlur) onParamBlur();
+                }}
+                label="Function to Call"
+                disabled={isReadOnly || viewOnly}
+              >
+                {availableCustomFunctions.map((func) => (
+                  <MenuItem key={func.id} value={func.name}>
+                    {func.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>
+                {getFieldError?.('function_name') || 'Change function if needed'}
+              </FormHelperText>
+            </FormControl>
+          </PropertyRow>
+        )}
         <PropertyRow>
           <FormControlLabel
             control={
@@ -75,8 +206,6 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
             label="Store result in variable"
           />
         </PropertyRow>
-
-        {/* Result Variable Name (only if storing result) */}
         {storeResult && (
           <PropertyRow>
             <TextField
@@ -100,8 +229,6 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
         )}
 
         <Divider sx={{ my: 2 }} />
-        
-        {/* Dynamic Parameter Inputs */}
         <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
           Function Arguments
         </Typography>
@@ -146,8 +273,6 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
             </PropertyRow>
           );
         })}
-
-        {/* Code Preview */}
         <PropertyRow sx={{ mt: 2 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
             Generated code: {' '}
@@ -157,7 +282,7 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
               </Typography>
             )}
             <Typography component="span" variant="caption" color="secondary.main">
-              {functionName}(
+              {selectedFunctionName}(
               {parameters.map((p, i) => (
                 <React.Fragment key={p.name}>
                   {currentParams[p.name] || `<${p.name}>`}
@@ -173,4 +298,13 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
   );
 };
 
-export default FunctionCallSection;
+export default React.memo(FunctionCallSection, (prevProps, nextProps) => {
+  return (
+    prevProps.functionName === nextProps.functionName &&
+    prevProps.nodeType === nextProps.nodeType &&
+    prevProps.isReadOnly === nextProps.isReadOnly &&
+    prevProps.viewOnly === nextProps.viewOnly &&
+    prevProps.currentParams === nextProps.currentParams &&
+    prevProps.allNodes?.length === nextProps.allNodes?.length
+  );
+});

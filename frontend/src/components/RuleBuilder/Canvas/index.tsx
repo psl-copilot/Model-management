@@ -16,7 +16,7 @@ import { Box, Paper, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditableNode from '../EditableNode';
 import DebuggerPanel, { type DebugLog } from '../DebuggerPanel';
-import { getDefaultFlow } from '../../../utils/Flow/FlowDefaults';
+import { getDefaultFlow, extractCountersFromFlow } from '../../../utils/Flow/FlowDefaults';
 import {
   useCanvasNodeOperations,
   useCanvasEdgeOperations,
@@ -78,9 +78,14 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   const getInitialFlow = React.useMemo(() => {
     // Use the ref values captured on first render
     if (initialDataRef.current.nodes && initialDataRef.current.edges) {
+      const nodes = initialDataRef.current.nodes as Node[];
+      const edges = initialDataRef.current.edges as Edge[];
+      
+      extractCountersFromFlow(nodes, edges, nestedCanvasData || {});
+      
       return {
-        nodes: initialDataRef.current.nodes as Node[],
-        edges: initialDataRef.current.edges as Edge[],
+        nodes,
+        edges,
       };
     }
     const defaultFlow = getDefaultFlow();
@@ -214,11 +219,9 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       if (!dragData) return;
 
       // Extract type and mode (format: "nodeType::mode" or just "nodeType")
-      let [type, mode] = dragData.includes('::') ? dragData.split('::') : [dragData, undefined];
+      const [type, rawMode] = dragData.includes('::') ? dragData.split('::') : [dragData, undefined];
       // Convert string "undefined" to actual undefined
-      if (mode === 'undefined' || mode === 'null' || mode === '') {
-        mode = undefined;
-      }
+      const mode = (rawMode === 'undefined' || rawMode === 'null' || rawMode === '') ? undefined : rawMode;
 
       if (import.meta.env.DEV) {
         console.log('[Canvas] onDrop:', { dragData, type, mode });

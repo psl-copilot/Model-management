@@ -57,19 +57,17 @@ const generateFunctionCallCode = (
 ): string => {
   const nodeData = node.data as EditableNodeData;
   const params = nodeData.params || {};
-  const functionName = nodeData.function_name;
+  const functionName = params.function_name || nodeData.function_name;
 
   if (!functionName) return '';
 
   // Get function parameters from definition
   const functionParams = getFunctionParameters(functionName, allNodes);
-  if (!functionParams || functionParams.length === 0) {
-    // Fallback to template-based generation if no parameters found
-    return '';
-  }
-
-  // Generate arguments string
-  const args = generateFunctionArgs(functionParams, params);
+  
+  // Generate arguments string (empty if no parameters)
+  const args = functionParams && functionParams.length > 0 
+    ? generateFunctionArgs(functionParams, params)
+    : '';
 
   // Check if user wants to store result in variable
   const storeResult = params.storeResult !== 'false'; // Default to true
@@ -129,7 +127,7 @@ const generateNodeCode = (node: Node, indent: string = '', allNodes?: Node[]): s
   }
 
   // Handle function call nodes with dynamic parameters (call mode)
-  if (mode === 'call' && nodeData.function_name) {
+  if (mode === 'call' && (nodeData.function_name || params.function_name)) {
     const dynamicCode = generateFunctionCallCode(node, allNodes || [], indent);
     if (dynamicCode) {
       return dynamicCode;
@@ -471,9 +469,16 @@ const generateNodeCodeRecursive = (
   return generateNodeCode(node, indent, nodes);
 };
 
-const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '  '): string => {
+const generateNestedFlowCode = (
+  nodes: Node[], 
+  edges: Edge[], 
+  indent: string = '  ',
+  mainCanvasNodes: Node[] = []
+): string => {
   const codeLines: string[] = [];
   const processedNodes = new Set<string>();
+  
+  const allNodes = [...mainCanvasNodes, ...nodes];
   
   const startNode = nodes.find((n) => (n.data as EditableNodeData).nodeType === 'Start');
   if (!startNode) return `${indent}// No start node found`;
@@ -507,7 +512,7 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
       
       // Use recursive generation to handle nested If nodes with branches
       const innerCode = loopBodyNodes
-        .map((n) => generateNodeCodeRecursive(n, nodes, edges, indent + '  ', processedNodes))
+        .map((n) => generateNodeCodeRecursive(n, allNodes, edges, indent + '  ', processedNodes))
         .filter(Boolean)
         .join('\n');
       
@@ -624,7 +629,7 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
           branchNodes.forEach((n) => processedNodes.add(n.id));
           
           const branchCode = branchNodes
-            .map((n) => generateNodeCode(n, indent + '  ', nodes))
+            .map((n) => generateNodeCode(n, indent + '  ', allNodes))
             .filter(Boolean)
             .join('\n');
           
@@ -656,7 +661,7 @@ const generateNestedFlowCode = (nodes: Node[], edges: Edge[], indent: string = '
         codeLines.push(`${indent}// Error parsing If node conditions`);
       }
     } else {
-      const code = generateNodeCode(node, indent, nodes);
+      const code = generateNodeCode(node, indent, allNodes);
       if (code) codeLines.push(code);
       
       const nextEdge = edges.find((e) => e.source === nodeId);
@@ -676,16 +681,47 @@ const generateFunctionDefinition = (node: Node): string => {
   const nodeData = node.data as EditableNodeData;
   const params = nodeData.params || {};
   const mode = nodeData.mode || nodeData.generation_type || 'definition';
-  const template = getNodeTemplate(nodeData.nodeType, mode);
+  const nodeType = nodeData.nodeType;
+  const template = getNodeTemplate(nodeType, mode);
+  
+  // Handle CustomFunction with dynamic parameters
+  if (nodeType === 'CustomFunction' && params.parameters) {
+    try {
+      const codeTemplate = params.code_template || '';
+      
+      // If code_template already contains 'export const', it's a complete function - use as is
+      if (codeTemplate.includes('export const') || codeTemplate.includes('export function')) {
+        return codeTemplate;
+      }
+      
+      // Otherwise, wrap the code body with function signature
+      const functionName = params.function_name || 'customFunction';
+      const codeBody = codeTemplate || '// Add your code here';
+      
+      // Parse parameters from JSON
+      const parameters = JSON.parse(params.parameters);
+      
+      const paramList = parameters
+        .map((p: { name: string; type: string; required?: boolean }) => {
+          const optionalMarker = p.required === false ? '?' : '';
+          return `${p.name}${optionalMarker}: ${p.type}`;
+        })
+        .join(', ');
+      
+      return `export const ${functionName} = (${paramList}) => {
+${codeBody}
+};`;
+    } catch (error) {
+      console.error('Error generating CustomFunction definition:', error);
+      return '// Error generating custom function';
+    }
+  }
   
   if (!template || !template.code_template) {
     return '';
   }
-  
-  // For definition mode, use code_template (might be in params for editable functions)
   const codeTemplate = params.code_template || template.code_template;
   
-  // Use the code_template from API, replace placeholders with params
   return processCodeTemplate(codeTemplate as string, params, '');
 };
 
@@ -703,28 +739,24 @@ export const generateTypeScriptCode = (
   }
   
   const nestedData = nestedCanvasData[handleTransactionNode.id];
-  const nestedCode = generateNestedFlowCode(nestedData.nodes, nestedData.edges, '  ');
+  const nestedCode = generateNestedFlowCode(nestedData.nodes, nestedData.edges, '  ', nodes);
   
-  // Helper function to check if a node is connected
   const isNodeConnected = (nodeId: string): boolean => {
     return edges.some((edge) => edge.source === nodeId || edge.target === nodeId);
   };
   
-  // Helper function to extract import statement from a node
   const extractImportStatement = (node: Node): string => {
     const params = (node.data as EditableNodeData).params || {};
     const rawImportStatement = params.importStatement || '';
     return stripVariableIndicators(rawImportStatement).trim();
   };
-  
-  // Extract and process Import nodes from main canvas
+
   const importNodes = nodes.filter((node) => node.data.nodeType === 'Import');
   const customImportStatements = importNodes
     .map(extractImportStatement)
     .filter(Boolean)
     .join('\n');
   
-  // Build complete imports section with base imports + custom imports
   const baseImports = `import { aql, type DatabaseManagerInstance, type LoggerService, type ManagerConfig } from '@tazama-lf/frms-coe-lib';
 import type { OutcomeResult, RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';`;
@@ -732,25 +764,26 @@ import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';`;
   const allImports = customImportStatements 
     ? `${baseImports}\n${customImportStatements}` 
     : baseImports;
-  
-  // Extract Function Definition nodes from main canvas (only if connected)
+
   const functionNodes = nodes.filter((node) => {
     const nodeData = node.data as EditableNodeData;
     const nodeType = nodeData.nodeType;
     const mode = nodeData.mode || nodeData.generation_type;
+    
+    if (nodeType === 'CustomFunction' && mode === 'definition' && isNodeConnected(node.id)) {
+      return true;
+    }
+    
     const template = getNodeTemplate(nodeType, mode);
     
-    // Only include function nodes in definition mode that are connected to the flow
     return template && template.isFunction === true && (mode === 'definition' || !mode) && isNodeConnected(node.id);
   });
   
-  // Generate function definitions
   const functionDefinitions = functionNodes
     .map((node) => generateFunctionDefinition(node))
     .filter(Boolean)
     .join('\n\n');
   
-  // Generate the complete code with functions before handleTransaction
   const code = `${allImports}
 ${functionDefinitions ? '\n' + functionDefinitions + '\n' : ''}
 export async function handleTransaction(

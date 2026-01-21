@@ -20,6 +20,7 @@ import {
   FunctionPropertiesSection,
   FunctionCallSection,
   AdvancedSection,
+  ParameterConfigSection,
 } from './components';
 import { useNodeValidation } from '../../../hooks/RuleBuilder/useNodeValidation';
 
@@ -172,10 +173,51 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     }
   }, [selectedNode, editingParams, onUpdateNode, validate]);
 
+  // Direct update handler for immediate param updates (e.g., from modal saves)
+  const handleDirectUpdate = useCallback(
+    (updatedParams: Record<string, string>) => {
+      // Clear any pending timeouts
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+        updateTimeoutRef.current = null;
+      }
+      if (validationTimeoutRef.current) {
+        clearTimeout(validationTimeoutRef.current);
+        validationTimeoutRef.current = null;
+      }
+      
+      // Update refs and state immediately
+      currentParamsRef.current = updatedParams;
+      setEditingParams(updatedParams);
+      
+      // Update node immediately
+      if (selectedNode) {
+        onUpdateNode(selectedNode.id, { params: updatedParams });
+        validate(updatedParams);
+      }
+    },
+    [selectedNode, onUpdateNode, validate]
+  );
+
   const handleParamChange = useCallback(
     (paramKey: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const newValue = event.target.value;
-      const updatedParams = { ...currentParamsRef.current, [paramKey]: newValue };
+      
+      // Check if this is a multi-update (for atomic updates of multiple params)
+      const target = event.target as HTMLInputElement & { dataset?: { multiUpdate?: string } };
+      let updatedParams: Record<string, string>;
+      
+      if (target.dataset?.multiUpdate) {
+        try {
+          const multiUpdate = JSON.parse(target.dataset.multiUpdate);
+          updatedParams = { ...currentParamsRef.current, ...multiUpdate };
+        } catch {
+          updatedParams = { ...currentParamsRef.current, [paramKey]: newValue };
+        }
+      } else {
+        updatedParams = { ...currentParamsRef.current, [paramKey]: newValue };
+      }
+      
       setEditingParams(updatedParams);
       
       // Debounce node updates - only update after 300ms of no typing
@@ -481,7 +523,17 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         />
       )}
 
-      {nodeData?.nodeType === 'If' ? (
+      {nodeData?.nodeType === 'CustomFunction' && mode === 'definition' ? (
+        <ParameterConfigSection
+          currentParams={currentParams}
+          onParamChange={handleParamChange}
+          onParamBlur={handleParamBlur}
+          onDirectUpdate={handleDirectUpdate}
+          isReadOnly={isReadOnly}
+          viewOnly={viewOnly}
+          getFieldError={getFieldError}
+        />
+      ) : nodeData?.nodeType === 'If' ? (
         <IfConditionEditor
           conditions={conditions}
           onConditionChange={handleConditionChange}
@@ -506,6 +558,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
           isReadOnly={isReadOnly}
           viewOnly={viewOnly}
           allNodes={allNodes}
+          nodeType={nodeData?.nodeType}
           getFieldError={getFieldError}
         />
       ) : (
