@@ -78,6 +78,38 @@ export const useLocalVariables = ({
           localVars[resultVar] = '{ }'; // Placeholder for function result
         }
       }
+
+      // Math Function nodes
+      if (nodeData?.nodeType === 'math') {
+        const resultVar = params.resultVar;
+        if (resultVar) {
+          localVars[resultVar] = '<number>'; // Math result
+        }
+      }
+
+      // String Function nodes
+      if (nodeData?.nodeType === 'stringFunc') {
+        const resultVar = params.resultVar;
+        if (resultVar) {
+          localVars[resultVar] = '<string>'; // String result
+        }
+      }
+
+      // Array Operation nodes
+      if (nodeData?.nodeType === 'arrayOp') {
+        const resultVar = params.resultVar;
+        if (resultVar) {
+          localVars[resultVar] = '<array | value>';
+        }
+      }
+
+      // length nodes
+      if (nodeData?.nodeType === 'length') {
+        const resultVar = params.resultVar;
+        if (resultVar) {
+          localVars[resultVar] = '<number>';
+        }
+      }
     });
 
     // Extract loop variables from parent loops (if node is in loop scope)
