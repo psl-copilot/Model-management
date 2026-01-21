@@ -103,6 +103,21 @@ export const useLocalVariables = ({
         }
       }
 
+      // Object Operation nodes
+      if (nodeData?.nodeType === 'objectOp') {
+        const resultVar = params.resultVar;
+        const operation = params.operation;
+        if (resultVar) {
+          if (operation === 'keys' || operation === 'values' || operation === 'entries') {
+            localVars[resultVar] = '<array>';
+          } else if (operation === 'hasOwnProperty') {
+            localVars[resultVar] = '<boolean>';
+          } else if (operation === 'assign' || operation === 'freeze' || operation === 'seal') {
+            localVars[resultVar] = '<object>';
+          }
+        }
+      }
+
       // length nodes
       if (nodeData?.nodeType === 'length') {
         const resultVar = params.resultVar;

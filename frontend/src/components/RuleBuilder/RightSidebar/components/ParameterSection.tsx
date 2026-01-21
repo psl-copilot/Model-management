@@ -147,6 +147,26 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             }
           }
 
+          // For Object Operation node, show/hide parameters based on operation
+          if (nodeType === 'objectOp') {
+            const operation = currentParams['operation'];
+            
+            // keys only for destructure
+            if (input.key === 'keys' && operation !== 'destructure') {
+              return null;
+            }
+            
+            // property only for hasOwnProperty
+            if (input.key === 'property' && operation !== 'hasOwnProperty') {
+              return null;
+            }
+            
+            // sourceObjects only for assign
+            if (input.key === 'sourceObjects' && operation !== 'assign') {
+              return null;
+            }
+          }
+
           // Skip returnValue if exitType is not 'return' (for Exit node)
           const exitType = currentParams['exitType'];
           if (input.key === 'returnValue' && exitType !== 'return') {

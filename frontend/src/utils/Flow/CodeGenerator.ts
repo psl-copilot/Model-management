@@ -140,6 +140,10 @@ const generateNodeCode = (node: Node, indent: string = '', allNodes?: Node[]): s
     return generateStringFuncCode(params, indent);
   }
 
+  if (nodeType === 'objectOp') {
+    return generateObjectOpCode(params, indent);
+  }
+
   // Handle function call nodes with dynamic parameters (call mode)
   if (mode === 'call' && nodeData.function_name) {
     const dynamicCode = generateFunctionCallCode(node, allNodes || [], indent);
@@ -285,6 +289,10 @@ const generateArrayOpCode = (params: Record<string, string>, indent: string): st
   const value = stripVariableIndicators(params.value || '');
   const resultVar = params.resultVar || 'arrayOpResult';
   
+  if (operation === 'length') {
+    return `${indent}const ${resultVar} = ${array}.length;`;
+  }
+  
   // Only push and concat need a value parameter
   const needsValue = operation === 'push' || operation === 'concat' || operation === 'findIndex';
   const operationCall = needsValue && value ? `${operation}(${value})` : `${operation}()`;
@@ -312,6 +320,10 @@ const generateStringFuncCode = (params: Record<string, string>, indent: string):
   const end = params.end || '';
   const resultVar = params.resultVar || 'stringResult';
   
+  if (method === 'length') {
+    return `${indent}const ${resultVar} = ${text}.length;`;
+  }
+  
   let methodCall = '';
   
   // Different string methods need different parameters
@@ -333,6 +345,29 @@ const generateStringFuncCode = (params: Record<string, string>, indent: string):
   }
   
   return `${indent}const ${resultVar} = ${text}.${methodCall};`;
+};
+
+const generateObjectOpCode = (params: Record<string, string>, indent: string): string => {
+  const operation = params.operation || 'keys';
+  const obj = stripVariableIndicators(params.object || 'obj');
+  const resultVar = params.resultVar || 'objectResult';
+  
+  if (operation === 'destructure') {
+    const keys = params.keys || 'prop1, prop2';
+    return `${indent}const { ${keys} } = ${obj};`;
+  }
+  
+  if (operation === 'hasOwnProperty') {
+    const property = params.property ? stripVariableIndicators(params.property) : 'prop';
+    return `${indent}const ${resultVar} = ${obj}.hasOwnProperty(${property});`;
+  }
+  
+  if (operation === 'assign') {
+    const sources = params.sourceObjects ? `, ${stripVariableIndicators(params.sourceObjects)}` : '';
+    return `${indent}const ${resultVar} = Object.assign(${obj}${sources});`;
+  }
+  
+  return `${indent}const ${resultVar} = Object.${operation}(${obj});`;
 };
 
 const generateFetchDBCode = (params: Record<string, string>, indent: string): string => {
