@@ -100,10 +100,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     const dragData = mode && mode !== 'undefined' ? `${nodeType}::${mode}` : nodeType;
     event.dataTransfer.setData('application/reactflow', dragData);
     event.dataTransfer.effectAllowed = 'move';
-    
-    if (import.meta.env.DEV) {
-      console.log('[LeftSidebar] onDragStart:', { nodeType, mode, dragData });
-    }
   };
 
   const showVariablesEmptyState = showGlobalVariables && activeTab === 2 && ruleRequestTree.length === 0 && ruleConfigTree.length === 0;

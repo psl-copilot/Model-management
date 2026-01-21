@@ -223,10 +223,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
       // Convert string "undefined" to actual undefined
       const mode = (rawMode === 'undefined' || rawMode === 'null' || rawMode === '') ? undefined : rawMode;
 
-      if (import.meta.env.DEV) {
-        console.log('[Canvas] onDrop:', { dragData, type, mode });
-      }
-
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,

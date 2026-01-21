@@ -16,10 +16,8 @@ import {
   FetchDBSection,
   IfConditionEditor,
   ParameterSection,
-  ConnectionInfoSection,
   FunctionPropertiesSection,
   FunctionCallSection,
-  AdvancedSection,
   ParameterConfigSection,
 } from './components';
 import { useNodeValidation } from '../../../hooks/RuleBuilder/useNodeValidation';
@@ -473,19 +471,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   const isFunctionCallNode = mode === 'call' && (nodeData?.function_name || template?.function_name || usesDynamicParameters(template));
   const isReadOnly = nodeData?.nodeType === 'Start' || nodeData?.nodeType === 'End';
 
-  // Debug logging for function call detection
-  if (import.meta.env.DEV && mode === 'call') {
-    console.log('[RightSidebar] Function call detection:', {
-      mode,
-      nodeData_function_name: nodeData?.function_name,
-      template_function_name: template?.function_name,
-      usesDynamicParameters: usesDynamicParameters(template),
-      isFunctionCallNode,
-      template,
-      nodeData
-    });
-  }
-
   return (
     <SidebarContainer collapsed={false}>
       <CloseButton size="small" onClick={onClose} aria-label="Close properties panel">
@@ -585,13 +570,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
         )
       )}
 
-      <ConnectionInfoSection 
-        template={{
-          displayName: template.displayName || template.label || 'Node',
-          handles: template.handles || { source: true, target: true }
-        }} 
-      />
-
       {isFunctionNode && template.description && (
         <FunctionPropertiesSection 
           template={{
@@ -599,8 +577,6 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
           }} 
         />
       )}
-
-      <AdvancedSection selectedNode={selectedNode} />
     </SidebarContainer>
   );
 };
