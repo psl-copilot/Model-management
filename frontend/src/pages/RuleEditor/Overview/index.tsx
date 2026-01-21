@@ -28,7 +28,34 @@ const Overview = (props: IOverviewProps) => {
             <Grid size={12} >
                 <Text color="text.ternary" size={'body'}>Basic information about this rule</Text>
             </Grid>
-
+            <Section header={'Configuration Association'} subHeader={'Associate this rule with transaction flow, network context, and typology definitions'}>
+                <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Controller
+                            control={values.control}
+                            name="rule_config_id"
+                            render={({ field }) => (
+                                <DropDown
+                                    required
+                                    label="Rule Config"
+                                    {...field}
+                                    onClick={functions.handleRuleConfig}
+                                    placeholder="Select Rule Config"
+                                    error={!values?.rule_config_id ? values.errors.rule_config_id?.message : ''}
+                                />
+                            )}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <DropDown
+                            value={null}
+                            label="Network Map"
+                            onClick={functions.handleNetworkMap}
+                            placeholder="View Network Map"
+                        />
+                    </Grid>
+                </Grid>
+            </Section>
             <Section header={'General Information'}>
                 <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -139,34 +166,7 @@ const Overview = (props: IOverviewProps) => {
 
 
             </Section>
-            <Section header={'Configuration Association'} subHeader={'Associate this rule with transaction flow, network context, and typology definitions'}>
-                <Grid container size={12} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Controller
-                            control={values.control}
-                            name="rule_config_id"
-                            render={({ field }) => (
-                                <DropDown
-                                    required
-                                    label="Rule Config"
-                                    {...field}
-                                    onClick={functions.handleRuleConfig}
-                                    placeholder="Select Rule Config"
-                                    error={!values?.rule_config_id ? values.errors.rule_config_id?.message : ''}
-                                />
-                            )}
-                        />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <DropDown
-                            value={null}
-                            label="Network Map"
-                            onClick={functions.handleNetworkMap}
-                            placeholder="View Network Map"
-                        />
-                    </Grid>
-                </Grid>
-            </Section>
+
             {!values?.isEdit ?
                 <Box mt={2} width={'100%'} display={'flex'} justifyContent={'flex-end'}>
                     <Button loading={values?.createLoading} height="40px" type="secondary" size="md" text="Save & Next" onClick={functions.handleSubmit} />
