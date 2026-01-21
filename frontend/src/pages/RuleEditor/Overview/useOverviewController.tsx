@@ -73,7 +73,8 @@ const useOverviewController = (props: IOverviewProps) => {
 
     const onSubmit = (values: RuleFormValues) => {
         const payload = {
-            ...values,
+            description: values?.description,
+            version: values?.version,
             txtp: values?.txtp?.value,
             rule_config_id: values?.rule_config_id?.value,
             rule_type: values?.rule_type?.value,
@@ -81,7 +82,7 @@ const useOverviewController = (props: IOverviewProps) => {
         }
         submit(payload).then((res) => {
             if (res) {
-                insertData(res?.data, 'trs_rule', LocalStorage, true)
+                insertData(res, 'trs_rule', LocalStorage, true)
                 toast.success('Rule Successfully Created')
                 enableNextTab()
             }
