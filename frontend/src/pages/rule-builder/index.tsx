@@ -306,6 +306,7 @@ const RuleBuilder: React.FC<RuleBuilderProps> = ({ viewOnly = false }) => {
               onSave={handleNestedCanvasSave}
               viewOnly={viewOnly}
               ruleId={ruleId}
+              mainCanvasNodes={flowState.allNodes}
             />
           )}
         </Box>
