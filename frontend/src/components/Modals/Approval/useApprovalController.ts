@@ -11,7 +11,7 @@ export interface IApproval {
 }
 
 interface IValues {
-    comments: string
+    comment: string
 }
 
 const message = {
@@ -92,7 +92,7 @@ const useApprovalController = (props: IApproval) => {
     const showCommentsField = !['review', 'pause', 'resume'].includes(type)
 
     const { handleSubmit, formState: { errors }, control } = useForm({
-        defaultValues: { comments: '' }
+        defaultValues: { comment: '' }
     })
 
     const [submit, { isLoading }] = useUpdateStatusMutation()
