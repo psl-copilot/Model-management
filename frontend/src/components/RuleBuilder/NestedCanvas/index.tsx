@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type { DragEvent } from 'react';
 import {
   ReactFlow,
@@ -37,6 +37,7 @@ interface NestedCanvasProps {
   onSave: (nodes: Node[], edges: Edge[]) => void;
   viewOnly?: boolean;
   ruleId?: string;
+  mainCanvasNodes?: Node[];
 }
 
 const NestedCanvas: React.FC<NestedCanvasProps> = ({
@@ -48,6 +49,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
   onSave,
   viewOnly = false,
   ruleId,
+  mainCanvasNodes = [],
 }) => {
   // Generate initial nodes and edges once using lazy initialization
   const [initialNodesEdges] = useState(() => {
@@ -137,6 +139,10 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
     nodesRef.current = nodes;
     edgesRef.current = edges;
   }, [nodes, edges]);
+  
+  const allNodes = useMemo(() => {
+    return [...mainCanvasNodes, ...nodes];
+  }, [mainCanvasNodes, nodes]);
   
   // Debounced auto-save: save 1 second after last change
   useEffect(() => {
@@ -506,7 +512,7 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
           selectedNode={selectedNode}
           onClose={handleCloseRightSidebar}
           onUpdateNode={handleNodeUpdate}
-          allNodes={nodes}
+          allNodes={allNodes}
           viewOnly={viewOnly}
         />
       </Box>

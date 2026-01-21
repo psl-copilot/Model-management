@@ -16,7 +16,7 @@ import { Box, Paper, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import EditableNode from '../EditableNode';
 import DebuggerPanel, { type DebugLog } from '../DebuggerPanel';
-import { getDefaultFlow } from '../../../utils/Flow/FlowDefaults';
+import { getDefaultFlow, extractCountersFromFlow } from '../../../utils/Flow/FlowDefaults';
 import {
   useCanvasNodeOperations,
   useCanvasEdgeOperations,
@@ -76,9 +76,14 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
   
   const getInitialFlow = React.useMemo(() => {
     if (initialDataRef.current.nodes && initialDataRef.current.edges) {
+      const nodes = initialDataRef.current.nodes as Node[];
+      const edges = initialDataRef.current.edges as Edge[];
+      
+      extractCountersFromFlow(nodes, edges, nestedCanvasData || {});
+      
       return {
-        nodes: initialDataRef.current.nodes as Node[],
-        edges: initialDataRef.current.edges as Edge[],
+        nodes,
+        edges,
       };
     }
     const defaultFlow = getDefaultFlow();

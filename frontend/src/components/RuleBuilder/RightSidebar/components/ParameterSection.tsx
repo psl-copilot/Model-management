@@ -1,9 +1,11 @@
 import React from 'react';
-import { TextField, Typography, Divider, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import { TextField, Typography, Divider, Select, MenuItem, FormControl, InputLabel, FormHelperText, Button, Box } from '@mui/material';
+import CodeIcon from '@mui/icons-material/Code';
 import type { Node } from '@xyflow/react';
 import type { NodeInput } from '../../../../utils/Templates/customFuncTemplate';
 import { PropertyRow, SectionContainer, SectionTitle } from '../styles';
 import CodeEditor from './CodeEditor';
+import CodeEditorModal from './CodeEditorModal';
 
 interface ParameterSectionProps {
   inputs: NodeInput[];
@@ -35,7 +37,32 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
   nodeType,
   getFieldError,
 }) => {
+  const [codeModalOpen, setCodeModalOpen] = React.useState(false);
+  const [editingCodeField, setEditingCodeField] = React.useState<{ key: string; label: string; value: string } | null>(null);
+
   if (!inputs || inputs.length === 0) return null;
+
+  const handleOpenCodeModal = (key: string, label: string, value: string) => {
+    setEditingCodeField({ key, label, value });
+    setCodeModalOpen(true);
+  };
+
+  const handleCloseCodeModal = () => {
+    setCodeModalOpen(false);
+    setEditingCodeField(null);
+  };
+
+  const handleSaveCode = (code: string) => {
+    if (editingCodeField) {
+      const syntheticEvent = {
+        target: { value: code }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onParamChange(editingCodeField.key)(syntheticEvent);
+      if (onParamBlur) {
+        onParamBlur();
+      }
+    }
+  };
 
   return (
     <>
@@ -291,7 +318,59 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             );
           }
 
-          // Render Monaco Editor for code fields
+          // Render Button to open Modal for code_template fields (function definitions)
+          if (input.key === 'code_template') {
+            const lineCount = currentValue ? (currentValue.match(/\n/g) || []).length + 1 : 0;
+            
+            return (
+              <PropertyRow key={input.key}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+                  <Typography variant="body2" fontWeight={500}>
+                    {input.label}
+                    {input.required && (
+                      <Typography component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                        *
+                      </Typography>
+                    )}
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    startIcon={<CodeIcon />}
+                    onClick={() => handleOpenCodeModal(input.key, input.label, currentValue)}
+                    disabled={isReadOnly || viewOnly}
+                    fullWidth
+                    sx={{
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      py: 1.5,
+                      borderStyle: 'dashed',
+                      '&:hover': {
+                        borderStyle: 'dashed',
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1 }}>
+                      <Typography variant="body2" fontWeight={500}>
+                        Edit Function Code
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {lineCount} lines of code
+                      </Typography>
+                    </Box>
+                  </Button>
+                  
+                  {hasError && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                      {fieldError}
+                    </Typography>
+                  )}
+                </Box>
+              </PropertyRow>
+            );
+          }
+
+          // Render Monaco Editor inline for other code fields (loopBody, query, etc.)
           if (isCodeField) {
             return (
               <PropertyRow
@@ -372,6 +451,18 @@ const ParameterSection: React.FC<ParameterSectionProps> = ({
             </PropertyRow>
           );
         })}
+        
+        {/* Code Editor Modal */}
+        {editingCodeField && (
+          <CodeEditorModal
+            open={codeModalOpen}
+            onClose={handleCloseCodeModal}
+            onSave={handleSaveCode}
+            initialValue={editingCodeField.value}
+            title={`Edit ${editingCodeField.label}`}
+            language="typescript"
+          />
+        )}
       </SectionContainer>
     </>
   );
