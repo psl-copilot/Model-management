@@ -212,10 +212,6 @@ const RuleBuilderCanvas: React.FC<CanvasProps> = ({
         mode = undefined;
       }
 
-      if (import.meta.env.DEV) {
-        console.log('[Canvas] onDrop:', { dragData, type, mode });
-      }
-
       const position = reactFlowInstance.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,

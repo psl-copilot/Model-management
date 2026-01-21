@@ -32,18 +32,6 @@ const BasicPropertiesSection: React.FC<BasicPropertiesSectionProps> = ({
         <PropertyRow>
           <TextField
             fullWidth
-            label="Node ID"
-            value={selectedNode.id}
-            size="small"
-            disabled
-            variant="outlined"
-            helperText="Unique identifier (read-only)"
-          />
-        </PropertyRow>
-
-        <PropertyRow>
-          <TextField
-            fullWidth
             label="Label"
             value={currentLabel}
             onChange={onLabelChange}

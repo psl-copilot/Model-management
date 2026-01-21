@@ -33,30 +33,14 @@ export const NodeHeader: React.FC<NodeHeaderProps> = ({
   return (
     <>
       <Typography
-        variant="caption"
         sx={{
+          fontSize: '0.875rem',
           fontWeight: 600,
-          color: 'text.secondary',
-          textTransform: 'uppercase',
-          fontSize: '0.7rem',
+          color: 'text.primary',
+          textAlign: 'center',
         }}
       >
         {displayName || nodeType}
-      </Typography>
-
-      <Typography
-        sx={{
-          fontSize: '0.875rem',
-          fontWeight: 500,
-          color: 'text.primary',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
-          padding: '6px 8px',
-          borderRadius: '4px',
-          border: '1px solid',
-          borderColor: 'divider',
-        }}
-      >
-        {label || displayName || 'Node'}
       </Typography>
     </>
   );

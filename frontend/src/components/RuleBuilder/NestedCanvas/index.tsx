@@ -8,13 +8,12 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
-  Panel,
   type ReactFlowInstance,
   type Connection,
 } from '@xyflow/react';
 import type { Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Box, Paper, Typography, IconButton, Button } from '@mui/material';
+import { Box, Paper, Typography, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditableNode from '../EditableNode';
 import LeftSidebar from '../LeftSidebar';
@@ -41,7 +40,6 @@ interface NestedCanvasProps {
 }
 
 const NestedCanvas: React.FC<NestedCanvasProps> = ({
-  nodeId,
   nodeLabel,
   initialNodes: providedInitialNodes,
   initialEdges: providedInitialEdges,
@@ -456,9 +454,6 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
             Define the internal logic for this function
           </Typography>
         </Box>
-        <Button variant="outlined" onClick={handleBack}>
-          Back to Main Canvas
-        </Button>
       </Paper>
 
       {/* Main Content with Sidebar and Canvas */}
@@ -489,20 +484,6 @@ const NestedCanvas: React.FC<NestedCanvasProps> = ({
             <Background />
             <Controls />
             <MiniMap />
-            <Panel position="top-right">
-              <Paper
-                elevation={2}
-                sx={{
-                  p: 1.5,
-                  backgroundColor: 'background.paper',
-                  borderRadius: 1,
-                }}
-              >
-                <Typography variant="caption" color="text.secondary">
-                  Nested Canvas: {nodeId}
-                </Typography>
-              </Paper>
-            </Panel>
           </ReactFlow>
         </Box>
 

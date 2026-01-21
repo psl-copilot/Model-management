@@ -1,8 +1,8 @@
 import React from 'react';
-import { TextField, Typography, Divider, Checkbox, FormControlLabel, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import { TextField, Typography, Divider, Checkbox, FormControlLabel, Select, MenuItem, FormControl, InputLabel, FormHelperText, Paper, Box } from '@mui/material';
 import type { Node } from '@xyflow/react';
 import { PropertyRow, SectionContainer, SectionTitle } from '../styles';
-import { getFunctionParameters, type FunctionParameter } from '../../../../utils/Flow/functionParameterUtils';
+import { getFunctionParameters, generateFunctionArgs, type FunctionParameter } from '../../../../utils/Flow/functionParameterUtils';
 
 interface FunctionCallSectionProps {
   functionName: string;
@@ -274,24 +274,25 @@ const FunctionCallSection: React.FC<FunctionCallSectionProps> = ({
           );
         })}
         <PropertyRow sx={{ mt: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-            Generated code: {' '}
-            {storeResult && (
-              <Typography component="span" variant="caption" color="primary.main">
-                const {currentParams['resultVariable'] || 'result'} = {' '}
-              </Typography>
-            )}
-            <Typography component="span" variant="caption" color="secondary.main">
-              {selectedFunctionName}(
-              {parameters.map((p, i) => (
-                <React.Fragment key={p.name}>
-                  {currentParams[p.name] || `<${p.name}>`}
-                  {i < parameters.length - 1 ? ', ' : ''}
-                </React.Fragment>
-              ))}
-              )
+          <Box sx={{ width: '100%' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+              Generated Code:
             </Typography>
-          </Typography>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 1.5,
+                bgcolor: 'grey.900',
+                color: 'grey.100',
+                fontFamily: 'monospace',
+                fontSize: '0.8rem',
+                overflow: 'auto',
+              }}
+            >
+              {storeResult && `const ${currentParams['resultVariable'] || 'result'} = `}
+              {selectedFunctionName}({generateFunctionArgs(parameters, currentParams)})
+            </Paper>
+          </Box>
         </PropertyRow>
       </SectionContainer>
     </>
