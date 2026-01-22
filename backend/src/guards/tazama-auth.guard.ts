@@ -13,8 +13,8 @@ import type {
   TazamaToken,
   ClaimValidationResult,
   AuthenticatedUser,
-} from './auth.types';
-import { CLAIMS_KEY, IS_PUBLIC_KEY, ANY_CLAIMS_KEY } from './auth.decorator';
+} from '../services/auth/auth.types';
+import { CLAIMS_KEY, IS_PUBLIC_KEY, ANY_CLAIMS_KEY } from '../decorators/auth.decorator';
 
 @Injectable()
 export class TazamaAuthGuard implements CanActivate {
@@ -35,10 +35,26 @@ export class TazamaAuthGuard implements CanActivate {
 
     const { requiredClaims, anyClaims } = this.getClaimsFromDecorators(context);
 
-    const validated = validateTokenAndClaims(token, [
-      ...requiredClaims,
-      ...anyClaims,
-    ]);
+    let validated: ClaimValidationResult;
+    try {
+      validated = validateTokenAndClaims(token, [
+        ...requiredClaims,
+        ...anyClaims,
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      
+      if (
+        err.name === 'TokenExpiredError' ||
+        err.message?.toLowerCase().includes('token expired') ||
+        err.message?.toLowerCase().includes('jwt expired')
+      ) {
+        this.logger.warn('Token has expired', logContext);
+        throw new UnauthorizedException('Token has expired. Please log in again.');
+      }
+      this.logger.error(`Token validation failed: ${err.message}`, logContext);
+      throw new UnauthorizedException('Token validation failed');
+    }
 
     const { status, valid, invalid } = this.evaluateClaimResult(
       requiredClaims,
@@ -100,10 +116,6 @@ export class TazamaAuthGuard implements CanActivate {
         context.getClass(),
       ]) ?? [];
 
-    if (requiredClaims.length === 0 && anyClaims.length === 0) {
-      throw new UnauthorizedException('No required claims specified');
-    }
-
     return { requiredClaims, anyClaims };
   }
 
@@ -113,6 +125,13 @@ export class TazamaAuthGuard implements CanActivate {
     validated: ClaimValidationResult,
     ctx: string,
   ): { status: boolean; valid: string[]; invalid: string[] } {
+    // If no claims specified on endpoint, allow authenticated users
+    if (required.length === 0 && any.length === 0) {
+      this.logger.log('No claims required for this endpoint, allowing authenticated user', ctx);
+      return { status: true, valid: [], invalid: [] };
+    }
+
+    // Check all required claims (must have ALL)
     if (required.length > 0) {
       const valid = required.filter((c) => validated[c]);
       const invalid = required.filter((c) => !validated[c]);
@@ -128,6 +147,7 @@ export class TazamaAuthGuard implements CanActivate {
       return { status: true, valid, invalid };
     }
 
+    // Check any claims (must have AT LEAST ONE)
     const valid = any.filter((c) => validated[c]);
     const invalid = any.filter((c) => !validated[c]);
 

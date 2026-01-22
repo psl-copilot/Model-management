@@ -18,15 +18,17 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly logger: LoggerService,
   ) {}
+
   @Post('login')
   @HttpCode(200)
   async login(
     @Body(new ValidationPipe({ whitelist: true, transform: true }))
     body: LoginDto,
-  ): Promise<{ message: string; token: string; expiresIn?: any }> {
+  ): Promise<{ message: string; token: string; expiresIn?: number }> {
     try {
       const result = await this.authService.login(body.username, body.password);
-      const response: any = {
+
+      const response: { token: string; message: string; expiresIn?: number } = {
         message: 'Login successful',
         token: result.token,
       };
@@ -35,24 +37,34 @@ export class AuthController {
       }
       return response;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        this.logger.warn(
-          `Authentication failed for user ${body.username}`,
-          AuthController.name,
-        );
-        throw error;
-      } else if (error instanceof ServiceUnavailableException) {
-        this.logger.error(
-          'Auth service unavailable during login attempt',
-          AuthController.name,
-        );
-        throw error;
-      } else {
-        this.logger.error('Unexpected error during login', AuthController.name);
-        throw new InternalServerErrorException(
-          'An unexpected error occurred during login',
-        );
-      }
+      this.handleLoginError(error, body.username);
     }
+  }
+
+  private handleLoginError(error: unknown, username: string): never {
+    if (error instanceof UnauthorizedException) {
+      this.logger.warn(
+        `Authentication failed for user ${username}`,
+        AuthController.name,
+      );
+      throw error;
+    }
+    
+    if (error instanceof ServiceUnavailableException) {
+      this.logger.error(
+        'Auth service unavailable during login attempt',
+        AuthController.name,
+      );
+      throw error;
+    }
+    
+    const err = error as Error;
+    this.logger.error(
+      `Unexpected error during login: ${err.message}`,
+      AuthController.name,
+    );
+    throw new InternalServerErrorException(
+      'An unexpected error occurred during login',
+    );
   }
 }
